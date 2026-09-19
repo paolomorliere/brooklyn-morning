@@ -1,0 +1,26 @@
+# dependencies / build
+node_modules/
+dist/
+dev-dist/
+.vite/
+
+# tests
+test-results/
+playwright-report/
+e2e/screenshots/*.png
+
+# personal data — never commit
+about-me.md
+*about-me*
+anti-ai-writing-style.md
+fixtures/local/
+*.backup.json
+brooklyn-morning-backup*.json
+
+# system / editor
+.DS_Store
+*.log
+.env
+.env.*
+.idea/
+.vscode/
