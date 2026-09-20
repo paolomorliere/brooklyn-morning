@@ -35,6 +35,9 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 
 - Deployed 2026-09-20 to https://paolomorliere.github.io/brooklyn-morning/ — manifest, SW, edition, catalog, lessons all served; smoke test passed. Tests: 38 Vitest, 48 Playwright.
 
+- Round 2 (2026-09-20, Paolo's feedback): daily quote (120 curated, `public/data/quotes.json`); slot rules (1 politics + 1 finance + 1 markets; ≥1 France; NCAA first, east then west) + subject diversity in the top 3 + cross-topic dedupe + publisher/language caps; new feeds (CNBC Markets/Finance, MarketWatch, Guardian markets, NPR Economy, CWPA, LIU m/w, Harvard, Navy, Fordham, UCSD; school feeds gated on "water polo"); story thumbnails from feed media/og:image (84 px, hidden on error); "Stock in focus" rules-based S&P 100 screen via Yahoo chart endpoint (Mon–Fri pick, Sat–Sun scoreboard from open on pick day; log in `state/stocks.json`; labeled not a recommendation); lessons start on the first Monday on/after install (epoch 2026-09-21), placeholder before; Sunday quiz (20 MCQ × 8 weeks, shuffled, `#/quiz` screen, scores stored); To Do priority filter; groceries: fuzzy head-noun search, catalog 4,401 products incl. Giotto's/José's/Ming's/Jacques', seafood/beverage aisle fixes, product detail screen `#/product/:id` (OFF live data cached 30 d, Open Prices when present, labeled aisle estimate), tap = details / + = add, steppers in search results, Favorites → Discover → Buy again always visible with dividers, per-item hide/delete history.
+- Tests: 44 Vitest, 60 Playwright (20 specs × 3 viewports).
+
 ## In progress
 - Phase 6: confirm the first *scheduled* edition run (cron 09:50 UTC = 5:50 AM EDT on 2026-09-21); Paolo installs on iPhone and runs the checklist in README.
 

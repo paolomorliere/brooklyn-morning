@@ -2,19 +2,47 @@ import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
 import type { Product } from '@/types';
 import { validateCatalog, type CatalogFile, type CatalogMeta } from '@/lib/catalog';
 
+export interface ProductDetail {
+  id: string;
+  fetchedAt: string;
+  found: boolean;
+  name?: string;
+  brands?: string;
+  quantity?: string;
+  servingSize?: string;
+  ingredients?: string;
+  allergens?: string[];
+  traces?: string[];
+  labels?: string[];
+  categories?: string[];
+  nutriscore?: string;
+  nova?: number;
+  nutriments?: Record<string, number>;
+  imageFull?: string | null;
+  imageIngredients?: string | null;
+  imageNutrition?: string | null;
+  stores?: string[];
+  lastModified?: string;
+  prices?: { price: number; currency: string; date: string; store: string }[];
+}
+
 interface CatalogDB extends DBSchema {
   products: { key: string; value: Product };
   meta: { key: string; value: { key: string; value: unknown } };
+  details: { key: string; value: ProductDetail };
 }
 
 const NAME = 'brooklyn-catalog';
 let dbp: Promise<IDBPDatabase<CatalogDB>> | null = null;
 
 function db() {
-  dbp ??= openDB<CatalogDB>(NAME, 1, {
-    upgrade(d) {
-      d.createObjectStore('products', { keyPath: 'id' });
-      d.createObjectStore('meta', { keyPath: 'key' });
+  dbp ??= openDB<CatalogDB>(NAME, 2, {
+    upgrade(d, oldVersion) {
+      if (oldVersion < 1) {
+        d.createObjectStore('products', { keyPath: 'id' });
+        d.createObjectStore('meta', { keyPath: 'key' });
+      }
+      if (oldVersion < 2) d.createObjectStore('details', { keyPath: 'id' });
     },
   });
   return dbp;
@@ -93,4 +121,62 @@ export async function syncCatalog(base: string, force = false): Promise<CatalogS
     await setStatus({ lastCheckedAt: new Date().toISOString(), lastError: (e as Error).message });
   }
   return catalogStatus();
+}
+
+export async function getProduct(id: string): Promise<Product | undefined> {
+  return (await db()).get('products', id);
+}
+
+const DETAIL_TTL_MS = 30 * 86400e3;
+const OFF_FIELDS = 'product_name,brands,quantity,serving_size,ingredients_text_en,ingredients_text,allergens_tags,traces_tags,labels_tags,categories_tags,nutriscore_grade,nova_group,nutriments,image_front_url,image_ingredients_url,image_nutrition_url,stores_tags,last_modified_t';
+const tag = (t: string) => t.replace(/^[a-z]{2}:/, '').replace(/-/g, ' ');
+
+/** Product details from Open Food Facts (and any crowd-reported prices from Open Prices), cached for 30 days. */
+export async function productDetail(id: string, force = false): Promise<ProductDetail> {
+  const d = await db();
+  const cached = await d.get('details', id);
+  if (cached && !force && Date.now() - new Date(cached.fetchedAt).getTime() < DETAIL_TTL_MS) return cached;
+  let detail: ProductDetail = { id, fetchedAt: new Date().toISOString(), found: false };
+  try {
+    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(id)}.json?fields=${OFF_FIELDS}`, { signal: AbortSignal.timeout(12_000) });
+    if (r.ok) {
+      const j = (await r.json()) as { status: number; product?: Record<string, unknown> };
+      const p = j.product;
+      if (j.status === 1 && p) {
+        const n = (p.nutriments ?? {}) as Record<string, number>;
+        const pick = (keys: string[]) => Object.fromEntries(keys.filter((k) => typeof n[k] === 'number').map((k) => [k, n[k]]));
+        detail = {
+          id,
+          fetchedAt: detail.fetchedAt,
+          found: true,
+          name: p.product_name as string,
+          brands: p.brands as string,
+          quantity: p.quantity as string,
+          servingSize: p.serving_size as string,
+          ingredients: ((p.ingredients_text_en as string) || (p.ingredients_text as string) || '').trim(),
+          allergens: ((p.allergens_tags as string[]) ?? []).map(tag),
+          traces: ((p.traces_tags as string[]) ?? []).map(tag),
+          labels: ((p.labels_tags as string[]) ?? []).map(tag),
+          categories: ((p.categories_tags as string[]) ?? []).map(tag).slice(-4),
+          nutriscore: p.nutriscore_grade as string,
+          nova: p.nova_group as number,
+          nutriments: pick(['energy-kcal_100g', 'fat_100g', 'saturated-fat_100g', 'carbohydrates_100g', 'sugars_100g', 'fiber_100g', 'proteins_100g', 'salt_100g', 'energy-kcal_serving']),
+          imageFull: (p.image_front_url as string) ?? null,
+          imageIngredients: (p.image_ingredients_url as string) ?? null,
+          imageNutrition: (p.image_nutrition_url as string) ?? null,
+          stores: ((p.stores_tags as string[]) ?? []).map(tag),
+          lastModified: p.last_modified_t ? new Date((p.last_modified_t as number) * 1000).toISOString() : undefined,
+        };
+      }
+    }
+  } catch { /* offline or blocked: keep found=false; caller shows the catalog copy */ }
+  try {
+    const r = await fetch(`https://prices.openfoodfacts.org/api/v1/prices?product_code=${encodeURIComponent(id)}&size=5&order_by=-date`, { signal: AbortSignal.timeout(8_000) });
+    if (r.ok) {
+      const j = (await r.json()) as { items?: { price: number; currency: string; date: string; location?: { osm_name?: string } }[] };
+      detail.prices = (j.items ?? []).map((it) => ({ price: it.price, currency: it.currency, date: it.date, store: it.location?.osm_name ?? 'unknown store' }));
+    }
+  } catch { /* optional */ }
+  if (detail.found || detail.prices?.length) await d.put('details', detail);
+  return detail;
 }

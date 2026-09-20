@@ -8,38 +8,70 @@ const waitCatalog = async (page: Page) => {
   await expect(search(page)).toHaveAttribute('placeholder', /Search Trader Joe/, { timeout: 20_000 });
 };
 
-test('state 1 → 2 → 3: first use, list, then buy-again/discover', async ({ page }) => {
+test('list → check-off → Buy again / Discover; sections stay visible and separated', async ({ page }) => {
   await fresh(page);
-  await expect(page.getByText('Your list is empty')).toBeVisible();
+  await expect(page.getByText('Search a product above')).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Buy again' })).toHaveCount(0);
   await waitCatalog(page);
 
-  // Add a catalog product twice → qty 2, "On list" badge.
   await search(page).fill('sourdough');
-  const first = page.locator('button.result').first();
-  const name = (await first.locator('.result-name').textContent())!.trim();
-  await first.click();
-  await expect(first.getByText(/On list ×1/)).toBeVisible();
-  await first.click();
-  await expect(first.getByText(/On list ×2/)).toBeVisible();
+  const row = page.locator('li.result-row').first();
+  const name = (await row.locator('.result-name').textContent())!.trim();
+  await row.getByRole('button', { name: `Add ${name}`, exact: true }).click();
+  await expect(row.getByLabel('Quantity 1')).toBeVisible();
+  await row.getByRole('button', { name: `Increase ${name}` }).click();
+  await expect(row.getByLabel('Quantity 2')).toBeVisible();
+  // Remove straight from the search results.
+  await row.getByRole('button', { name: `Decrease ${name}` }).click();
+  await row.getByRole('button', { name: `Decrease ${name}` }).click();
+  await expect(row.getByRole('button', { name: `Add ${name}`, exact: true })).toBeVisible();
+  await row.getByRole('button', { name: `Add ${name}`, exact: true }).click();
   await page.getByRole('button', { name: 'Clear search' }).click();
-  await expect(page.getByText(name, { exact: true })).toBeVisible();
-  await expect(page.getByLabel('Quantity 2')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Buy again' })).toHaveCount(0); // hidden while list has items
 
-  // Check off → list empty + history exists → state 3.
+  await expect(page.locator('.gitem .result-name', { hasText: name })).toBeVisible();
   await page.getByRole('checkbox', { name: `Got ${name}` }).click();
   await expect(page.getByText('List is clear')).toBeVisible();
+  const headings = await page.locator('.section-title h2').allInnerTexts();
+  expect(headings.indexOf('Discover') === -1 || headings.indexOf('Discover') < headings.indexOf('Buy again')).toBe(true);
   await expect(page.getByRole('heading', { name: 'Buy again' })).toBeVisible();
-  await expect(page.locator('.buyagain button', { hasText: name })).toBeVisible();
-  const discoverCards = page.locator('.discover');
-  expect(await discoverCards.count()).toBeLessThanOrEqual(3);
-  // Discover never shows the item already bought.
-  await expect(discoverCards.filter({ hasText: name })).toHaveCount(0);
+  const card = page.locator('.buyagain .card-wrap', { hasText: name });
+  await expect(card).toBeVisible();
+  expect(await page.locator('.discover').count()).toBeLessThanOrEqual(3);
+  await expect(page.locator('.discover').filter({ hasText: name })).toHaveCount(0);
 
-  // Buy again puts it straight back on the list (state 2 again).
-  await page.locator('.buyagain button', { hasText: name }).click();
-  await expect(page.getByText(name, { exact: true })).toBeVisible();
+  // + on the Buy again card puts it back; the card then disappears from Buy again (it is on the list).
+  await card.getByRole('button', { name: `Add ${name}`, exact: true }).click();
+  await expect(page.locator('.gitem .result-name', { hasText: name })).toBeVisible();
+  await expect(page.locator('.buyagain .card-wrap', { hasText: name })).toHaveCount(0);
+});
+
+test('product detail opens from a search result and can add from there', async ({ page }) => {
+  await fresh(page);
+  await waitCatalog(page);
+  await search(page).fill('unexpected cheddar');
+  const row = page.locator('li.result-row').first();
+  const name = (await row.locator('.result-name').textContent())!.trim();
+  await row.getByRole('button', { name: `Details for ${name}` }).click();
+  await expect(page).toHaveURL(/#\/product\//);
+  await expect(page.getByRole('heading', { level: 1, name: new RegExp(name.slice(0, 12), 'i') })).toBeVisible();
+  await expect(page.getByText(/Rough estimate for the|Reported by a shopper/)).toBeVisible();
+  await page.getByRole('button', { name: 'Add to list' }).click();
+  await expect(page.getByLabel('Quantity 1')).toBeVisible();
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.locator('.gitem .result-name', { hasText: name })).toBeVisible();
+});
+
+test('a single item can be removed from Buy again history', async ({ page }) => {
+  await fresh(page);
+  await page.getByRole('button', { name: 'Add other item' }).click();
+  await page.getByLabel('Item name').fill('Bananas');
+  await page.getByRole('button', { name: 'Add to list' }).click();
+  await page.getByRole('checkbox', { name: 'Got Bananas' }).click();
+  const card = page.locator('.buyagain .card-wrap', { hasText: 'Bananas' });
+  await expect(card).toBeVisible();
+  await card.getByRole('button', { name: 'Options for Bananas' }).click();
+  await page.getByRole('button', { name: /Delete its history/ }).click();
+  await expect(page.locator('.buyagain .card-wrap', { hasText: 'Bananas' })).toHaveCount(0);
   await expect(page.getByRole('heading', { name: 'Buy again' })).toHaveCount(0);
 });
 
@@ -98,9 +130,9 @@ test('broken product images fall back to a placeholder', async ({ page }) => {
   await fresh(page);
   await waitCatalog(page);
   await search(page).fill('peanut butter');
-  const row = page.locator('button.result').first();
+  const row = page.locator('li.result-row').first();
   await expect(row).toBeVisible();
-  await expect(row.locator('.thumb svg')).toBeVisible({ timeout: 10_000 });
+  await expect(row.locator('.thumb svg').first()).toBeVisible({ timeout: 10_000 });
   await expect(row.locator('.thumb img')).toHaveCount(0);
 });
 
@@ -108,7 +140,7 @@ test('works offline after first load (list persisted, catalog cached)', async ({
   await fresh(page);
   await waitCatalog(page);
   await search(page).fill('cheddar');
-  await page.locator('button.result').first().click();
+  await page.locator('li.result-row').first().locator('.add-btn').click();
   await page.getByRole('button', { name: 'Clear search' }).click();
   await context.setOffline(true);
   await page.reload().catch(() => {});
@@ -118,9 +150,9 @@ test('works offline after first load (list persisted, catalog cached)', async ({
   await page.goto('/?fixtures=1&seed=none#/groceries');
   await context.setOffline(true);
   await page.evaluate(() => { location.hash = '#/todo'; location.hash = '#/groceries'; });
-  await expect(page.getByLabel('Quantity 1')).toBeVisible();
+  await expect(page.locator('.gitem').getByLabel('Quantity 1')).toBeVisible();
   await search(page).fill('cheddar');
-  await expect(page.locator('button.result').first()).toBeVisible();
+  await expect(page.locator('li.result-row').first()).toBeVisible();
   await context.setOffline(false);
 });
 
@@ -128,7 +160,7 @@ test('favorites: star fills, item appears in Favorites, tap adds to list, unstar
   await fresh(page);
   await waitCatalog(page);
   await search(page).fill('sourdough');
-  const row = page.locator('li', { has: page.locator('button.result') }).first();
+  const row = page.locator('li.result-row').first();
   const name = (await row.locator('.result-name').textContent())!.trim();
   const star = row.getByRole('button', { name: `Add ${name} to Favorites` });
   await star.click();

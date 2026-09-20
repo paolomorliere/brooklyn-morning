@@ -26,8 +26,11 @@ First-run checklist on the phone:
 - Glossary terms: [`public/data/glossary.json`](public/data/glossary.json).
 - Rebuild today's edition by hand: **Actions → Morning edition → Run workflow** (tick *force* to replace an existing one).
 
+### Stock in focus
+Monday–Friday the edition names one S&P 100 stock chosen by a fixed, published rule (above 20-day average, positive 5-day return, ranked by 5- and 20-day return, volume vs. average, and mentions in the day's finance/AI headlines; nothing repeated within 10 trading days). Saturday and Sunday show the week's scoreboard: equal amounts bought at the open on each pick day, valued at the latest close, combined and per stock. It is a mechanical screen on past prices, **not a recommendation**; prices come from Yahoo Finance's public endpoint, which is unofficial and may break (the card then says so). Rule: `scripts/lib/stocks.mjs`; log: `state/stocks.json`.
+
 ## Lessons
-- 8 weeks × 7 lessons ship at launch (stock market ×2, history, AI without code, geography, cooking, data literacy, everyday economics). Weeks run Monday–Sunday from the Monday of the week you installed.
+- 8 weeks × 7 lessons ship at launch (stock market ×2, history, AI without code, geography, cooking, data literacy, everyday economics). Weeks run Monday–Sunday and start on the first Monday on or after install (a placeholder shows until then). Every Sunday also has a 20-question multiple-choice quiz on the week, on its own screen, with score and corrections.
 - To add a week: copy `scripts/lessons/week-08.mjs` to `week-09.mjs`, write 7 lessons, run `node scripts/build-lessons.mjs`, commit. The phone downloads new weeks automatically the next time it fetches the edition. Nothing to do on the phone.
 - When the sequence runs past the last week, the card is labeled **Review week** and revisits earlier weeks. It never presents old content as new.
 - Schema and rules: [`public/data/lessons/README.md`](public/data/lessons/README.md).

@@ -82,6 +82,17 @@ export async function removeFromList(id: string): Promise<void> {
   await (await personalDB()).delete('list', id);
 }
 
+/** Delete every history event for one item (by product id, or by name for "other" items). */
+export async function deleteHistoryFor(key: string): Promise<number> {
+  const db = await personalDB();
+  const tx = db.transaction('history', 'readwrite');
+  const all = await tx.store.getAll();
+  let n = 0;
+  for (const h of all) if (favoriteKey(h) === key) { tx.store.delete(h.id); n++; }
+  await tx.done;
+  return n;
+}
+
 export async function clearHistory(): Promise<void> {
   await (await personalDB()).clear('history');
 }

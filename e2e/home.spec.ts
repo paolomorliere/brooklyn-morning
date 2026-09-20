@@ -5,7 +5,12 @@ const fresh = async (page: Page) => {
 };
 
 test('renders the edition with honest labels and a lesson', async ({ page }) => {
+  // Lessons run Mon–Sun from the first Monday after install. Install on Sunday 2026-09-20, then read on Tuesday.
+  await page.clock.setFixedTime(new Date(2026, 8, 20, 8, 0, 0));
   await fresh(page);
+  await expect(page.locator('section.lesson')).toBeVisible({ timeout: 15_000 });
+  await page.clock.setFixedTime(new Date(2026, 8, 22, 8, 0, 0));
+  await page.reload();
   await expect(page.getByRole('heading', { name: 'Brooklyn Morning' })).toBeVisible();
   await expect(page.locator('.masthead-meta .pill').first()).toHaveText(/Prepared|From/);
   await expect(page.locator('.story').first()).toBeVisible({ timeout: 15_000 });
@@ -23,6 +28,26 @@ test('renders the edition with honest labels and a lesson', async ({ page }) => 
   await expect(lesson.locator('.lesson-answer')).toBeVisible();
   await lesson.getByRole('button', { name: 'Mark as read' }).click();
   await expect(lesson.getByRole('button', { name: 'Read ✓' })).toBeVisible();
+});
+
+test('before the first Monday the lesson card says when it starts; Sunday shows the quiz and scores it', async ({ page }) => {
+  await page.clock.setFixedTime(new Date(2026, 8, 20, 8, 0, 0)); // Sunday before the epoch
+  await fresh(page);
+  await expect(page.locator('section.lesson').getByText('Starts Monday')).toBeVisible({ timeout: 15_000 });
+  await page.clock.setFixedTime(new Date(2026, 8, 27, 8, 0, 0)); // first Sunday
+  await page.reload();
+  const lesson = page.locator('section.lesson');
+  await expect(lesson.getByText(/Day 7 of 7/)).toBeVisible({ timeout: 15_000 });
+  await lesson.getByRole('button', { name: 'Start the quiz' }).click();
+  await expect(page).toHaveURL(/#\/quiz/);
+  for (let i = 0; i < 20; i++) {
+    await page.getByRole('radio').first().click();
+    await page.getByRole('button', { name: i === 19 ? 'See my score' : 'Next' }).click();
+  }
+  await expect(page.getByRole('heading', { name: /\d+ \/ 20/ })).toBeVisible();
+  await expect(page.locator('li.card')).toHaveCount(20);
+  await page.getByRole('button', { name: 'Back to Morning', exact: true }).click();
+  await expect(lesson.getByText(/Your score: \d+ \/ 20/)).toBeVisible();
 });
 
 test('opening paragraphs expand with their own label; glossary chips explain terms', async ({ page }) => {

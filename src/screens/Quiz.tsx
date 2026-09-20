@@ -105,7 +105,7 @@ export function Quiz() {
 function Header() {
   return (
     <header class="screen-header" style="align-items:center">
-      <button class="icon-btn" aria-label="Back to Morning" onClick={() => navigate('home')} style="margin-left:-12px"><ChevronLeft size={24} /></button>
+      <button class="icon-btn" aria-label="Back" onClick={() => navigate('home')} style="margin-left:-12px"><ChevronLeft size={24} /></button>
       <h1 style="flex:1;font-size:var(--fs-22)">Sunday quiz</h1>
     </header>
   );

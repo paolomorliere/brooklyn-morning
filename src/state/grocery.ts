@@ -62,6 +62,11 @@ export const groceryActions = {
     await reloadPersonal();
     return now;
   },
+  async deleteHistoryFor(key: string) {
+    const n = await repo.deleteHistoryFor(key);
+    await reloadPersonal();
+    return n;
+  },
   async clearHistory() {
     await repo.clearHistory();
     await reloadPersonal();

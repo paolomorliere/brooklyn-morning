@@ -9,6 +9,8 @@ import { sectionFor, tagsFor } from './lib/sections.mjs';
 
 const UA = 'BrooklynMorning/0.1 (personal grocery-list app; contact via GitHub)';
 const BASE = 'https://search.openfoodfacts.org/search';
+// Trader Joe's house brands share the same shelves. Aldi Nord's German "Trader Joe's" is filtered out separately.
+const BRAND_TAGS = ['trader-joe-s', 'trader-joes', 'trader-joe', 'trader-giotto-s', 'trader-jose-s', 'trader-ming-s', 'trader-jacques'];
 const FIELDS = 'code,product_name,product_name_en,quantity,categories_tags,image_front_small_url,brands,last_modified_t,lang,countries_tags';
 const PAGE_SIZE = 100;
 const DELAY_MS = 350;
@@ -18,8 +20,8 @@ const dryRun = args.includes('--dry-run');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-async function fetchPage(page, attempt = 0) {
-  const url = `${BASE}?q=brands_tags:trader-joe-s&page_size=${PAGE_SIZE}&page=${page}&fields=${FIELDS}`;
+async function fetchPage(page, brand = 'trader-joe-s', attempt = 0) {
+  const url = `${BASE}?q=brands_tags:${brand}&page_size=${PAGE_SIZE}&page=${page}&fields=${FIELDS}`;
   try {
     const r = await fetch(url, { headers: { 'user-agent': UA }, signal: AbortSignal.timeout(20_000) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -27,9 +29,9 @@ async function fetchPage(page, attempt = 0) {
   } catch (e) {
     if (attempt < 2) {
       await sleep(1500 * (attempt + 1));
-      return fetchPage(page, attempt + 1);
+      return fetchPage(page, brand, attempt + 1);
     }
-    throw new Error(`page ${page}: ${e.message}`);
+    throw new Error(`${brand} page ${page}: ${e.message}`);
   }
 }
 
@@ -68,15 +70,20 @@ function isUSEnglish(h) {
 }
 
 async function main() {
-  const first = await fetchPage(1);
-  const pageCount = Math.min(first.page_count, maxPages);
-  console.log(`Open Food Facts reports ${first.count} Trader Joe's records across ${first.page_count} pages; fetching ${pageCount}.`);
-  const hits = [...first.hits];
-  for (let p = 2; p <= pageCount; p++) {
+  const hits = [];
+  const seenCodes = new Set();
+  for (const brand of BRAND_TAGS) {
+    const first = await fetchPage(1, brand);
+    const pageCount = Math.min(first.page_count, maxPages);
+    console.log(`${brand}: ${first.count} records, ${first.page_count} pages; fetching ${pageCount}.`);
+    const pages = [first];
+    for (let p = 2; p <= pageCount; p++) {
+      await sleep(DELAY_MS);
+      pages.push(await fetchPage(p, brand));
+      if (p % 10 === 0) console.log(`  page ${p}/${pageCount}`);
+    }
+    for (const d of pages) for (const h of d.hits) if (!seenCodes.has(h.code)) { seenCodes.add(h.code); hits.push(h); }
     await sleep(DELAY_MS);
-    const d = await fetchPage(p);
-    hits.push(...d.hits);
-    if (p % 10 === 0) console.log(`  page ${p}/${pageCount}`);
   }
 
   const stats = { raw: hits.length, noName: 0, notTJ: 0, dupes: 0, tooShort: 0, kept: 0, withImage: 0, withSize: 0, withTags: 0, bySection: {} };
