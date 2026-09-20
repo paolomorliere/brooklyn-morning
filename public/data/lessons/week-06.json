@@ -1,0 +1,147 @@
+{
+ "schemaVersion": 1,
+ "week": 6,
+ "theme": "Cooking fundamentals",
+ "lessons": [
+  {
+   "id": "week-06-d1",
+   "week": 6,
+   "day": 1,
+   "theme": "Cooking fundamentals",
+   "title": "Salt: when, how much, and why",
+   "explanation": [
+    "Salt does more than make food salty. It suppresses bitterness, amplifies sweetness and aroma, draws water out of vegetables, and helps meat hold moisture. Most home cooking is under-salted, and salt added at the end sits on the surface rather than seasoning the food through.",
+    "Season in layers: a little when you start (onions in the pan), taste and adjust as you go, and finish with a small pinch for contrast. For pasta and vegetables, salt the water generously; the food absorbs only a fraction. For meat, salt well before cooking (45 minutes to overnight in the fridge for a roast or chicken) so the salt dissolves and travels inward.",
+    "Kinds of salt differ mainly in crystal size, which changes how much fits in a spoon. A teaspoon of fine table salt is roughly twice as salty as a teaspoon of flaky salt. Pick one for everyday cooking and learn what a pinch of it does."
+   ],
+   "example": [
+    "Two pots of the same soup. One is salted only at the table; it tastes flat, then suddenly salty. The other had salt added with the onions, again with the stock, and a final adjustment before serving; it tastes rounder and fuller with the same total amount. Timing, not quantity, made the difference."
+   ],
+   "exercise": {
+    "prompt": "You are roasting a whole chicken tonight. When should you salt it, and roughly how?",
+    "answer": "Ideally this morning or at least 45 minutes before: season all over, including inside, with about a teaspoon of fine salt per kilo, and leave it uncovered in the fridge. The skin dries (crisper) and the salt seasons the meat inside."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d2",
+   "week": 6,
+   "day": 2,
+   "theme": "Cooking fundamentals",
+   "title": "Heat: the pan, the oil, and the sear",
+   "explanation": [
+    "Browning is flavor. The Maillard reaction (between proteins and sugars, above roughly 140°C / 285°F) and caramelization (sugars, hotter still) create the savory, complex tastes of a seared steak, roasted vegetables, or toasted bread. Both need heat and a dry surface; water caps the temperature at 100°C and steams instead of browning.",
+    "Three rules follow. Heat the pan before the food goes in; a cold pan makes food stick and steam. Do not crowd the pan; too much food releases too much water and drops the temperature. Pat food dry and leave it alone: if it sticks, it is not ready to move yet.",
+    "Oils have a smoke point. Butter and extra-virgin olive oil burn at high heat, so use neutral oils (canola, grapeseed, refined avocado) for searing and add butter or good olive oil at the end for flavor. Nonstick pans are for eggs and delicate fish; cast iron or stainless steel take the high heat a proper sear needs."
+   ],
+   "example": [
+    "Mushrooms are the classic demonstration. Crowd a pan with a full pack and they release water, boil in it, and turn grey and rubbery. Cook them in two batches in a hot pan with room to breathe and they brown, shrink, and taste intensely of mushroom. Same ingredient, same pan."
+   ],
+   "exercise": {
+    "prompt": "Chicken thighs went into the pan and stuck immediately, then tore when you tried to flip them. Name two likely mistakes.",
+    "answer": "The pan was not hot enough before the chicken went in, and/or you moved the chicken too early. A properly seared piece releases on its own once a crust forms."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d3",
+   "week": 6,
+   "day": 3,
+   "theme": "Cooking fundamentals",
+   "title": "Acid and fat: the balance that makes food taste finished",
+   "explanation": [
+    "If a dish tastes like it is missing something and salt does not fix it, it usually needs acid. A squeeze of lemon, a splash of vinegar, a spoon of yogurt or mustard brightens flavors and cuts through richness. Restaurants finish almost everything with acid; home cooks rarely do.",
+    "Fat carries flavor and gives satisfaction. Butter, olive oil, cream, cheese, the fat in meat: it coats the tongue and rounds sharp edges. Too little and food tastes thin; too much and it tastes heavy, which is where acid comes back in.",
+    "Think of salt, fat, acid, and heat as four dials. A vinaigrette is the pure demonstration: oil (fat) and vinegar (acid) in about a 3:1 ratio, salt, maybe a little mustard or honey to bridge them. Most sauces and many whole dishes follow the same logic."
+   ],
+   "example": [
+    "A lentil soup tastes fine but dull. Add salt: a little better. Add a tablespoon of red-wine vinegar or lemon juice at the end: it suddenly tastes alive, and the individual flavors (cumin, garlic, lentil) stand out. Nothing was added that tastes of itself; the acid rebalanced what was there."
+   ],
+   "exercise": {
+    "prompt": "A creamy pasta sauce tastes heavy and one-note. Without adding salt, what two ingredients could fix it?",
+    "answer": "Acid (lemon juice, a splash of white wine, or a spoon of crème fraîche) and something fresh and sharp like parsley, black pepper, or grated parmesan for savory contrast."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d4",
+   "week": 6,
+   "day": 4,
+   "theme": "Cooking fundamentals",
+   "title": "Knife skills and the mise en place",
+   "explanation": [
+    "Cooking is calmer and safer when everything is cut and measured before heat goes on: the mise en place. Recipes go wrong most often because the onions burn while you are still chopping the garlic.",
+    "Hold the knife with thumb and forefinger pinching the blade just ahead of the handle; it gives control. Curl the fingers of the other hand into a claw so knuckles, not fingertips, face the blade. Cut with a rocking or sliding motion; the knife should do the work. A sharp knife is safer than a dull one because it does not slip.",
+    "Consistent size matters more than speed: pieces the same size cook at the same rate. Learn three cuts: rough chop (for things that will be blended or cooked long), dice (small even cubes), and slice. Everything else is a variation."
+   ],
+   "example": [
+    "To dice an onion: cut off the top, halve it through the root, peel. Lay a half flat, make vertical cuts toward the root without cutting through it, then slice across. The root holds the layers together until the last cut, and you get even pieces without chasing them around the board."
+   ],
+   "exercise": {
+    "prompt": "Why should carrots for a stew be cut to roughly the same size?",
+    "answer": "Same size means same cooking time. Mixed sizes leave you with mushy small pieces and hard large ones in the same pot."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d5",
+   "week": 6,
+   "day": 5,
+   "theme": "Cooking fundamentals",
+   "title": "Stock, broth, and building a sauce",
+   "explanation": [
+    "Stock is water that has taken on flavor from bones, vegetables, and aromatics simmered for a long time; broth is the same idea but lighter and often seasoned to drink. Either turns a dish from watery to savory. A box of good stock or a cube in the pantry is fine; homemade is better and nearly free (freeze chicken bones and vegetable ends until you have a pot's worth).",
+    "A pan sauce is the fastest route to restaurant flavor. After searing meat, pour off excess fat, add a splash of wine or stock to the hot pan, scrape up the browned bits (fond) with a wooden spoon, let it reduce by half, then stir in a knob of butter off the heat. Two minutes, no extra pan.",
+    "Reduction concentrates flavor: simmering evaporates water and leaves everything else. Thickening options, in order of ease: reduce; whisk in cold butter; add a spoon of cream; or, for gravy, a little flour cooked in fat first (a roux)."
+   ],
+   "example": [
+    "Pork chops seared in a skillet. Chops out to rest; into the pan go a chopped shallot, a splash of white wine, then half a cup of chicken stock. Scrape, simmer three minutes until syrupy, add a teaspoon of mustard and a tablespoon of butter, swirl. Spoon over the chops. That is a dish, not just cooked meat."
+   ],
+   "exercise": {
+    "prompt": "What is the \"fond\" and why does deglazing matter?",
+    "answer": "Fond is the browned residue stuck to the pan after searing, full of Maillard flavor. Deglazing (adding liquid and scraping) dissolves it into the sauce instead of leaving it to be washed away."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d6",
+   "week": 6,
+   "day": 6,
+   "theme": "Cooking fundamentals",
+   "title": "Eggs, three ways, as a heat lesson",
+   "explanation": [
+    "Eggs teach temperature control because they change texture within a narrow range: whites set around 63°C, yolks around 70°C, and both turn rubbery not far above. Almost every egg mistake is too much heat for too long.",
+    "Scrambled: butter in a nonstick pan over low-medium heat, eggs in, stir constantly with a spatula, pull off the heat while still slightly wet; they finish on the plate. Fried: medium heat, butter foaming but not brown, crack in, cover for a minute to set the white while the yolk stays runny. Boiled: lower eggs into already-boiling water, 6 minutes for jammy, 9 to 10 for firm, then straight into cold water so they peel cleanly.",
+    "A French omelette is the graduate exam: high heat, constant shaking and stirring for about 30 seconds, rolled while the center is still soft. Get that right and you understand pans and heat."
+   ],
+   "example": [
+    "Two scrambles. High heat, no stirring: the bottom sets hard and brown, the top is raw, the result is a dry, curdled mass. Low heat, constant stirring, off the heat early: small soft curds, creamy, glossy. Same eggs, same time at the stove."
+   ],
+   "exercise": {
+    "prompt": "Boiled eggs keep coming out with grey, chalky yolks. What went wrong and how do you fix it?",
+    "answer": "Overcooked. Time them from when they hit boiling water (about 9 to 10 minutes for firm), and cool them immediately in cold water to stop the cooking."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-06-d7",
+   "week": 6,
+   "day": 7,
+   "theme": "Cooking fundamentals",
+   "title": "Planning a week: pantry, batches, and the Trader Joe's shortcut",
+   "explanation": [
+    "Cooking most nights is a logistics problem, not a skill problem. Keep a base pantry: olive oil, a neutral oil, vinegar, salt, pepper, garlic, onions, canned tomatoes, canned beans, pasta, rice, stock, a few spices (cumin, paprika, chili flakes, oregano), soy sauce, mustard, lemons. With that, one fresh protein and one vegetable become dinner.",
+    "Batch the boring parts: cook a big pot of rice or grains on Sunday; roast a tray of vegetables; make a jar of vinaigrette. Assemble different meals from the same components across the week so nothing feels repeated.",
+    "Frozen and prepared items are tools, not failures. Frozen vegetables are picked ripe and often fresher than \"fresh\" ones a week old. A good frozen dumpling, a jar of decent sauce, or pre-cut vegetables save the twenty minutes that decide whether you cook or order in. The skill is knowing which shortcuts keep quality and which do not."
+   ],
+   "example": [
+    "Sunday: a pot of rice, a tray of roasted broccoli and peppers, a jar of lemon-garlic vinaigrette. Monday: rice bowl with a fried egg and the vegetables. Tuesday: the vegetables tossed with pasta, chili flakes, and parmesan. Wednesday: frozen dumplings, quick soy-vinegar dip, leftover broccoli. Three dinners, about fifteen minutes each."
+   ],
+   "exercise": {
+    "prompt": "You have canned chickpeas, an onion, garlic, canned tomatoes, cumin, and a lemon. Sketch a dinner in three steps.",
+    "answer": "Soften the chopped onion and garlic in olive oil with cumin; add tomatoes and drained chickpeas, simmer 15 minutes, season; finish with lemon juice and serve over rice or with bread."
+   },
+   "readMinutes": 2
+  }
+ ]
+}

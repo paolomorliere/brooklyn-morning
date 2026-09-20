@@ -1,0 +1,90 @@
+export default {
+  week: 7,
+  theme: 'Data literacy: reading numbers like an analyst',
+  lessons: [
+    {
+      title: 'Averages that lie: mean, median, and the shape behind them',
+      explanation: [
+        'The mean (add everything, divide by count) is dragged around by extreme values. The median (the middle value when sorted) is not. When a distribution has a long tail, as incomes, house prices, and hospital bills do, the mean sits well above the typical case and "average" becomes misleading.',
+        'Rule of thumb: if the mean and median differ a lot, the data is skewed, and the median is usually the honest summary of a "typical" value. Always ask which average a headline uses. "Average salary" at a company with one founder earning millions is a very different number from the median employee\'s pay.',
+        'The mode (most common value) matters for categories: the most common major, the most common shoe size. It is rarely useful for continuous numbers.',
+      ],
+      example: [
+        'Ten people in a room earn $40,000 each. Mean and median: $40,000. A billionaire walks in. The median barely moves (still about $40,000), but the mean jumps to over $90 million. "Average income in the room" is now technically true and completely useless.',
+      ],
+      exercise: { prompt: 'A college reports that the average starting salary of graduates is $72,000, while the median is $48,000. What does the gap tell you?', answer: 'A small number of very high earners pull the mean up. Most graduates earn closer to $48,000; the median describes the typical graduate better.' },
+    },
+    {
+      title: 'Percentages, percentage points, and base rates',
+      explanation: [
+        'A change from 4% to 6% is an increase of 2 percentage points but of 50% (because 6 is 50% more than 4). Headlines pick whichever sounds bigger. Always ask: percent of what?',
+        'Relative risk without the base rate is nearly meaningless. "Doubles the risk" of something that affects 1 in 100,000 people means 2 in 100,000, which may be irrelevant to you. Ask for the absolute numbers: how many out of how many, before and after.',
+        'Percentages of small groups swing wildly. If 3 of 5 students in a program graduate, the rate is 60%; one extra graduate makes it 80%. Reporting rates on tiny groups invites false conclusions (and in institutional research, often privacy problems too). Show the counts alongside the rate.',
+      ],
+      example: [
+        'Unemployment "surges from 3.5% to 4.2%". That is 0.7 percentage points, or a 20% relative increase. Both are true; the first describes the labor market accurately, the second makes a normal fluctuation sound like a crisis.',
+      ],
+      exercise: { prompt: 'A retention rate rises from 78% to 81%. Express the change two ways, and say which is more honest for a dashboard.', answer: 'Up 3 percentage points, or up about 3.8% relative. For a rate that is already a percentage, percentage points is clearer and avoids confusion.' },
+    },
+    {
+      title: 'Correlation is not causation, and what it takes to get closer',
+      explanation: [
+        'Two things moving together does not mean one causes the other. Common reasons: a third factor drives both (ice-cream sales and drownings both rise with summer heat); the causation runs the other way (do good students attend tutoring, or does tutoring make good students?); or it is simply chance among many comparisons.',
+        'The strongest evidence comes from a randomized experiment: assign people to groups by coin flip so nothing else differs, then compare. When you cannot randomize (most real life), look for natural comparisons, control for the obvious confounders, and check whether the timing makes sense (cause before effect).',
+        'In practice: when a chart shows that students who used the library more had higher grades, the honest statement is "these are associated". Claiming the library causes the grades needs more, and the students who choose to use the library likely differ in many other ways.',
+      ],
+      example: [
+        'Countries with more chocolate consumption have more Nobel laureates per capita; the correlation is real and strong. Chocolate does not create physicists. Wealth drives both: rich countries eat more chocolate and fund more research.',
+      ],
+      exercise: { prompt: 'Students who take an optional first-year seminar are retained at 90% versus 78% for others. What is the main reason to doubt that the seminar causes the difference?', answer: 'Self-selection. Students who opt into the seminar are probably more engaged or better prepared to begin with, so they would likely be retained at higher rates anyway.' },
+    },
+    {
+      title: 'Samples, surveys, and who did not answer',
+      explanation: [
+        'A survey only tells you about the people it reached and who chose to answer. If 20% respond, the result describes the 20% and you must ask how they differ from the 80%. Satisfied and angry people answer more; the indifferent middle does not. This non-response bias is usually a bigger problem than sample size.',
+        'Margin of error (±3%) describes only the randomness of sampling, assuming the sample was representative. It says nothing about bias in who was asked. A perfectly random sample of 1,000 people can estimate a national opinion within a few points; a biased sample of 100,000 cannot.',
+        'Question wording steers answers. "Do you support helping students in need?" and "Do you support increasing fees to fund aid?" measure different things. Look for the actual question before trusting a survey headline.',
+      ],
+      example: [
+        'A course evaluation gets 12 responses out of 40 students, all glowing. The department cannot conclude the course went well; the 28 who did not respond may include everyone who dropped or disengaged. A 30% response rate with an unknown pattern of who answered is a weak basis for a decision about the instructor.',
+      ],
+      exercise: { prompt: 'Two polls: one of 400 randomly selected registered voters, one of 50,000 volunteers who clicked a link on a news site. Which is more trustworthy for the population, and why?', answer: 'The random sample of 400. The 50,000 self-selected readers of one site are not representative; size does not fix bias.' },
+    },
+    {
+      title: 'Reading a chart: axes, baselines, and what is left out',
+      explanation: [
+        'Before reading the shape of a chart, read the axes. A bar chart whose vertical axis starts at 90 instead of 0 turns a 3% difference into a towering gap. A line chart with a compressed time axis makes gradual change look sudden. Dual axes (two scales on one chart) can make any two lines appear to move together.',
+        'Check the units and the period. "Sales" in dollars or units? Per month or cumulative? Adjusted for inflation? Is the last data point a full period or a partial one that will grow? Then ask what was left out: a chart showing one company\'s growth rarely shows the competitors that grew faster.',
+        'Good charts have a zero baseline for bars, honest time axes, labeled units, a source, and one clear message. When making your own, the test is: would a skeptical colleague draw the same conclusion from the raw table?',
+      ],
+      example: [
+        'Enrollment: 1,020 then 1,050 students. On a bar chart starting at zero the bars look almost identical (a 3% rise). On one starting at 1,000 the second bar is more than twice the height of the first. Same numbers; one version is honest and the other is an argument.',
+      ],
+      exercise: { prompt: 'A line chart shows a company\'s stock "soaring" over three months. What three things do you check before agreeing?', answer: 'Where the vertical axis starts and how compressed it is; whether three months is a meaningful window compared to a longer history; and how the broader market or peers did over the same period.' },
+    },
+    {
+      title: 'Small numbers, big claims: variance and regression to the mean',
+      explanation: [
+        'Small groups produce extreme results by chance. The best- and worst-performing schools in a state are usually small ones, not because size causes quality but because small samples swing more. Rankings of tiny units are mostly noise.',
+        'Regression to the mean: an extreme result is usually followed by a more ordinary one, with no cause needed. The team that had a record season regresses; the student who aced one exam scores nearer their usual level on the next. Interventions launched after a bad year "work" partly because the next year was always likely to be better.',
+        'Before believing that a change caused an improvement, ask: how much does this number normally fluctuate? If year-to-year swings of five points are typical, a three-point rise after a new program proves nothing yet.',
+      ],
+      example: [
+        'A program with 8 students has a 100% graduation rate one year and 50% the next. Administrators ask what went wrong. Often nothing did: with 8 students, one or two individual outcomes swing the rate by 12 to 25 points. Report the counts (8 of 8, then 4 of 8) and the multi-year average, not the single-year rate.',
+      ],
+      exercise: { prompt: 'After a terrible season a water polo team hires a new coach and improves the next year. Name a reason other than the coach.', answer: 'Regression to the mean: a bad season is often partly bad luck (injuries, close losses), so improvement toward the team\'s normal level was likely regardless. Roster changes and a softer schedule are other candidates.' },
+    },
+    {
+      title: 'The integrity check: how to trust a number before you send it',
+      explanation: [
+        'A number is only as good as the checks behind it. Before any figure leaves your hands, run the same short routine: Does the total match the source? Are there duplicates in what should be unique (student IDs, course codes)? How many blanks or unknowns, and were they dropped or counted? Do the categories add up to the total? Does the result pass a sanity check against last year or a known benchmark?',
+        'Spot-check by hand: pick two or three records and trace them from the raw data to the final table. If they do not match, stop. This catches join errors, filter mistakes, and wrong-source problems that summary statistics hide.',
+        'Write down the source, the extract date, the filters, and the definitions. Most disagreements between two reports come from different definitions ("enrolled" as of census day versus end of term) rather than from arithmetic errors. Stating yours lets others understand why numbers differ instead of assuming one is wrong.',
+      ],
+      example: [
+        'A graduation-rate table shows 312 graduates. The registrar\'s count is 318. Six students are missing. Tracing them shows they completed in the summer term, which the extract\'s date range excluded. The fix is a one-line filter change; the lesson is that "matches the source" is the first check, not the last.',
+      ],
+      exercise: { prompt: 'List the five checks to run before sending a data table.', answer: 'Totals match the source; no unexpected duplicates; blanks and unknowns counted and explained; categories sum to the total; result is plausible against a benchmark or prior period. Plus a hand trace of two or three records.' },
+    },
+  ],
+};

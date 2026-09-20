@@ -2,8 +2,6 @@ import { test, expect, type Page } from '@playwright/test';
 
 const fresh = async (page: Page, path = '/?fixtures=1&seed=none#/groceries') => {
   await page.goto(path);
-  await page.evaluate(() => Promise.all(['brooklyn-personal', 'brooklyn-catalog'].map((n) => new Promise<void>((r) => { const q = indexedDB.deleteDatabase(n); q.onsuccess = q.onerror = q.onblocked = () => r(); }))));
-  await page.reload();
 };
 const search = (page: Page) => page.getByRole('textbox', { name: 'Search products' });
 const waitCatalog = async (page: Page) => {

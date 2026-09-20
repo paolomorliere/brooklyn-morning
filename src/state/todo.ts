@@ -14,17 +14,20 @@ const refresh = () => todoStore.reload();
 
 export const todoActions = {
   async add(text: string, categoryId: string) {
+    await todoStore.ensure();
     const t = await repo.addTask(text, categoryId);
     todoStore.set({ ...todoStore.get(), tasks: [...todoStore.get().tasks, t] });
     return t;
   },
   async update(id: string, patch: Partial<Task>) {
+    await todoStore.ensure();
     await repo.updateTask(id, patch);
     todoStore.set({ ...todoStore.get(), tasks: todoStore.get().tasks.map((t) => (t.id === id ? { ...t, ...patch } : t)) });
   },
   complete: (id: string) => todoActions.update(id, { completedAt: new Date().toISOString() }),
   uncomplete: (id: string) => todoActions.update(id, { completedAt: null }),
   async remove(id: string) {
+    await todoStore.ensure();
     await repo.deleteTask(id);
     todoStore.set({ ...todoStore.get(), tasks: todoStore.get().tasks.filter((t) => t.id !== id) });
   },

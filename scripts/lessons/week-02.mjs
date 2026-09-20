@@ -1,0 +1,90 @@
+export default {
+  week: 2,
+  theme: 'Turning points in history',
+  lessons: [
+    {
+      title: 'The printing press (1450s)',
+      explanation: [
+        'Around 1450 Johannes Gutenberg, a goldsmith in Mainz, combined several existing ideas (movable metal type, oil-based ink, and a screw press adapted from wine-making) into a system that could print pages far faster than any scribe. Before it, a book was a luxury copied by hand over months. Within fifty years, presses across Europe had produced millions of volumes.',
+        'The effect was not just cheaper books. Identical copies meant ideas travelled without being garbled. Scholars in different cities could argue about the same text. Prices fell, literacy spread, and vernacular languages (German, French, English) gained ground over Latin because printers wanted big audiences.',
+        'The press also made the Reformation possible: Martin Luther\'s 1517 theses spread across Germany in weeks. Rulers and the Church learned that controlling information had become much harder. Many historians treat the press as the beginning of the modern information age.',
+      ],
+      example: [
+        'A single Bible copied by hand took a skilled scribe roughly a year. Gutenberg\'s workshop printed around 180 copies of his Bible in about three years. Later presses did far better: by the 1500s a print shop could turn out hundreds of pages a day.',
+      ],
+      exercise: { prompt: 'Why did printers favor local languages over Latin, and what long-term effect did that have?', answer: 'Latin readers were a small elite; printing in German or French reached many more buyers. Over time this strengthened national languages and helped standardize spelling and grammar.' },
+    },
+    {
+      title: 'The French Revolution (1789)',
+      explanation: [
+        'In 1789 France was nearly bankrupt after wars (including funding the American Revolution) and years of poor harvests. King Louis XVI called the Estates-General, an assembly not convened since 1614, to raise taxes. The Third Estate (everyone who was not clergy or nobility, about 97% of the population) refused to be outvoted by the other two and declared itself a National Assembly.',
+        'On 14 July a Paris crowd stormed the Bastille, a royal prison and symbol of arbitrary power. In August the Assembly abolished feudal privileges and adopted the Declaration of the Rights of Man and of the Citizen: liberty, equality, popular sovereignty, and equal treatment under law. The monarchy was ended in 1792 and the king executed in 1793.',
+        'The Revolution then turned on itself in the Terror (1793–94), and by 1799 Napoleon had taken power. Yet its ideas outlived its chaos: the metric system, the civil code, the notion that legitimacy comes from the people rather than from God or birth. Much of Europe\'s political vocabulary, left and right included, comes from the seating of the Assembly.',
+      ],
+      example: [
+        'The words "left" and "right" in politics date from 1789: supporters of the king sat to the president\'s right in the Assembly, revolutionaries to his left. The habit stuck across Europe and then the world.',
+      ],
+      exercise: { prompt: 'Name two financial causes of the Revolution and one lasting institutional legacy.', answer: 'Causes: debt from wars (including support for the American Revolution) and a tax system that exempted nobility and clergy while harvests failed. Legacy: the metric system, the Napoleonic civil code, or the principle that sovereignty rests with the people.' },
+    },
+    {
+      title: 'The Industrial Revolution (1760–1840)',
+      explanation: [
+        'For most of history, almost everything was made by hand or by muscle, and the average person\'s standard of living barely changed from one century to the next. Starting in Britain around 1760, a cluster of inventions changed that: the spinning jenny and power loom mechanized textiles, coke-fired furnaces made cheap iron, and James Watt\'s improved steam engine (1776) provided power anywhere, not just next to a river.',
+        'Factories replaced cottage workshops; people moved from villages to cities like Manchester; canals and then railways (from 1830) moved goods cheaply. Britain\'s output of cotton cloth multiplied many times over within a couple of generations, and the pattern then spread to Belgium, France, Germany, and the United States.',
+        'The changes were brutal as well as productive: child labor, twelve-hour shifts, polluted cities, and cholera. But for the first time economic growth became sustained. Living standards, life expectancy, and populations rose in ways that had never happened before, and the modern debate about how to share the gains of technology began here.',
+      ],
+      example: [
+        'Before mechanization, a hand spinner produced one thread at a time. Hargreaves\' spinning jenny (1764) let one worker spin eight, and later versions over a hundred. Thread became so cheap that weaving, then dyeing, then shipping each had to be mechanized in turn to keep up. One breakthrough created a bottleneck somewhere else, which pulled the next invention forward.',
+      ],
+      exercise: { prompt: 'Why did the steam engine matter more than a better water wheel?', answer: 'Water wheels tied factories to rivers. Steam engines ran anywhere coal could be delivered, so factories could cluster in cities near workers, ports, and markets.' },
+    },
+    {
+      title: 'The First World War and the end of empires (1914–1918)',
+      explanation: [
+        'In June 1914 a Bosnian Serb nationalist assassinated Archduke Franz Ferdinand of Austria-Hungary in Sarajevo. A web of alliances (Germany with Austria-Hungary; France with Russia; Britain loosely with both) turned a regional crisis into a continental war within five weeks. Both sides expected a short conflict.',
+        'Instead, machine guns and artillery made attack far deadlier than defense, and the Western Front froze into trenches from the Channel to Switzerland for four years. Battles like Verdun and the Somme (1916) killed hundreds of thousands for a few kilometers. Around 9 to 10 million soldiers died in total, plus millions of civilians.',
+        'The war ended four empires: Russian (the 1917 revolution), German, Austro-Hungarian, and Ottoman. New states appeared across Central Europe and the Middle East, often with borders drawn by the victors. The peace treaty at Versailles blamed Germany and demanded reparations, feeding resentments that helped bring the Second World War two decades later.',
+      ],
+      example: [
+        'France lost about 1.4 million soldiers, roughly one in twenty of its entire population and a far larger share of young men. Nearly every village has a monument listing its dead; many French towns\' 11 November ceremonies date directly from this loss.',
+      ],
+      exercise: { prompt: 'Which four empires collapsed as a result of the war?', answer: 'The Russian, German, Austro-Hungarian, and Ottoman empires.' },
+    },
+    {
+      title: 'The Great Depression (1929–1939)',
+      explanation: [
+        'In October 1929 the US stock market crashed after a speculative boom in which many people bought shares with borrowed money. The crash alone did not cause a decade of misery; a chain of failures did. Thousands of banks collapsed, wiping out savings. With less money circulating, prices fell, so debts became heavier and people spent less, which closed more businesses. By 1933 about a quarter of American workers were unemployed.',
+        'The downturn spread worldwide. Countries raised tariffs to protect their industries, which shrank trade and made things worse everywhere. In Germany, mass unemployment helped the Nazis win power in 1933.',
+        'Franklin Roosevelt\'s New Deal (from 1933) introduced bank deposit insurance, securities regulation, public works, and Social Security. The economics profession also changed: John Maynard Keynes argued that governments should spend when private demand collapses, an idea that shaped policy for decades and returned in 2008 and 2020.',
+      ],
+      example: [
+        'Deposit insurance, created in 1933, is why a bank failure today rarely causes a panic: US accounts are insured up to $250,000, so ordinary savers do not need to rush to withdraw. In 1930–33, with no such guarantee, rumors alone could empty a healthy bank in a day.',
+      ],
+      exercise: { prompt: 'Why did falling prices (deflation) make the Depression worse rather than better?', answer: 'Debts were fixed in dollars while incomes and prices fell, so repaying became harder. People also delayed spending, expecting cheaper prices later, which cut demand further.' },
+    },
+    {
+      title: 'The Second World War and the postwar order (1939–1945)',
+      explanation: [
+        'Germany invaded Poland on 1 September 1939; Britain and France declared war two days later. Within a year Germany had occupied most of Western Europe, including France (June 1940). The war became global when Germany invaded the Soviet Union (June 1941) and Japan attacked Pearl Harbor (December 1941), bringing in the United States.',
+        'It was the deadliest conflict in history: an estimated 70 to 85 million deaths, most of them civilians, including the six million Jews murdered in the Holocaust. It ended in Europe on 8 May 1945 and in Asia after atomic bombs were dropped on Hiroshima and Nagasaki in August.',
+        'The peace built new institutions meant to prevent a repeat: the United Nations (1945), the World Bank and IMF, and in Europe a project of integration that began with coal and steel in 1951 and became the European Union. The US and USSR emerged as superpowers, opening the Cold War.',
+      ],
+      example: [
+        'The European Union exists largely because French and German leaders concluded that binding their economies together would make another war between them unthinkable. The 1951 coal-and-steel community pooled the very industries needed to make weapons.',
+      ],
+      exercise: { prompt: 'Name three international institutions created in the aftermath of the war.', answer: 'The United Nations, the International Monetary Fund, the World Bank, and (in Europe) the European Coal and Steel Community, forerunner of the EU. Also NATO, founded in 1949.' },
+    },
+    {
+      title: 'The fall of the Berlin Wall (1989)',
+      explanation: [
+        'After 1945 Germany was divided, and from 1961 a wall cut Berlin in two to stop East Germans fleeing west. It became the symbol of the Cold War: two blocs, two economic systems, thousands of nuclear weapons pointed at each other.',
+        'By the late 1980s the Soviet economy was stagnating and its leader, Mikhail Gorbachev, loosened control over Eastern Europe. Poland held partly free elections in June 1989; Hungary opened its border to Austria; East Germans streamed out through it. Facing mass protests, East German officials announced on 9 November 1989 that citizens could cross freely. Crowds tore at the wall that night.',
+        'Germany reunified in October 1990. The Soviet Union itself dissolved in December 1991, ending the Cold War without a shot fired between the superpowers. The years since have shown that the "end of history" some predicted did not arrive, but 1989 remains the clearest example of a political order collapsing under the weight of its own people\'s refusal to accept it.',
+      ],
+      example: [
+        'The opening on 9 November was partly an accident. A spokesman at a press conference, asked when new travel rules took effect, shuffled his papers and said "as far as I know, immediately." East Berliners heard it on TV and went to the checkpoints; overwhelmed guards eventually opened the gates.',
+      ],
+      exercise: { prompt: 'What happened in Hungary in 1989 that made the wall harder to maintain?', answer: 'Hungary opened its border with Austria, so East Germans could travel to Hungary, cross into Austria, and reach West Germany without going through the wall at all.' },
+    },
+  ],
+};

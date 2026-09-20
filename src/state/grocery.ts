@@ -25,7 +25,10 @@ export const groceryStore = createStore<GroceryState>(
 );
 
 const patch = (p: Partial<GroceryState>) => groceryStore.set({ ...groceryStore.get(), ...p });
-const reloadPersonal = async () => patch({ list: await repo.allList(), history: await repo.allHistory() });
+const reloadPersonal = async () => {
+  await groceryStore.ensure();
+  patch({ list: await repo.allList(), history: await repo.allHistory() });
+};
 
 export const groceryActions = {
   async addProduct(p: Product) {
@@ -59,6 +62,7 @@ export const groceryActions = {
   },
   /** Check for a new catalog (cheap when unchanged). `force` re-downloads even if the version matches. */
   async syncCatalog(force = false) {
+    await groceryStore.ensure();
     if (groceryStore.get().catalogLoading) return;
     patch({ catalogLoading: true });
     const status = await syncCatalog(import.meta.env.BASE_URL, force);

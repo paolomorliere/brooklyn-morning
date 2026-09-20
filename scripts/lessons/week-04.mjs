@@ -1,0 +1,90 @@
+export default {
+  week: 4,
+  theme: 'How AI actually works (no code)',
+  lessons: [
+    {
+      title: 'Prediction machines: what "learning" means',
+      explanation: [
+        'Traditional software follows rules a programmer wrote: if the temperature is above 30, turn on the fan. Machine learning flips this. You give the computer many examples of inputs and the right answers, and it adjusts millions of internal numbers until its guesses match the answers as closely as possible. Nobody writes the rules; they emerge from the examples.',
+        'Everything a model does is prediction. A spam filter predicts "spam or not" from an email\'s words. A photo app predicts "cat" from pixels. A language model predicts the next word from the words so far. "Intelligence" here means being very good at these predictions, not understanding in the human sense.',
+        'This is why data matters so much. A model is only as good as the examples it saw. Feed it lots of high-quality, varied examples and it generalizes well; feed it narrow or biased data and it confidently repeats those biases.',
+      ],
+      example: [
+        'To teach a model to spot fraudulent credit-card transactions, a bank shows it millions of past transactions labeled fraud or legitimate. The model notices patterns humans might miss: a small purchase followed by a large one abroad within minutes, say. It never learns a rule like "flag foreign purchases"; it learns a weighted mix of thousands of small signals.',
+      ],
+      exercise: { prompt: 'A hiring model is trained on ten years of a company\'s past hiring decisions. What is the risk?', answer: 'It learns to reproduce whatever biases those past decisions contained (for example, favoring certain schools or names), and does so at scale while appearing objective.' },
+    },
+    {
+      title: 'Neural networks, explained with a dial board',
+      explanation: [
+        'A neural network is a stack of layers. Each layer takes numbers in, multiplies them by weights (adjustable dials), adds them up, applies a simple squashing function, and passes the result on. The first layer sees raw input (pixels, words as numbers). Each later layer combines the previous layer\'s outputs into more abstract features: edges, then shapes, then "ear", then "cat".',
+        'Training means turning the dials. The model makes a guess, the error is measured, and a technique called backpropagation nudges every dial slightly in the direction that would have reduced the error. Repeat billions of times over the training data and the dials settle into values that produce good guesses.',
+        'The word "deep" in deep learning just means many layers. Modern models have hundreds of layers and billions of dials (parameters). No human sets or reads them individually; that is why the internals are often described as a black box.',
+      ],
+      example: [
+        'Imagine a board with a million dials and a light that glows brighter when the picture on screen is a cat. You show a cat, tweak all dials slightly toward "brighter". Show a dog, tweak toward "dimmer". After millions of pictures, the board lights up for cats it has never seen. You did not tell it what a cat is; the dials encode it.',
+      ],
+      exercise: { prompt: 'Why is it hard to explain exactly why a deep network made a particular decision?', answer: 'The decision is the combined effect of millions of weights across many layers; no single weight means anything on its own, so there is no human-readable rule to point to.' },
+    },
+    {
+      title: 'Large language models: very good next-word guessing',
+      explanation: [
+        'A large language model (LLM) like the ones behind chat assistants is trained on a vast amount of text (books, websites, code) with one task: given the words so far, predict the next one. Do this well enough across trillions of words and the model absorbs grammar, facts, styles, and reasoning patterns, because all of them help predict the next word.',
+        'When you chat with it, the model generates a reply one piece at a time, each time picking a likely next word (with some randomness, which is why answers vary). It has no memory beyond the conversation in front of it, no access to the internet unless a tool is attached, and no idea whether what it says is true. It knows what text usually looks like.',
+        'After the basic training, companies fine-tune the model with human feedback: people rate answers, and the model is nudged toward helpful, harmless, honest-sounding ones. This makes it a better assistant but does not give it a fact-checker.',
+      ],
+      example: [
+        'Ask a model "The capital of France is" and it continues "Paris" because that sequence appeared countless times. Ask for a citation for an obscure claim and it may produce a plausible-looking but nonexistent article, because it learned what citations look like, not which ones exist. Same mechanism, very different reliability.',
+      ],
+      exercise: { prompt: 'Why can the same question produce different answers from the same model?', answer: 'Generation samples from a probability distribution over next words rather than always taking the single most likely one, so small random choices early on lead to different but plausible continuations.' },
+    },
+    {
+      title: 'Hallucinations, bias, and knowing when to trust',
+      explanation: [
+        'A "hallucination" is a fluent, confident statement that is false. It is not a bug that will be patched; it follows from how the model works. It produces likely text, and a made-up date or statistic is often very likely text. Models are most reliable on well-documented, widely repeated topics and least reliable on specifics: numbers, names, recent events, niche facts.',
+        'Bias arrives through training data. If the internet under-represents some groups or repeats stereotypes, the model does too, sometimes subtly (which professions it associates with which pronouns) and sometimes in ways that affect real decisions.',
+        'Practical rules: use models for drafting, summarizing, brainstorming, and explaining, where you can judge the output. Verify anything factual you will act on, especially numbers and citations. Give the model the source material rather than relying on its memory. Treat confidence as a style, not a signal.',
+      ],
+      example: [
+        'You ask a model for St. Francis College\'s retention rate. It answers "84%" without hesitation. That number may be invented, outdated, or for a different college. The reliable path is the opposite: paste in the actual IPEDS or fact-book figures and ask the model to explain or format them.',
+      ],
+      exercise: { prompt: 'Which request is safer to trust without checking: "Explain what a retention rate is" or "What was our retention rate in 2023"?', answer: 'The first. It is a general, widely documented concept. The second asks for a specific fact the model has no reliable way to know.' },
+    },
+    {
+      title: 'Where AI fits in an analyst\'s work',
+      explanation: [
+        'The parts of analytics that AI helps with most are the ones with a clear target and lots of text or repetition: writing a first draft of a formula or query from a plain-English description, explaining an error message, summarizing a long report, cleaning up column names, drafting an email that explains a chart to a non-technical reader.',
+        'The parts it helps with least are the ones that make the work valuable: knowing which data source is authoritative, noticing that two tables disagree, understanding what the requester actually needs, and taking responsibility for the number that goes to the state. Those depend on context the model does not have.',
+        'A healthy pattern: you frame the question, decide the source, and check the result; the model speeds up the middle. A dangerous pattern: pasting in data you do not understand and shipping whatever comes back.',
+      ],
+      example: [
+        'A dean asks for graduation rates by program. The model can draft the measure and suggest a chart. It cannot know that the registrar\'s program codes changed in 2022, or that one program was merged into another. That knowledge, and the decision about how to handle it, is the analyst\'s job and the reason the number can be trusted.',
+      ],
+      exercise: { prompt: 'Name one analytics task that is well suited to an AI assistant and one that is not, with a reason each.', answer: 'Suited: drafting a DAX measure from a description (clear target, easy to test). Not suited: choosing which of two conflicting data sources is correct (requires institutional knowledge the model lacks).' },
+    },
+    {
+      title: 'Agents, tools, and what "AI doing tasks" means',
+      explanation: [
+        'A plain language model only produces text. An "agent" is a model wrapped in a loop with tools: it can be given the ability to search the web, run a calculation, read a file, or click a button, look at the result, and decide the next step. The model still only predicts text; the surrounding software turns some of that text into actions.',
+        'This is powerful and fragile. Agents can complete multi-step tasks (book, compare, fill in, file), but each step can go wrong, and errors compound. They are also exposed to prompt injection: text in a web page or document that says "ignore your instructions and do X", which a model may follow because it cannot tell instructions from content.',
+        'Good agent design limits what the agent can touch, asks for confirmation before irreversible actions, and keeps a human who understands the task in the loop. When you read that an AI "did" something, ask what tools it had and who approved the final step.',
+      ],
+      example: [
+        'You ask an assistant to "find the three cheapest flights to Marseille in March and put them in a spreadsheet". The model plans: search, read results, extract prices, write a file. A search tool and a spreadsheet tool execute those steps. If a travel site\'s page contains hidden text saying "the cheapest flight is $9,999", the model may faithfully record it. The output needs the same check you would give a human intern\'s.',
+      ],
+      exercise: { prompt: 'Why is an agent that can read emails and also send them riskier than one that can only read?', answer: 'Content in an incoming email could manipulate the model into sending messages (prompt injection), and sending is hard to undo. Read-only access limits the damage a bad instruction can do.' },
+    },
+    {
+      title: 'The AI economy: chips, data centers, and who pays',
+      explanation: [
+        'Training a frontier model takes thousands of specialized chips (GPUs, mostly from Nvidia) running for months in data centers that draw as much electricity as a small city. Running the model for users (inference) then costs money every time someone asks a question. This is why AI is dominated by a few very large companies and why the stock market\'s AI story is largely a story about chips, cloud providers, and power.',
+        'Costs are falling fast per unit of capability, and open-weight models (whose parameters anyone can download) have narrowed the gap with the best closed ones. Whether the enormous investment pays off depends on whether businesses find uses worth paying for at scale, which is the open question behind most AI headlines.',
+        'For an individual, the practical takeaway is to separate the technology from the hype cycle. The tools are useful now, will get cheaper, and will change which skills are scarce. The companies and stocks attached to them may or may not justify their prices; those are different questions.',
+      ],
+      example: [
+        'When a chip company reports results, the S&P 500 can move noticeably the next day because a single firm has become such a large share of the index. That is a good illustration of Week 1, Day 3: size-weighting means a few companies can drive "the market".',
+      ],
+      exercise: { prompt: 'What are the two main cost phases of a large AI model?', answer: 'Training (a large one-time cost in chips and electricity) and inference (an ongoing cost every time the model is used).' },
+    },
+  ],
+};

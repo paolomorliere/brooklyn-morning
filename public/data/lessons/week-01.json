@@ -1,0 +1,148 @@
+{
+ "schemaVersion": 1,
+ "week": 1,
+ "theme": "The stock market, from zero",
+ "lessons": [
+  {
+   "id": "week-01-d1",
+   "week": 1,
+   "day": 1,
+   "theme": "The stock market, from zero",
+   "title": "What a share actually is",
+   "explanation": [
+    "A company that wants money to grow has two broad options: borrow it, or sell pieces of itself. A share (also called a stock) is one of those pieces. If a company is split into 1,000,000 shares and you own 10, you own one hundred-thousandth of the business.",
+    "Owning a share gives you two things. First, a claim on part of the profits, which the company may pay out as a dividend or keep to reinvest. Second, a vote at the annual meeting, in proportion to how many shares you hold. It does not give you the right to walk in and take a desk.",
+    "The price of a share is simply what the last buyer and seller agreed on. Nobody sets it. That is why it moves all day: every trade is a fresh negotiation about what the company is worth."
+   ],
+   "example": [
+    "Suppose Café Brooklyn issues 100 shares at $50 each to raise $5,000 for a second espresso machine. You buy 5 shares for $250. You now own 5% of the café.",
+    "Next year the café earns $2,000 profit and pays half of it out. Your dividend is 5% of $1,000 = $50. If other people now think the café is worth more and are willing to pay $70 a share, your 5 shares are worth $350 on paper, but you only lock that in if you sell."
+   ],
+   "exercise": {
+    "prompt": "A company has 2,000,000 shares and you own 4,000. It pays out $500,000 in dividends this year. How much do you receive, and what percentage of the company do you own?",
+    "answer": "You own 4,000 ÷ 2,000,000 = 0.2%. Your dividend is 0.2% of $500,000 = $1,000."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d2",
+   "week": 1,
+   "day": 2,
+   "theme": "The stock market, from zero",
+   "title": "Exchanges: where shares change hands",
+   "explanation": [
+    "A stock exchange is an organized marketplace where shares are bought and sold under agreed rules. The two big US ones are the New York Stock Exchange (NYSE) and the Nasdaq. Paris has Euronext. A company chooses one exchange to \"list\" on, and its shares then trade there during set hours: in New York, 9:30 AM to 4:00 PM Eastern, Monday to Friday, minus holidays.",
+    "You never deal with the exchange directly. You place an order through a broker (today usually an app), the broker routes it to the exchange, and the exchange matches your buy with someone else's sell. Matching is automatic and takes a fraction of a second.",
+    "There are two common order types. A market order says \"buy now at whatever the current price is\". A limit order says \"buy only if the price is at or below X\". Market orders execute fast; limit orders protect you from paying more than you meant to."
+   ],
+   "example": [
+    "Shares of a company are quoted at $100.00 bid / $100.10 ask. The bid is the highest price someone will pay right now; the ask is the lowest price someone will sell for. If you send a market buy order you pay about $100.10. If you send a limit buy at $99.50, nothing happens unless a seller comes down to $99.50."
+   ],
+   "exercise": {
+    "prompt": "It is 8:00 PM in New York and you place a market order to buy a US stock. When does it execute, and at what price?",
+    "answer": "It waits until the exchange opens at 9:30 AM the next trading day and executes at whatever the price is then, which may differ from the price you saw at night."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d3",
+   "week": 1,
+   "day": 3,
+   "theme": "The stock market, from zero",
+   "title": "Indices: the S&P 500, the Dow, the CAC 40",
+   "explanation": [
+    "An index is a single number that summarizes how a group of stocks is doing. The S&P 500 tracks about 500 of the largest US-listed companies; when people say \"the market was up 1% today\", they almost always mean this. The Dow Jones Industrial Average follows just 30 large companies. The Nasdaq Composite follows everything listed on the Nasdaq exchange, so it leans heavily toward technology. In France, the CAC 40 tracks 40 large companies on Euronext Paris.",
+    "Most indices are weighted by size: a company worth $3 trillion moves the S&P 500 far more than one worth $30 billion. So a handful of giants can lift or sink the whole index even when most companies did nothing.",
+    "The absolute level (say, 5,000) means nothing on its own. Only the change matters. \"Up 50 points\" on a 5,000 index is 1%."
+   ],
+   "example": [
+    "Imagine an index with only two companies: Big Corp worth $900 and Small Corp worth $100. Big Corp rises 10% (to $990) and Small Corp falls 50% (to $50). The index goes from $1,000 to $1,040, up 4%, even though one of the two companies just halved. That is size-weighting at work."
+   ],
+   "exercise": {
+    "prompt": "The S&P 500 closes at 5,200, down 78 points. What was the percentage move?",
+    "answer": "It started at 5,278. 78 ÷ 5,278 ≈ 1.5% down."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d4",
+   "week": 1,
+   "day": 4,
+   "theme": "The stock market, from zero",
+   "title": "Why prices move",
+   "explanation": [
+    "A share price is a bet on the company's future profits. Anything that changes what people expect those profits to be, or how confident they feel about the guess, moves the price. Good quarterly results, a new product, a big contract: up. A lawsuit, a recall, a competitor's breakthrough: down.",
+    "Much of the movement comes from things outside the company. Interest rates matter a lot: when safe government bonds pay more, stocks look less attractive by comparison and fall. Inflation, oil prices, wars, elections, and the general mood all feed in.",
+    "Crucially, prices react to surprises, not to news itself. If everyone expected profits to double and they doubled, the price may not budge, because that was already \"priced in\". If they only rose 80%, the stock can fall despite a great year."
+   ],
+   "example": [
+    "A retailer announces that sales grew 12%. The stock drops 6% the same day. Why? Analysts had forecast 15%. The company did well, but less well than the price already assumed. The move reflects the gap between expectation and reality, not the result alone."
+   ],
+   "exercise": {
+    "prompt": "The Fed is widely expected to cut interest rates by a quarter point and does exactly that. What would you expect stocks to do at the announcement, and why?",
+    "answer": "Probably little, because the cut was already priced in. A bigger reaction would come if the Fed surprised, for example by cutting more, or not at all."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d5",
+   "week": 1,
+   "day": 5,
+   "theme": "The stock market, from zero",
+   "title": "Risk and return: why stocks pay more than savings",
+   "explanation": [
+    "A savings account or a US government bond is nearly certain to give your money back with a little interest. A stock can lose half its value in a year, or double. Nobody would accept that uncertainty without being paid for it, so over long periods stocks have returned more, on average, than safe assets. That extra return is the reward for bearing risk.",
+    "Over the last century, a broad basket of US stocks has averaged roughly 7% a year after inflation, but with huge variation: individual years ranged from about -40% to +50%. The average only shows up if you stay invested through the bad years. That is why the standard advice is to keep in stocks only money you will not need for at least five to ten years.",
+    "Risk is not the same for all stocks. A small, new company can go to zero. A basket of 500 large ones almost certainly will not, though it can still fall a lot for a while."
+   ],
+   "example": [
+    "Two friends each put $10,000 aside in 2008. One kept it in a savings account earning 1%; by 2018 she had about $11,000. The other put it in an S&P 500 fund; he watched it fall to about $6,000 in early 2009, then recover, ending around $25,000 in 2018. Same starting point, very different paths, and only one of them had a stomach-churning year."
+   ],
+   "exercise": {
+    "prompt": "You will need $8,000 for a security deposit in nine months. Should that money sit in a broad stock fund? Why or why not?",
+    "answer": "No. Nine months is too short. Stocks could easily be down 20% when you need the cash. Money with a fixed, near-term purpose belongs in a savings account or similar."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d6",
+   "week": 1,
+   "day": 6,
+   "theme": "The stock market, from zero",
+   "title": "Bulls, bears, and corrections",
+   "explanation": [
+    "A bull market is a long period of rising prices; a bear market is a fall of 20% or more from a recent high. A correction is a smaller fall, 10% to 20%. These are labels applied after the fact, not forecasts.",
+    "Corrections are normal. Historically the S&P 500 has had a 10% drop roughly every year or two. Bear markets have come every few years and lasted from a few months to a couple of years. Each one felt like the end of the world at the time and, so far, each has been followed by new highs.",
+    "The main practical lesson: a falling market is not a signal that you did something wrong or must act. Most of the long-term return has come from staying invested through the falls, because the best days often come right after the worst ones."
+   ],
+   "example": [
+    "In early 2020 the S&P 500 fell about 34% in five weeks as the pandemic spread. Someone who sold at the bottom in March and waited for \"things to calm down\" missed a recovery that brought the index to a new record by August, roughly five months later."
+   ],
+   "exercise": {
+    "prompt": "An index peaked at 6,000 and now sits at 4,900. Is this a correction or a bear market?",
+    "answer": "It is down 1,100 ÷ 6,000 ≈ 18.3%, so a correction. A bear market would need a fall to 4,800 or below (20%)."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-01-d7",
+   "week": 1,
+   "day": 7,
+   "theme": "The stock market, from zero",
+   "title": "Reading a stock quote",
+   "explanation": [
+    "A stock quote packs a lot into a few numbers. Price: the last trade. Change: the difference from yesterday's close, in dollars and percent. Open, high, low: today's first trade and its range. Volume: how many shares changed hands today; unusually high volume means something is happening.",
+    "Market cap is the company's total value: price × number of shares. 52-week high/low shows where today sits in the past year's range. P/E ratio (price divided by yearly profit per share) is a rough gauge of how expensive the stock is compared to what it earns; more on that in Week 3.",
+    "Dividend yield is the yearly dividend divided by the price, so a $100 stock paying $3 a year yields 3%. \"Ex-dividend date\" is the cutoff: buy before it to receive the next payment."
+   ],
+   "example": [
+    "Quote: $184.20, -2.10 (-1.13%). Open 186.00, High 187.40, Low 183.90. Volume 48M (avg 60M). Mkt cap 2.85T. 52-wk 164.08–199.62. P/E 28.9. Yield 0.52%. Reading it: the stock fell about 1% on a quieter-than-usual day, sits in the upper part of its yearly range, is valued at roughly 29 years of current profit, and pays a small dividend."
+   ],
+   "exercise": {
+    "prompt": "A stock trades at $50 and pays $2 a year in dividends. The company earns $4 per share a year. What are the dividend yield and the P/E ratio?",
+    "answer": "Yield: 2 ÷ 50 = 4%. P/E: 50 ÷ 4 = 12.5."
+   },
+   "readMinutes": 2
+  }
+ ]
+}

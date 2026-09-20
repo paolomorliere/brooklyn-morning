@@ -1,0 +1,147 @@
+{
+ "schemaVersion": 1,
+ "week": 5,
+ "theme": "Geography that explains the news",
+ "lessons": [
+  {
+   "id": "week-05-d1",
+   "week": 5,
+   "day": 1,
+   "theme": "Geography that explains the news",
+   "title": "Why cities are where they are",
+   "explanation": [
+    "Almost every major old city sits on water: a river, a natural harbor, or a strait. Water meant drinking, transport, defense, and trade before roads and rail existed. Paris grew on an island in the Seine; London at the first point where the Thames could be bridged; New York on the finest natural harbor on the US East Coast.",
+    "A second pattern is the \"fall line\" or portage point: where boats had to stop and goods were unloaded, markets formed. Many US cities (Richmond, Philadelphia, Minneapolis) sit where rivers stop being navigable. Later, railways and highways created new hubs (Atlanta, Chicago's explosive growth) at junctions rather than harbors.",
+    "Geography still shapes economics. Ports, flat land, fresh water, and moderate climate remain advantages; cities without them need something else (a capital's government jobs, a university, oil) to grow."
+   ],
+   "example": [
+    "Marseille is France's oldest city (founded by Greeks around 600 BC) because it has a sheltered natural harbor, the Vieux-Port, facing the Mediterranean trade routes. It remains France's largest commercial port 2,600 years later."
+   ],
+   "exercise": {
+    "prompt": "Why did Chicago grow from a swamp village to a giant city in the 1800s?",
+    "answer": "It sits where the Great Lakes water route meets the Mississippi river system (via a short canal) and became the hub where railroads from east and west met. Geography made it the switching point for grain, livestock, and goods."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d2",
+   "week": 5,
+   "day": 2,
+   "theme": "Geography that explains the news",
+   "title": "Straits and chokepoints",
+   "explanation": [
+    "A large share of world trade squeezes through a handful of narrow waterways. The Strait of Hormuz (Persian Gulf exit) carries roughly a fifth of the world's oil. The Strait of Malacca (between Malaysia and Indonesia) links the Indian Ocean to the Pacific and Chinese ports. The Suez Canal connects Europe to Asia without going around Africa; the Panama Canal joins the Atlantic and Pacific. The Bosporus is Russia's and Ukraine's route from the Black Sea to the Mediterranean.",
+    "When something blocks or threatens one, prices move worldwide. A ship stuck in Suez in 2021 held up an estimated $9 billion of trade per day. Attacks on shipping near the Red Sea in 2023–24 rerouted vessels around Africa, adding weeks and cost. Drought in Panama has limited canal transits by lowering the lake that feeds it.",
+    "This is why navies patrol seemingly random stretches of water and why a regional conflict can raise petrol prices in Brooklyn."
+   ],
+   "example": [
+    "When Red Sea attacks pushed ships to sail around the Cape of Good Hope, the Asia–Europe trip lengthened by about 10 to 14 days. Container shipping rates on that route more than doubled within weeks, and European retailers warned of delays and higher prices."
+   ],
+   "exercise": {
+    "prompt": "Which chokepoint matters most for oil, and which for container trade between Asia and Europe?",
+    "answer": "Oil: the Strait of Hormuz. Asia–Europe containers: the Strait of Malacca and then the Suez Canal / Red Sea."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d3",
+   "week": 5,
+   "day": 3,
+   "theme": "Geography that explains the news",
+   "title": "Rivers, borders, and disputes",
+   "explanation": [
+    "Rivers make convenient borders (the Rhine, the Rio Grande) but they move, and they are shared. Upstream countries can dam or divert water that downstream countries depend on. The Nile (Ethiopia's dam versus Egypt), the Mekong (Chinese dams versus Southeast Asia), the Indus (India and Pakistan), and the Colorado (US states and Mexico) are all live disputes.",
+    "Many borders were drawn far from the land they divide. The straight lines across the Sahara and the Middle East date from European colonial administrators; they cut through peoples and pasted others together, a root of several modern conflicts. Islands and reefs matter for a different reason: under international law, owning a rock can bring rights to the sea and seabed around it, which is the logic behind the South China Sea disputes.",
+    "Where a border sits often matters less than what crosses it: water, oil pipelines, minorities with relatives on the other side."
+   ],
+   "example": [
+    "The Grand Ethiopian Renaissance Dam on the Blue Nile gives Ethiopia electricity for millions but lets it control how much water reaches Sudan and Egypt, which depends on the Nile for almost all its fresh water. Years of negotiation have not produced a binding agreement."
+   ],
+   "exercise": {
+    "prompt": "Why would a country spend heavily to claim an uninhabited reef?",
+    "answer": "Sovereignty over land can extend claims to surrounding waters, including fishing, oil and gas, and shipping control, far more valuable than the reef itself."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d4",
+   "week": 5,
+   "day": 4,
+   "theme": "Geography that explains the news",
+   "title": "Climate zones and what grows where",
+   "explanation": [
+    "Latitude sets the basics: hot near the equator, cold near the poles, with temperate bands between. Ocean currents adjust it: the Gulf Stream is why Paris (at the latitude of Quebec) has mild winters. Mountains block moisture, so one side is wet and the other a desert (the Andes, the Sierra Nevada). Being far from the sea means bigger swings between summer and winter.",
+    "These zones decide agriculture. Wheat and dairy in temperate regions; rice where it is hot and wet; coffee in tropical highlands; grapes in Mediterranean climates with dry summers. When you read that a drought in Brazil raised coffee prices or a heatwave in India cut wheat exports, this is the map behind it.",
+    "A warming climate shifts the bands. Wine growing is moving north (England, southern Sweden); some traditional regions face heat stress; growing seasons lengthen in Canada and Russia while drought worsens elsewhere."
+   ],
+   "example": [
+    "Brooklyn and Bordeaux are at similar latitudes (about 40.7°N and 44.8°N), but Bordeaux is warmed by the Atlantic and the Gulf Stream, with mild winters that let vines survive. New York's winters are colder because prevailing winds arrive over land from the continent. Same sun angle, different climate."
+   ],
+   "exercise": {
+    "prompt": "Why is the west coast of the Sierra Nevada wet and the east side (Nevada) a desert?",
+    "answer": "Moist Pacific air rises over the mountains, cools, and drops its rain on the western slopes. By the time it descends the eastern side it is dry: the rain-shadow effect."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d5",
+   "week": 5,
+   "day": 5,
+   "theme": "Geography that explains the news",
+   "title": "The Middle East: a working map",
+   "explanation": [
+    "The region in the news stretches from Egypt to Iran. Key players: Saudi Arabia (largest oil exporter, Sunni-led monarchy), Iran (Shia-led republic, rival of Saudi Arabia and Israel), Israel and the Palestinian territories (Gaza and the West Bank), Turkey (NATO member bridging Europe and Asia), Egypt (most populous Arab country, controls Suez), plus Iraq, Syria, Lebanon, Jordan, and the Gulf states (UAE, Qatar, Kuwait, Bahrain, Oman).",
+    "Three overlapping fault lines explain most conflicts: the Israeli–Palestinian question; the Saudi–Iranian rivalry, often expressed through allied groups in Yemen, Lebanon, Iraq, and Syria; and the aftermath of the Iraq war and Syrian civil war, which left weak states and armed movements.",
+    "Oil and gas tie the region to everyone else. About a third of the world's oil comes from here, and much of it exits through Hormuz. That is why events here move markets in New York and fuel prices in France."
+   ],
+   "example": [
+    "Yemen's Houthi movement is backed by Iran and fought a Saudi-led coalition for years. When it attacked ships in the Red Sea, the effect was felt in European shipping costs (Day 2 of this week). One local conflict, three of the fault lines, global consequences."
+   ],
+   "exercise": {
+    "prompt": "Which two regional powers are usually described as rivals, and what religious split partly aligns with that rivalry?",
+    "answer": "Saudi Arabia and Iran; Sunni-led versus Shia-led, though politics and power matter as much as religion."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d6",
+   "week": 5,
+   "day": 6,
+   "theme": "Geography that explains the news",
+   "title": "Europe: the EU, the euro, Schengen, and NATO",
+   "explanation": [
+    "Four overlapping clubs cause most of the confusion. The European Union (27 countries) is a shared market with common rules; laws are proposed by the Commission in Brussels and passed by member governments and the Parliament. The eurozone (20 of them) shares the euro currency, managed by the European Central Bank in Frankfurt. The Schengen area (most EU countries plus Norway, Switzerland, Iceland, Liechtenstein) has no passport checks at internal borders. NATO is a separate military alliance including the US, Canada, Turkey, and most European countries.",
+    "So Norway is in Schengen and NATO but not the EU; Ireland is in the EU and the euro but not Schengen or NATO; Sweden uses its own currency, is in the EU, and joined NATO only in 2024. The UK left the EU in 2020 but remains in NATO.",
+    "France is in all four. When you read about a \"European\" decision, check which club is acting: a Commission proposal, an ECB rate change, a Schengen border rule, or a NATO deployment are very different things."
+   ],
+   "example": [
+    "When the ECB raises interest rates, it affects mortgages in Marseille and Madrid but not in Warsaw (Poland uses the zloty) or Copenhagen (Denmark kept its krone), even though all four cities are in the EU."
+   ],
+   "exercise": {
+    "prompt": "Name a country that is in NATO but not in the EU, and one in the EU but not in the eurozone.",
+    "answer": "NATO not EU: the United States, the United Kingdom, Norway, or Turkey. EU not eurozone: Poland, Sweden, Denmark, Czechia, Hungary, or Romania."
+   },
+   "readMinutes": 2
+  },
+  {
+   "id": "week-05-d7",
+   "week": 5,
+   "day": 7,
+   "theme": "Geography that explains the news",
+   "title": "The United States: regions, and why they vote and grow differently",
+   "explanation": [
+    "The Northeast (New York, Boston, Philadelphia) is dense, old, and finance- and education-heavy. The South (Texas to Florida to the Carolinas) is the fastest-growing region, with cheaper housing, warmer weather, and lower taxes drawing people and companies. The Midwest built America's industry and lost much of it. The West splits between the Pacific coast (tech, entertainment, ports to Asia) and the interior Mountain states (mining, ranching, fast-growing cities like Phoenix and Denver).",
+    "Politics maps onto density more than region: big cities everywhere lean Democratic, rural areas everywhere lean Republican, and suburbs decide elections. A handful of states where the balance is close (Pennsylvania, Michigan, Wisconsin, Georgia, Arizona, Nevada, North Carolina) get almost all the attention because of the Electoral College.",
+    "Water is the West's constraint: the Colorado River supplies 40 million people and is over-allocated. Hurricanes and insurance costs are the South's. Aging infrastructure and high costs are the Northeast's."
+   ],
+   "example": [
+    "Between 2020 and 2023, Texas and Florida each gained well over a million residents while New York and California lost population to other states. The main drivers cited by movers were housing costs and jobs, not politics, though the shifts change political weight too: after the 2020 census Texas gained two congressional seats and New York lost one."
+   ],
+   "exercise": {
+    "prompt": "Why do a few \"swing states\" dominate presidential campaigns?",
+    "answer": "The Electoral College awards almost all states winner-take-all, so a vote in a state that is safely one party changes nothing. Only states where the outcome is uncertain can flip the result."
+   },
+   "readMinutes": 2
+  }
+ ]
+}

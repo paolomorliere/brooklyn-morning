@@ -5,6 +5,7 @@ import { DEFAULT_PREFS, getPrefs, setPrefs } from '@/db/personal';
 export const prefsStore = createStore<Prefs>(DEFAULT_PREFS, getPrefs);
 
 export async function updatePrefs(patch: Partial<Prefs>): Promise<void> {
+  await prefsStore.ensure();
   const next = { ...prefsStore.get(), ...patch };
   await setPrefs(next);
   prefsStore.set(next);

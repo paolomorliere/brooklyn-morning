@@ -1,0 +1,45 @@
+{
+ "schemaVersion": 1,
+ "weeks": [
+  {
+   "week": 1,
+   "theme": "The stock market, from zero",
+   "file": "week-01.json"
+  },
+  {
+   "week": 2,
+   "theme": "Turning points in history",
+   "file": "week-02.json"
+  },
+  {
+   "week": 3,
+   "theme": "The stock market, one level up",
+   "file": "week-03.json"
+  },
+  {
+   "week": 4,
+   "theme": "How AI actually works (no code)",
+   "file": "week-04.json"
+  },
+  {
+   "week": 5,
+   "theme": "Geography that explains the news",
+   "file": "week-05.json"
+  },
+  {
+   "week": 6,
+   "theme": "Cooking fundamentals",
+   "file": "week-06.json"
+  },
+  {
+   "week": 7,
+   "theme": "Data literacy: reading numbers like an analyst",
+   "file": "week-07.json"
+  },
+  {
+   "week": 8,
+   "theme": "Everyday economics",
+   "file": "week-08.json"
+  }
+ ]
+}

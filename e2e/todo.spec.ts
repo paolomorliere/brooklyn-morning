@@ -2,8 +2,6 @@ import { test, expect, type Page } from '@playwright/test';
 
 const fresh = async (page: Page) => {
   await page.goto('/?fixtures=1&seed=none#/todo');
-  await page.evaluate(() => new Promise<void>((r) => { const q = indexedDB.deleteDatabase('brooklyn-personal'); q.onsuccess = q.onerror = q.onblocked = () => r(); }));
-  await page.reload();
   await expect(page.getByText('All clear')).toBeVisible();
 };
 
