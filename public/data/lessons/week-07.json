@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "Which average is dragged around by extreme values?",
+   "choices": [
+    "None of them",
+    "The median",
+    "The mean",
+    "The mode"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "When mean and median differ a lot, the data is…",
+   "choices": [
+    "Too small",
+    "Wrong",
+    "Normal",
+    "Skewed, and the median is usually the honest \"typical\" value"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A college reports average starting salary $72,000 and median $48,000. This means…",
+   "choices": [
+    "A few very high earners pull the mean up; most earn closer to $48,000",
+    "Most graduates earn about $72,000",
+    "The data is fake",
+    "Half earn over $72,000"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A rate goes from 4% to 6%. That is…",
+   "choices": [
+    "50 percentage points",
+    "2 percentage points and 50% relative",
+    "2% relative",
+    "6 percentage points"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "\"Doubles the risk\" of something affecting 1 in 100,000 means…",
+   "choices": [
+    "1 in 50",
+    "2 in 100,000",
+    "The risk is now certain",
+    "Half of people are affected"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Rates on tiny groups (e.g., 3 of 5 students) are…",
+   "choices": [
+    "Prone to wild swings and privacy problems; show the counts",
+    "Very reliable",
+    "Always rounded up",
+    "Illegal"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Ice-cream sales and drownings both rise in summer. This is an example of…",
+   "choices": [
+    "Random error",
+    "Causation",
+    "Reverse causation",
+    "A third factor (heat) driving both"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The strongest evidence for causation comes from…",
+   "choices": [
+    "A randomized experiment",
+    "An expert opinion",
+    "A large survey",
+    "A chart"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Students who opt into a seminar are retained at 90% vs 78%. The main reason to doubt the seminar caused it is…",
+   "choices": [
+    "Self-selection: those who opt in likely differ to begin with",
+    "The numbers are too close",
+    "The seminar is too short",
+    "Retention cannot be measured"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "The margin of error (±3%) accounts for…",
+   "choices": [
+    "Only the randomness of sampling, assuming a representative sample",
+    "Question wording",
+    "Everything",
+    "Bias in who was asked"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Which is more trustworthy for the whole population?",
+   "choices": [
+    "50,000 self-selected website volunteers",
+    "400 randomly selected registered voters",
+    "Neither",
+    "Whichever is larger"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A course evaluation with 12 of 40 responses, all glowing, tells the department…",
+   "choices": [
+    "The course went well",
+    "The instructor should be promoted",
+    "The survey was too long",
+    "Little, because the 28 non-respondents may differ systematically"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A bar chart whose vertical axis starts at 90 instead of 0…",
+   "choices": [
+    "Is required by convention",
+    "Exaggerates small differences",
+    "Is more accurate",
+    "Hides differences"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Before agreeing a stock is \"soaring\" from a three-month chart, check…",
+   "choices": [
+    "The colors used",
+    "Only the last data point",
+    "The font",
+    "Axis start and scale, the time window, and how peers or the market did"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The best- and worst-performing schools in a state are usually small ones because…",
+   "choices": [
+    "They are underfunded",
+    "Rankings favor them",
+    "Small samples swing more by chance",
+    "Small schools are better and worse"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Regression to the mean means…",
+   "choices": [
+    "Data reverts to zero",
+    "An extreme result is usually followed by a more ordinary one, with no cause needed",
+    "Things always get worse",
+    "Averages decline over time"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A team improves after a terrible season and a new coach. A reason other than the coach is…",
+   "choices": [
+    "Regression to the mean",
+    "The calendar",
+    "New uniforms",
+    "Longer pools"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A program with 8 students goes from 100% to 50% graduation. The honest reporting is…",
+   "choices": [
+    "A 50-point collapse",
+    "Nothing",
+    "The counts (8 of 8, then 4 of 8) and a multi-year average",
+    "Only the second year"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which is NOT one of the five integrity checks?",
+   "choices": [
+    "The chart uses brand colors",
+    "Categories sum to the total",
+    "Totals match the source",
+    "No unexpected duplicates"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Most disagreements between two reports come from…",
+   "choices": [
+    "Software bugs",
+    "Different definitions or extract dates",
+    "Different fonts",
+    "Arithmetic errors"
+   ],
+   "answer": 1
+  }
  ]
 }

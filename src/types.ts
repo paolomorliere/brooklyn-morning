@@ -17,7 +17,42 @@ export interface Story {
   leadSource: 'extracted' | null;
   isBackground: boolean;
   glossaryTerms: string[];
+  lang?: string;
+  sub?: string | null;
+  /** Publisher-supplied image (feed media or og:image). May fail to load if the publisher blocks hotlinking. */
+  imageUrl?: string | null;
 }
+
+export interface Quote { text: string; who: string }
+
+export interface StockPick {
+  kind: 'pick';
+  date: string;
+  ticker: string;
+  name: string;
+  lastClose: number;
+  asOf: string;
+  r5: number;
+  r20: number;
+  volRatio: number;
+  pctOfHigh60: number;
+  mentions: number;
+  rule: string;
+  scanned?: number;
+}
+export interface StockScoreboard {
+  kind: 'scoreboard';
+  weekOf: string;
+  rows: { date: string; ticker: string; name: string; openAtPick: number | null; latestClose: number | null; changePct: number | null; asOf: string | null }[];
+  combinedPct: number | null;
+  counted: number;
+  best?: string | null;
+  worst?: string | null;
+  note: string;
+  rule: string;
+}
+export interface StockUnavailable { kind: 'unavailable'; reason: string; rule: string }
+export type StockBlock = StockPick | StockScoreboard | StockUnavailable;
 
 export interface SourceStatus {
   id: string;
@@ -32,6 +67,8 @@ export interface Edition {
   schemaVersion: 1;
   date: string; // YYYY-MM-DD in America/New_York
   preparedAt: string; // ISO
+  quote?: Quote | null;
+  stock?: StockBlock | null;
   stories: Story[];
   sources: SourceStatus[];
   lessonRef: { week: number; day: number } | null;
@@ -138,9 +175,19 @@ export interface Prefs {
   hiddenSuggestions: string[];
 }
 
+export interface QuizResult {
+  week: number; // sequence week number
+  packWeek: number;
+  score: number;
+  total: number;
+  answers: number[]; // chosen index per question
+  takenAt: string;
+}
+
 export interface LessonProgress {
   startMonday: string; // YYYY-MM-DD
   readLessonIds: string[];
+  quizResults?: QuizResult[];
 }
 
 export const TOPIC_META: Record<TopicId, { label: string; blurb: string }> = {

@@ -144,5 +144,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "A company is split into 500,000 shares and you own 5,000. What fraction of the company do you own?",
+   "choices": [
+    "0.01%",
+    "1%",
+    "0.1%",
+    "10%"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Who sets the price of a share?",
+   "choices": [
+    "The government",
+    "The last buyer and seller who agreed on a trade",
+    "The exchange",
+    "The company's board"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Which of these does owning one share NOT give you?",
+   "choices": [
+    "A share of dividends if paid",
+    "A vote at the annual meeting",
+    "A claim on part of the profits",
+    "The right to use company property"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "What are the regular trading hours of the New York Stock Exchange?",
+   "choices": [
+    "8:00 AM–5:00 PM Eastern",
+    "24 hours",
+    "9:00 AM–4:30 PM Eastern",
+    "9:30 AM–4:00 PM Eastern"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A market order to buy…",
+   "choices": [
+    "executes at yesterday's close",
+    "executes only at or below your chosen price",
+    "executes as fast as possible at the current price",
+    "is cancelled at the end of the day"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "The quote shows bid $50.00 / ask $50.10. A market buy costs you about…",
+   "choices": [
+    "$50.05",
+    "Whichever is lower",
+    "$50.00",
+    "$50.10"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "When someone says \"the market was up 1% today\", they most likely mean…",
+   "choices": [
+    "The S&P 500",
+    "The CAC 40",
+    "The Nasdaq Composite",
+    "The Dow Jones"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "How many companies does the Dow Jones Industrial Average follow?",
+   "choices": [
+    "About 3,000",
+    "30",
+    "100",
+    "500"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Most large indices are weighted by…",
+   "choices": [
+    "Number of employees",
+    "Company size (market value)",
+    "Alphabetical order",
+    "Share price"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "An index closes at 5,200, down 78 points. The percentage move is about…",
+   "choices": [
+    "-1.5%",
+    "-0.78%",
+    "-7.8%",
+    "-15%"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A retailer grows sales 12% but analysts expected 15%. The stock most likely…",
+   "choices": [
+    "Rises, because sales grew",
+    "Is suspended from trading",
+    "Falls, because results missed expectations",
+    "Does not move"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Prices react most strongly to…",
+   "choices": [
+    "Company press releases",
+    "Surprises relative to expectations",
+    "Weekend headlines",
+    "Any news"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "When safe government bonds start paying more interest, stocks tend to…",
+   "choices": [
+    "Rise, because the economy is strong",
+    "Fall, because they look less attractive by comparison",
+    "Stop paying dividends",
+    "Stay unchanged"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Why have stocks returned more than savings accounts over long periods?",
+   "choices": [
+    "Because banks pay no interest",
+    "Because they are safer",
+    "Because of inflation only",
+    "As compensation for bearing the risk of large losses"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Money you need in nine months for a deposit belongs…",
+   "choices": [
+    "In a savings account or similar",
+    "In a single stock",
+    "In a broad stock fund",
+    "In cryptocurrency"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A bear market is a fall of at least…",
+   "choices": [
+    "10%",
+    "5%",
+    "50%",
+    "20%"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "An index peaks at 6,000 and drops to 4,900. That is…",
+   "choices": [
+    "A bear market",
+    "A crash by definition",
+    "Neither, it is within normal daily noise",
+    "A correction"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Roughly how often has the S&P 500 had a 10% drop historically?",
+   "choices": [
+    "Every year or two",
+    "Once a decade",
+    "Never since 1950",
+    "Every month"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A stock trades at $50, pays $2 a year in dividends, and earns $4 per share. Its P/E is…",
+   "choices": [
+    "4",
+    "25",
+    "50",
+    "12.5"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The dividend yield of that same stock is…",
+   "choices": [
+    "8%",
+    "4%",
+    "2%",
+    "25%"
+   ],
+   "answer": 1
+  }
  ]
 }

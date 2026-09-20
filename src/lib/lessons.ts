@@ -1,6 +1,24 @@
 import type { Lesson } from '@/types';
 
-export interface LessonPack { schemaVersion: 1; week: number; theme: string; lessons: Lesson[] }
+export interface QuizQuestion { q: string; choices: string[]; answer: number; why?: string }
+export interface LessonPack { schemaVersion: 1; week: number; theme: string; lessons: Lesson[]; quiz?: QuizQuestion[] }
+
+/** The sequence never starts before this Monday, so a mid-week install waits for the next Monday and begins at lesson 1. */
+export const LESSONS_EPOCH = '2026-09-21';
+
+/** First Monday on or after `d` (a Monday returns itself). */
+export function nextMondayOnOrAfter(d: Date): string {
+  const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  const day = (x.getDay() + 6) % 7; // Mon=0
+  if (day !== 0) x.setDate(x.getDate() + (7 - day));
+  return `${x.getFullYear()}-${String(x.getMonth() + 1).padStart(2, '0')}-${String(x.getDate()).padStart(2, '0')}`;
+}
+
+/** Where the sequence should start for a first open on `d`: the next Monday, but never before the epoch. */
+export function startMondayFor(d: Date): string {
+  const m = nextMondayOnOrAfter(d);
+  return m < LESSONS_EPOCH ? LESSONS_EPOCH : m;
+}
 export interface LessonIndexEntry { week: number; theme: string; file: string }
 export interface LessonIndex { schemaVersion: 1; weeks: LessonIndexEntry[] }
 
@@ -25,6 +43,10 @@ export interface TodayLesson {
   dayIndex: number; // 0..6 Mon..Sun
   isReview: boolean;
   packWeek: number | null;
+  /** Set when the sequence has not started yet (before the first Monday). */
+  startsOn?: string;
+  /** Sunday only: the week's quiz, when the pack has one. */
+  quiz?: QuizQuestion[] | null;
 }
 
 /**
@@ -32,7 +54,9 @@ export interface TodayLesson {
  * When the sequence runs past the available packs, we cycle back and label it a Review week.
  */
 export function lessonForDate(startMonday: string, packs: LessonPack[], date: Date): TodayLesson {
-  const days = Math.max(0, daysBetween(startMonday, date));
+  const rawDays = daysBetween(startMonday, date);
+  if (rawDays < 0) return { lesson: null, weekNumber: 0, dayIndex: rawDays + 7, isReview: false, packWeek: null, startsOn: startMonday };
+  const days = rawDays;
   const weekIdx = Math.floor(days / 7);
   const dayIndex = days % 7;
   const sorted = [...packs].sort((a, b) => a.week - b.week);
@@ -40,7 +64,7 @@ export function lessonForDate(startMonday: string, packs: LessonPack[], date: Da
   const isReview = weekIdx >= sorted.length;
   const pack = sorted[weekIdx % sorted.length];
   const lesson = pack.lessons.find((l) => l.day === dayIndex + 1) ?? null;
-  return { lesson, weekNumber: weekIdx + 1, dayIndex, isReview, packWeek: pack.week };
+  return { lesson, weekNumber: weekIdx + 1, dayIndex, isReview, packWeek: pack.week, quiz: dayIndex === 6 ? pack.quiz ?? null : null };
 }
 
 export function validatePack(data: unknown): string[] {
@@ -55,6 +79,12 @@ export function validatePack(data: unknown): string[] {
     if (l.exercise !== null && (typeof l.exercise?.prompt !== 'string' || typeof l.exercise?.answer !== 'string')) return [`Lesson ${l.id} has a malformed exercise`];
     if (days.has(l.day)) return [`Week ${p.week} has two lessons for day ${l.day}`];
     days.add(l.day);
+  }
+  if (p.quiz !== undefined) {
+    if (!Array.isArray(p.quiz) || p.quiz.length < 5) return [`Week ${p.week} quiz is malformed`];
+    for (const q of p.quiz) {
+      if (typeof q.q !== 'string' || !Array.isArray(q.choices) || q.choices.length < 2 || typeof q.answer !== 'number' || q.answer < 0 || q.answer >= q.choices.length) return [`Week ${p.week} has a malformed quiz question`];
+    }
   }
   return [];
 }

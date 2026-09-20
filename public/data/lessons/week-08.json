@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "At 3% inflation, $100 buys roughly what…",
+   "choices": [
+    "$97 bought last year",
+    "$130 bought last year",
+    "$103 bought last year",
+    "$100 bought last year"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "\"Core\" inflation strips out…",
+   "choices": [
+    "Food and energy",
+    "Imports",
+    "Services",
+    "Housing"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Inflation tends to help…",
+   "choices": [
+    "Borrowers with fixed-rate debt",
+    "Savers holding cash",
+    "People on fixed incomes",
+    "Nobody"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Inflation is 4% and your savings pay 1.5%. Your buying power…",
+   "choices": [
+    "Grows 4%",
+    "Stays the same",
+    "Grows 1.5% a year",
+    "Falls about 2.5% a year"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Using the rule of 72, money at 6% doubles in about…",
+   "choices": [
+    "6 years",
+    "12 years",
+    "24 years",
+    "72 years"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A $300,000 30-year mortgage at 7% instead of 3% costs roughly…",
+   "choices": [
+    "$75 more a month",
+    "The same",
+    "$750 more a month",
+    "$7,500 more a month"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "The popular shorthand for a recession is…",
+   "choices": [
+    "Rising prices",
+    "Two consecutive quarters of shrinking GDP",
+    "A stock market drop of 10%",
+    "One bad month"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "GDP grows 2% while population grows 3%. The average person is…",
+   "choices": [
+    "Better off",
+    "Unchanged",
+    "Worse off, by about 1%",
+    "Impossible to say"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Unemployment usually…",
+   "choices": [
+    "Is unrelated to recessions",
+    "Peaks before the recession",
+    "Falls as soon as a recession begins",
+    "Rises months after output falls and stays high after growth resumes"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Moving into a higher US tax bracket means…",
+   "choices": [
+    "All your income is taxed at the higher rate",
+    "Only the income above the threshold is taxed at the higher rate",
+    "You take home less",
+    "You must file twice"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Your \"effective\" tax rate is…",
+   "choices": [
+    "Always higher than your marginal rate",
+    "The sales tax",
+    "Total tax divided by income, always lower than the marginal rate",
+    "The rate on your last dollar"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "A tax credit…",
+   "choices": [
+    "Increases your refund only if you itemize",
+    "Reduces the tax itself, dollar for dollar",
+    "Is a loan",
+    "Reduces taxable income"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A Brooklyn paycheck shows three income-tax lines because…",
+   "choices": [
+    "Federal, New York State, and New York City each levy income tax",
+    "Of a payroll error",
+    "Brooklyn is a separate state",
+    "Of Social Security"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Egg prices doubled in 2022–23 mainly because…",
+   "choices": [
+    "A conspiracy",
+    "A new tax",
+    "People ate more eggs",
+    "Avian flu cut supply while demand stayed"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A strict rent cap tends over time to…",
+   "choices": [
+    "Lower demand",
+    "Reduce available apartments and create queues",
+    "Increase the number of apartments",
+    "Have no effect"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Petrol prices swing a lot on small supply shocks because…",
+   "choices": [
+    "Demand barely changes when prices rise",
+    "Petrol is cheap",
+    "Of taxes",
+    "There are many substitutes"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Deposit insurance makes banks safer because…",
+   "choices": [
+    "It is paid out often",
+    "It raises interest rates",
+    "It removes the incentive to run, so panics do not start",
+    "Banks lend less"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Silicon Valley Bank failed in 2023 partly because…",
+   "choices": [
+    "Of a cyberattack",
+    "Its long-term bonds lost value when rates rose and uninsured depositors ran",
+    "It held no bonds",
+    "It was too small"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A tariff is paid by…",
+   "choices": [
+    "Nobody",
+    "The foreign government",
+    "The exporter's workers",
+    "The importer, and mostly passed to domestic buyers"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "If you earn dollars and send money to France, a strong dollar is…",
+   "choices": [
+    "Irrelevant",
+    "Bad news",
+    "Good news: each dollar buys more euros",
+    "Only good in summer"
+   ],
+   "answer": 2
+  }
  ]
 }

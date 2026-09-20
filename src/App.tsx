@@ -7,6 +7,8 @@ import { Todo } from '@/screens/Todo';
 import { Groceries } from '@/screens/Groceries';
 import { Library } from '@/screens/Library';
 import { Settings } from '@/screens/Settings';
+import { Quiz } from '@/screens/Quiz';
+import { ProductDetail } from '@/screens/ProductDetail';
 import { seedFixtures } from '../fixtures/seed';
 
 // ?fixtures=1 on localhost seeds the personal database with sample data for screenshots and tests.
@@ -25,7 +27,9 @@ export function App() {
         {route === 'groceries' && <Groceries />}
         {route === 'library' && <Library />}
         {route === 'settings' && <Settings />}
-        {route !== 'settings' && <TabBar route={route} />}
+        {route === 'quiz' && <Quiz />}
+        {route === 'product' && <ProductDetail />}
+        {!['settings', 'quiz', 'product'].includes(route) && <TabBar route={route} />}
       </div>
     </ToastProvider>
   );

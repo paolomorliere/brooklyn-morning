@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "In machine learning, the rules a model follows are…",
+   "choices": [
+    "Learned from examples by adjusting internal numbers",
+    "Set by the user each time",
+    "Copied from a textbook",
+    "Written by a programmer"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Everything a model does is fundamentally…",
+   "choices": [
+    "Understanding",
+    "Reasoning like a human",
+    "Prediction",
+    "Memorizing"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "A hiring model trained on ten years of past decisions risks…",
+   "choices": [
+    "Hiring nobody",
+    "Costing too much electricity",
+    "Being too slow",
+    "Reproducing past biases at scale"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "In a neural network, \"weights\" are…",
+   "choices": [
+    "The size of the training data",
+    "Adjustable numbers that are tuned during training",
+    "The number of layers",
+    "The electricity cost"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "\"Deep\" in deep learning refers to…",
+   "choices": [
+    "Profound insights",
+    "Long training times",
+    "Many layers",
+    "Underwater data centers"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Why is it hard to explain a deep network's specific decision?",
+   "choices": [
+    "It changes every second",
+    "The decision is the combined effect of millions of weights with no single readable rule",
+    "Engineers are not allowed to look",
+    "The code is secret"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A large language model is trained mainly to…",
+   "choices": [
+    "Look up facts in a database",
+    "Browse the internet",
+    "Predict the next word given the words so far",
+    "Translate between languages only"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Why can the same question give different answers from the same model?",
+   "choices": [
+    "The internet changed",
+    "It depends on the time of day",
+    "The model is broken",
+    "Generation samples from probabilities rather than always taking the top word"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A \"hallucination\" is…",
+   "choices": [
+    "A fluent, confident statement that is false",
+    "A model refusing to answer",
+    "A slow response",
+    "An image the model generates"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Models are least reliable on…",
+   "choices": [
+    "Widely documented general concepts",
+    "Common definitions",
+    "Specific numbers, names, citations, and recent events",
+    "Grammar"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which request is safer to trust without checking?",
+   "choices": [
+    "\"Cite three studies on retention\"",
+    "\"Explain what a retention rate is\"",
+    "\"What did the dean say yesterday?\"",
+    "\"What was our retention rate in 2023?\""
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Which analytics task suits an AI assistant best?",
+   "choices": [
+    "Deciding which of two conflicting data sources is authoritative",
+    "Drafting a DAX measure from a plain-English description",
+    "Knowing that program codes changed in 2022",
+    "Taking responsibility for a state report"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "An AI \"agent\" is…",
+   "choices": [
+    "A faster model",
+    "A human employee",
+    "A model with feelings",
+    "A model in a loop with tools that can act, look at results, and decide the next step"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Prompt injection is…",
+   "choices": [
+    "A way to speed up training",
+    "Text in content that a model may mistake for instructions",
+    "A vaccine for computers",
+    "A type of chip"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "An agent that can read AND send emails is riskier than a read-only one because…",
+   "choices": [
+    "Sending costs money",
+    "It uses more memory",
+    "Reading is illegal",
+    "Content in incoming mail could manipulate it into sending messages, which is hard to undo"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The two main cost phases of a large model are…",
+   "choices": [
+    "Testing and shipping",
+    "Coding and debugging",
+    "Training and inference",
+    "Design and marketing"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which company's chips dominate AI training?",
+   "choices": [
+    "Nvidia",
+    "Sony",
+    "Intel",
+    "IBM"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Why can one chip company's results move the whole S&P 500?",
+   "choices": [
+    "Because chips are used in every product",
+    "Because indices are size-weighted and it is a very large share of the index",
+    "Because of a law",
+    "Because it is the only company in the index"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "\"Open-weight\" models are ones whose…",
+   "choices": [
+    "Answers are always correct",
+    "Parameters anyone can download",
+    "Training data is public",
+    "Weights change daily"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A healthy pattern for using AI in analysis is…",
+   "choices": [
+    "Never verify numbers",
+    "Let the model choose the data source",
+    "Paste in data you do not understand and ship the output",
+    "You frame the question and check the result; the model speeds up the middle"
+   ],
+   "answer": 3
+  }
  ]
 }

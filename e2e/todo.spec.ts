@@ -88,3 +88,16 @@ test('categories: add, rename, reorder, remove with move picker', async ({ page 
   await expect(page.locator('section.cat', { has: page.getByRole('heading', { name: 'Personal' }) }).getByText('Plan trip')).toBeVisible();
   await expect(page.getByRole('radio', { name: 'Trips' })).toHaveCount(0);
 });
+
+test('star filter shows only priority tasks', async ({ page }) => {
+  await fresh(page);
+  const input = page.getByRole('textbox', { name: 'New task' });
+  for (const t of ['Alpha', 'Beta', 'Gamma']) { await input.fill(t); await input.press('Enter'); }
+  await page.getByRole('button', { name: 'Mark priority' }).nth(1).click();
+  await page.getByRole('button', { name: 'Show priority tasks only' }).click();
+  await expect(page.locator('li.task')).toHaveCount(1);
+  await expect(page.locator('li.task').getByText('Beta')).toBeVisible();
+  await expect(page.getByText('1 priority · 3 open')).toBeVisible();
+  await page.getByRole('button', { name: 'Show all tasks' }).click();
+  await expect(page.locator('li.task')).toHaveCount(3);
+});

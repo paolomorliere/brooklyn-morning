@@ -191,3 +191,68 @@
   margin-top: var(--s-5);
 }
 .lesson .btn--ghost { background: transparent; color: var(--ivory); border-color: rgba(255, 255, 255, 0.3); }
+
+/* Daily quote */
+.quote {
+  margin: var(--s-4) 0 0;
+  padding: var(--s-3) var(--s-4);
+  border-left: 3px solid var(--terracotta);
+  background: var(--paper);
+  border-radius: 0 var(--radius-m) var(--radius-m) 0;
+}
+.quote p {
+  font-family: var(--font-display);
+  font-size: var(--fs-18);
+  line-height: 1.35;
+  font-style: italic;
+  font-variation-settings: 'SOFT' 100;
+}
+.quote .who {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  color: var(--ink-muted);
+  font-style: normal;
+}
+
+/* Story thumbnail: fixed small square on the right so cards stay short */
+.story-row { display: flex; gap: var(--s-3); align-items: flex-start; }
+.story-row .story-main { flex: 1; min-width: 0; }
+.story-thumb {
+  flex: none;
+  width: 84px;
+  height: 84px;
+  border-radius: var(--radius-s);
+  overflow: hidden;
+  background: var(--paper-2);
+  margin-top: 22px;
+}
+.story-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.story-thumb.hidden { display: none; }
+
+/* Stock in focus */
+.stock {
+  margin-top: var(--s-8);
+  padding: var(--s-4);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-l);
+}
+.stock .eyebrow { color: var(--sage-deep); }
+.stock-head { display: flex; align-items: baseline; justify-content: space-between; gap: var(--s-3); margin-top: var(--s-2); }
+.stock-head h2 { font-size: var(--fs-28); font-weight: 500; }
+.stock-head .price { font-family: var(--font-display); font-size: var(--fs-22); }
+.stock-metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--s-2); margin-top: var(--s-3); }
+.stock-metrics div { padding: var(--s-2); background: var(--paper-2); border-radius: var(--radius-s); text-align: center; }
+.stock-metrics .v { font-weight: 600; font-size: var(--fs-15); }
+.stock-metrics .k { font-size: 11px; color: var(--ink-muted); }
+.pos { color: var(--sage-deep); }
+.neg { color: var(--danger); }
+.stock-rule { font-size: var(--fs-13); color: var(--ink-muted); margin-top: var(--s-3); line-height: 1.45; }
+.stock-disclaimer { font-size: var(--fs-12); color: var(--ink-faint); margin-top: var(--s-2); }
+.scoreboard-combined { font-family: var(--font-display); font-size: var(--fs-36); font-weight: 500; margin-top: var(--s-1); }
+.scoreboard table { width: 100%; border-collapse: collapse; margin-top: var(--s-3); font-size: var(--fs-14); }
+.scoreboard td, .scoreboard th { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
+.scoreboard th { font-size: var(--fs-12); color: var(--ink-muted); font-weight: 600; }
+.scoreboard td.num, .scoreboard th.num { text-align: right; font-variant-numeric: tabular-nums; }

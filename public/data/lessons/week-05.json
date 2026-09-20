@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "Why do most major old cities sit on water?",
+   "choices": [
+    "Because land was cheaper there",
+    "Because of religious rules",
+    "Water meant drinking, transport, defense, and trade before roads and rail",
+    "For the view"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Marseille was founded around 600 BC by…",
+   "choices": [
+    "Vikings",
+    "Greeks",
+    "Romans",
+    "Phoenicians"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Chicago grew into a giant city mainly because…",
+   "choices": [
+    "It was the first US capital",
+    "Gold was found there",
+    "It sits where the Great Lakes route meets the Mississippi system and railroads converged",
+    "It has a warm climate"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Roughly what share of the world's oil passes through the Strait of Hormuz?",
+   "choices": [
+    "About half",
+    "About a fifth",
+    "About 2%",
+    "Almost all"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Which waterway links Europe and Asia without going around Africa?",
+   "choices": [
+    "The Panama Canal",
+    "The Strait of Malacca",
+    "The Bosporus",
+    "The Suez Canal"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "When ships avoided the Red Sea and sailed around Africa, the Asia–Europe trip lengthened by about…",
+   "choices": [
+    "2 months",
+    "1–2 days",
+    "10–14 days",
+    "It got shorter"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which river is at the center of a dispute between Ethiopia and Egypt?",
+   "choices": [
+    "The Zambezi",
+    "The Niger",
+    "The Congo",
+    "The Nile"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Why would a country spend heavily to claim an uninhabited reef?",
+   "choices": [
+    "For scientific prestige only",
+    "Sovereignty can extend claims to fishing, oil, gas, and shipping control in surrounding waters",
+    "To build a lighthouse",
+    "For tourism"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Many straight-line borders in Africa and the Middle East date from…",
+   "choices": [
+    "The United Nations in 1990",
+    "Ancient tribal agreements",
+    "European colonial administrators",
+    "Natural rivers"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Paris has mild winters despite its latitude mainly because of…",
+   "choices": [
+    "Its low altitude",
+    "City heating",
+    "The Alps",
+    "The Gulf Stream and Atlantic influence"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The east side of the Sierra Nevada is a desert because…",
+   "choices": [
+    "Moist Pacific air drops its rain on the western slopes (rain shadow)",
+    "It is farther from the equator",
+    "It is below sea level",
+    "Of volcanic soil"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Coffee typically grows in…",
+   "choices": [
+    "Mediterranean coasts",
+    "Temperate lowlands",
+    "Tropical highlands",
+    "Arctic tundra"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which two regional powers are usually described as rivals in the Middle East?",
+   "choices": [
+    "Saudi Arabia and Iran",
+    "Jordan and Lebanon",
+    "Qatar and Oman",
+    "Egypt and Turkey"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Which country controls the Suez Canal?",
+   "choices": [
+    "Israel",
+    "Saudi Arabia",
+    "Egypt",
+    "Turkey"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Yemen's Houthi movement is backed by…",
+   "choices": [
+    "Egypt",
+    "Saudi Arabia",
+    "Turkey",
+    "Iran"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Which country is in Schengen and NATO but not in the EU?",
+   "choices": [
+    "Poland",
+    "Norway",
+    "Ireland",
+    "Sweden"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "When the ECB raises rates, mortgages are affected in…",
+   "choices": [
+    "Warsaw",
+    "London",
+    "Copenhagen",
+    "Marseille"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Which US region has grown fastest in recent years?",
+   "choices": [
+    "The Midwest",
+    "The South",
+    "Alaska",
+    "The Northeast"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "US politics maps most closely onto…",
+   "choices": [
+    "Coast vs. interior",
+    "Population density: cities lean Democratic, rural areas Republican, suburbs decide",
+    "Altitude",
+    "North vs. South only"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Why do a few swing states dominate presidential campaigns?",
+   "choices": [
+    "They vote first",
+    "They have the most people",
+    "Federal law requires it",
+    "The Electoral College is winner-take-all in almost every state, so only uncertain states can flip the result"
+   ],
+   "answer": 3
+  }
  ]
 }

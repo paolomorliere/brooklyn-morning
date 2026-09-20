@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "Around what year did Gutenberg's printing system appear?",
+   "choices": [
+    "1650",
+    "1250",
+    "1750",
+    "1450"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Printers favored local languages over Latin mainly because…",
+   "choices": [
+    "Local languages reached far more buyers",
+    "The Church required it",
+    "Latin had no alphabet",
+    "Latin type was expensive"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Which movement spread quickly thanks to the press, starting in 1517?",
+   "choices": [
+    "The Reformation",
+    "The Renaissance",
+    "The Crusades",
+    "The Enlightenment"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "What did the Third Estate represent in 1789?",
+   "choices": [
+    "Everyone else, about 97% of the population",
+    "The army",
+    "The nobility",
+    "The clergy"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "The political terms \"left\" and \"right\" come from…",
+   "choices": [
+    "Seating in the 1789 National Assembly",
+    "British parliament benches",
+    "Roman senate traditions",
+    "Napoleon's army"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Which is a lasting legacy of the French Revolution?",
+   "choices": [
+    "The steam engine",
+    "The metric system",
+    "The Gregorian calendar",
+    "The gold standard"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Where did the Industrial Revolution begin?",
+   "choices": [
+    "France",
+    "Britain",
+    "Germany",
+    "The United States"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Why did the steam engine matter more than a better water wheel?",
+   "choices": [
+    "It let factories run anywhere coal could be delivered, not just beside rivers",
+    "It was quieter",
+    "It was cheaper to build",
+    "It needed no fuel"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "The First World War was triggered by the assassination of…",
+   "choices": [
+    "Archduke Franz Ferdinand",
+    "President Poincaré",
+    "Kaiser Wilhelm II",
+    "Tsar Nicholas II"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Which empire did NOT collapse as a result of the First World War?",
+   "choices": [
+    "British",
+    "Ottoman",
+    "Austro-Hungarian",
+    "Russian"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "France's military deaths in the First World War were roughly…",
+   "choices": [
+    "4 million",
+    "14 million",
+    "140,000",
+    "1.4 million"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "In the Great Depression, why did falling prices make things worse?",
+   "choices": [
+    "Debts stayed fixed while incomes fell, and people delayed spending",
+    "People bought too much",
+    "Exports boomed",
+    "Banks lent more"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "US deposit insurance was created in…",
+   "choices": [
+    "1945",
+    "1929",
+    "1913",
+    "1933"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Which economist argued governments should spend when private demand collapses?",
+   "choices": [
+    "Karl Marx",
+    "John Maynard Keynes",
+    "Milton Friedman",
+    "Adam Smith"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "The Second World War in Europe began with Germany's invasion of…",
+   "choices": [
+    "France",
+    "Czechoslovakia",
+    "Poland",
+    "Belgium"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which institution was founded in 1945 in the aftermath of the war?",
+   "choices": [
+    "The European Union",
+    "The World Trade Organization",
+    "The League of Nations",
+    "The United Nations"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The European project began in 1951 by pooling which industries?",
+   "choices": [
+    "Banking and insurance",
+    "Coal and steel",
+    "Wine and cheese",
+    "Railways and ports"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "The Berlin Wall was built in…",
+   "choices": [
+    "1945",
+    "1975",
+    "1953",
+    "1961"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Which 1989 event made the wall harder to maintain?",
+   "choices": [
+    "France left NATO",
+    "The US invaded East Germany",
+    "The euro was introduced",
+    "Hungary opened its border with Austria"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "The Soviet Union dissolved in…",
+   "choices": [
+    "1990",
+    "1989",
+    "December 1991",
+    "1995"
+   ],
+   "answer": 2
+  }
  ]
 }

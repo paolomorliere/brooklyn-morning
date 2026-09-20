@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "An index fund…",
+   "choices": [
+    "Trades once a year",
+    "Only buys bonds",
+    "Pays managers to pick winners",
+    "Holds everything in an index in the same proportions"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Over long periods, most active funds have…",
+   "choices": [
+    "Failed to beat their index after fees",
+    "Beaten their index after fees",
+    "Matched it exactly",
+    "Gone bankrupt"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "An S&P 500 fund charges 0.03% a year. On $20,000, the yearly fee is…",
+   "choices": [
+    "$60",
+    "$0.60",
+    "$600",
+    "$6"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Which type of company most often pays dividends?",
+   "choices": [
+    "Companies with no profit",
+    "Mature companies with steady profits",
+    "Companies about to go public",
+    "Young, fast-growing companies"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A very high dividend yield (8%+) is often…",
+   "choices": [
+    "A warning that the market doubts the dividend will last",
+    "A sign of safety",
+    "Only found in banks",
+    "Required by law"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "After a company buys back 10% of its shares, each remaining share…",
+   "choices": [
+    "Is worth exactly the same",
+    "Owns a smaller slice of the company",
+    "Loses its vote",
+    "Owns a larger slice of the company"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A P/E of 20 means…",
+   "choices": [
+    "The company has 20 years of debt",
+    "You pay $20 for every $1 of yearly profit",
+    "The stock pays 20% a year",
+    "Profit grew 20%"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A stock at $150 earned $5 per share last year. Its trailing P/E is…",
+   "choices": [
+    "15",
+    "75",
+    "30",
+    "20"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "When interest rates rise, prices of existing bonds…",
+   "choices": [
+    "Become zero",
+    "Do not change",
+    "Fall",
+    "Rise"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Which bond is considered about the safest asset in the world?",
+   "choices": [
+    "A junk bond",
+    "A US Treasury",
+    "A municipal bond",
+    "A corporate bond"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "If you hold a bond to maturity, a drop in its market price…",
+   "choices": [
+    "Cancels the bond",
+    "Forces the issuer to pay more",
+    "Only matters if you sell",
+    "Reduces your coupon payments"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "The decision that matters most for long-run results is…",
+   "choices": [
+    "Which broker you use",
+    "The mix between stocks, bonds, and cash (asset allocation)",
+    "Which specific fund you pick",
+    "The day of the week you buy"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Rebalancing means…",
+   "choices": [
+    "Selling everything in a crash",
+    "Changing brokers",
+    "Selling what has grown and buying what has lagged to return to your target mix",
+    "Buying more of whatever rose most"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Ten stocks that are all US banks are…",
+   "choices": [
+    "Safer than an index fund",
+    "Illegal to hold together",
+    "Not really diversified, because they share the same risks",
+    "Fully diversified"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "\"Dow plunges 600 points\" when the Dow is at 40,000 is a move of about…",
+   "choices": [
+    "1.5%",
+    "15%",
+    "0.15%",
+    "6%"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "When a company \"loses $100 billion in value in one day\"…",
+   "choices": [
+    "Its employees were paid less",
+    "The market price of its shares fell; losses are only realized when holders sell",
+    "The company went bankrupt",
+    "$100 billion in cash left investors' accounts"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Missing the ten best days over a couple of decades has historically…",
+   "choices": [
+    "Made little difference",
+    "Doubled returns",
+    "Roughly halved returns",
+    "Eliminated all risk"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Dollar-cost averaging means…",
+   "choices": [
+    "Converting dollars to euros",
+    "Buying one share a day",
+    "Buying only when prices are low",
+    "Investing the same amount at regular intervals regardless of price"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A colleague says a stock \"can only go up\" because a launch is next month. The flaw is…",
+   "choices": [
+    "Launches are illegal to trade on",
+    "Public knowledge is already priced in; the stock moves on surprises",
+    "Stocks cannot rise on news",
+    "Launches always fail"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "In the US, which account types offer tax advantages for long-term investing?",
+   "choices": [
+    "Checking accounts",
+    "Brokerage margin accounts",
+    "401(k) and IRA",
+    "Credit cards"
+   ],
+   "answer": 2
+  }
  ]
 }

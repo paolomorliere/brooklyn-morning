@@ -17,6 +17,7 @@ export function Todo() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [editing, setEditing] = useState<Task | null>(null);
   const [managing, setManaging] = useState(false);
+  const [starredOnly, setStarredOnly] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // 12-hour cleanup runs on load, resume, visibility change, and every 5 minutes.
@@ -25,7 +26,8 @@ export function Todo() {
     if (ready && !categories.some((c) => c.id === catId)) setCatId(categories.find((c) => c.system)?.id ?? categories[0]?.id ?? 'inbox');
   }, [ready, categories, catId]);
 
-  const open = tasks.filter((t) => !t.completedAt);
+  const allOpen = tasks.filter((t) => !t.completedAt);
+  const open = starredOnly ? allOpen.filter((t) => t.starred) : allOpen;
   const done = sortCompleted(tasks.filter((t) => t.completedAt));
 
   const submit = async () => {
@@ -77,18 +79,23 @@ export function Todo() {
 
       <ScreenHeader
         title="To Do"
-        sub={ready ? `${open.length} open` : ' '}
+        sub={ready ? (starredOnly ? `${open.length} priority · ${allOpen.length} open` : `${allOpen.length} open`) : ' '}
         right={
-          <button class="icon-btn" aria-label="Manage categories" onClick={() => setManaging(true)}>
-            <SlidersHorizontal size={22} strokeWidth={1.8} />
-          </button>
+          <>
+            <button class="icon-btn" aria-label={starredOnly ? 'Show all tasks' : 'Show priority tasks only'} aria-pressed={starredOnly} onClick={() => setStarredOnly(!starredOnly)} style={starredOnly ? 'color:var(--terracotta)' : ''}>
+              <Star size={22} strokeWidth={1.8} fill={starredOnly ? 'currentColor' : 'none'} />
+            </button>
+            <button class="icon-btn" aria-label="Manage categories" onClick={() => setManaging(true)}>
+              <SlidersHorizontal size={22} strokeWidth={1.8} />
+            </button>
+          </>
         }
       />
 
       {ready && open.length === 0 && (
         <div class="empty">
-          <h3>All clear</h3>
-          <p>Type above and press return. Tasks land in Inbox unless you pick a category.</p>
+          <h3>{starredOnly && allOpen.length > 0 ? 'No priority tasks' : 'All clear'}</h3>
+          <p>{starredOnly && allOpen.length > 0 ? 'Tap the star on a task to mark it as priority.' : 'Type above and press return. Tasks land in Inbox unless you pick a category.'}</p>
         </div>
       )}
 
@@ -114,7 +121,7 @@ export function Todo() {
         );
       })}
 
-      {done.length > 0 && (
+      {done.length > 0 && !starredOnly && (
         <div class="completed-strip">
           <div class="small faint" style="font-weight:600;margin-bottom:4px">
             Completed · clears 12 h after check-off

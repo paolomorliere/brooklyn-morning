@@ -1,7 +1,7 @@
-import type { LessonProgress } from '@/types';
+import type { LessonProgress, QuizResult } from '@/types';
 import { createStore } from './store';
 import { getLessonProgress, kvGet, kvSet, setLessonProgress } from '@/db/personal';
-import { lessonForDate, mondayOf, validatePack, type LessonIndex, type LessonPack, type TodayLesson } from '@/lib/lessons';
+import { LESSONS_EPOCH, lessonForDate, startMondayFor, validatePack, type LessonIndex, type LessonPack, type TodayLesson } from '@/lib/lessons';
 
 interface LessonState { packs: LessonPack[]; progress: LessonProgress | null; totalWeeksAvailable: number; ready: boolean; lastError: string | null }
 
@@ -12,7 +12,11 @@ export const lessonStore = createStore<LessonState>({ packs: [], progress: null,
   const packs = (await Promise.all(weeks.map((w) => kvGet<LessonPack | null>(`lessons:week-${w}`, null)))).filter(Boolean) as LessonPack[];
   let progress = await getLessonProgress();
   if (!progress) {
-    progress = { startMonday: mondayOf(new Date()), readLessonIds: [] };
+    progress = { startMonday: startMondayFor(new Date()), readLessonIds: [] };
+    await setLessonProgress(progress);
+  } else if (progress.startMonday < LESSONS_EPOCH) {
+    // Installed before the sequence officially began: restart cleanly at week 1 on the epoch Monday.
+    progress = { ...progress, startMonday: LESSONS_EPOCH, readLessonIds: [] };
     await setLessonProgress(progress);
   }
   return { packs, progress, totalWeeksAvailable: packs.length, ready: true, lastError: null };
@@ -66,6 +70,15 @@ export const lessonActions = {
     const cur = lessonStore.get().progress;
     if (!cur || cur.readLessonIds.includes(lessonId)) return;
     const progress = { ...cur, readLessonIds: [...cur.readLessonIds, lessonId] };
+    await setLessonProgress(progress);
+    patch({ progress });
+  },
+  async saveQuizResult(result: QuizResult) {
+    await lessonStore.ensure();
+    const cur = lessonStore.get().progress;
+    if (!cur) return;
+    const quizResults = [...(cur.quizResults ?? []).filter((r) => r.week !== result.week), result];
+    const progress = { ...cur, quizResults };
     await setLessonProgress(progress);
     patch({ progress });
   },

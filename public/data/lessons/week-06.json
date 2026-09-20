@@ -143,5 +143,207 @@
    },
    "readMinutes": 2
   }
+ ],
+ "quiz": [
+  {
+   "q": "Besides making food salty, salt…",
+   "choices": [
+    "Adds sweetness directly",
+    "Suppresses bitterness and amplifies aroma",
+    "Cools food down",
+    "Replaces acid"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "When should a whole chicken ideally be salted?",
+   "choices": [
+    "Right after cooking",
+    "Only at the table",
+    "Never",
+    "At least 45 minutes before, ideally the morning of"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A teaspoon of fine table salt compared with a teaspoon of flaky salt is…",
+   "choices": [
+    "Roughly twice as salty",
+    "About the same",
+    "Ten times as salty",
+    "Less salty"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "The Maillard reaction needs…",
+   "choices": [
+    "Heat and a dry surface",
+    "Lots of water",
+    "A lid",
+    "Sugar only"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Mushrooms crowded into one pan turn grey and rubbery because…",
+   "choices": [
+    "The pan is too hot",
+    "They are old",
+    "They need salt",
+    "They release water and steam instead of browning"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "For a high-heat sear you should use…",
+   "choices": [
+    "Butter",
+    "A neutral oil like canola or grapeseed",
+    "Extra-virgin olive oil",
+    "Water"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "A dish tastes flat and salt does not fix it. It most likely needs…",
+   "choices": [
+    "Flour",
+    "More sugar",
+    "More cooking time",
+    "Acid, like lemon or vinegar"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A basic vinaigrette uses oil to vinegar in about…",
+   "choices": [
+    "10:1",
+    "1:3",
+    "3:1",
+    "1:1"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "\"Mise en place\" means…",
+   "choices": [
+    "Cutting and measuring everything before heat goes on",
+    "Serving on plates",
+    "A French cheese",
+    "A type of knife"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "A sharp knife is safer than a dull one because…",
+   "choices": [
+    "It does not slip",
+    "It is easier to see",
+    "It cuts more slowly",
+    "It is heavier"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Why cut stew carrots to the same size?",
+   "choices": [
+    "To save knife wear",
+    "For looks only",
+    "Same size means same cooking time",
+    "Because recipes say so"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "The \"fond\" is…",
+   "choices": [
+    "The bottom shelf of the fridge",
+    "A type of stock cube",
+    "A French sauce",
+    "The browned residue stuck to the pan after searing"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "Deglazing means…",
+   "choices": [
+    "Adding liquid to a hot pan and scraping up the browned bits",
+    "Adding sugar",
+    "Cooling a pan in water",
+    "Removing the glaze from a ham"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "The easiest way to thicken a pan sauce is to…",
+   "choices": [
+    "Reduce it by simmering",
+    "Blend it",
+    "Add flour directly",
+    "Add ice"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Egg whites set at roughly…",
+   "choices": [
+    "63°C",
+    "120°C",
+    "90°C",
+    "40°C"
+   ],
+   "answer": 0
+  },
+  {
+   "q": "Good scrambled eggs are…",
+   "choices": [
+    "Boiled first",
+    "Cooked on high heat without stirring",
+    "Cooked low and slow with constant stirring and pulled while slightly wet",
+    "Left in the pan to finish"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "Grey, chalky boiled-egg yolks mean…",
+   "choices": [
+    "Too much salt in the water",
+    "The eggs were cold",
+    "The eggs were too fresh",
+    "They were overcooked"
+   ],
+   "answer": 3
+  },
+  {
+   "q": "A jammy boiled egg takes about…",
+   "choices": [
+    "20 minutes",
+    "6 minutes",
+    "12 minutes",
+    "3 minutes"
+   ],
+   "answer": 1
+  },
+  {
+   "q": "Frozen vegetables are…",
+   "choices": [
+    "Always worse than fresh",
+    "Only for soups",
+    "Often fresher than week-old \"fresh\" produce, since they are picked ripe",
+    "Unsafe"
+   ],
+   "answer": 2
+  },
+  {
+   "q": "With chickpeas, onion, garlic, tomatoes, cumin, and lemon you can make…",
+   "choices": [
+    "Only hummus",
+    "A simple stew: soften onion and garlic with cumin, add tomatoes and chickpeas, simmer, finish with lemon",
+    "Dessert",
+    "Nothing useful"
+   ],
+   "answer": 1
+  }
  ]
 }
