@@ -9,8 +9,9 @@ import { createHash } from 'node:crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
-import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MAX_AGE_HOURS, PER_TOPIC } from './feeds.config.mjs';
+import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, PER_TOPIC, SLOT_RULES, SUBJECTS } from './feeds.config.mjs';
 import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
+import { UNIVERSE, RULE_TEXT, fetchBars, metricsFor, pickStock, countMentions, scoreboard } from './lib/stocks.mjs';
 
 const UA = 'Mozilla/5.0 (compatible; BrooklynMorning/0.1; personal RSS reader; +https://github.com)';
 const args = process.argv.slice(2);
@@ -55,6 +56,27 @@ async function fetchText(url, timeoutMs, attempt = 0) {
 const parser = new XMLParser({ ignoreAttributes: false, cdataPropName: '#cdata', textNodeName: '#text' });
 const cd = (v) => (v && typeof v === 'object' && '#cdata' in v ? v['#cdata'] : v);
 
+/** Best image URL from common RSS/Atom media fields, or from an <img> inside the description. */
+function imageFrom(it) {
+  const cands = [];
+  for (const k of ['media:content', 'media:thumbnail', 'enclosure']) {
+    for (const m of [].concat(it[k] ?? [])) {
+      const url = m?.['@_url'];
+      const type = m?.['@_type'] ?? '';
+      const medium = m?.['@_medium'] ?? '';
+      if (url && (type.startsWith('image/') || medium === 'image' || /\.(jpe?g|png|webp)(\?|$)/i.test(url))) cands.push({ url, w: Number(m['@_width'] ?? 0) });
+    }
+  }
+  if (!cands.length) {
+    const html = text(cd(it.description)) + text(cd(it['content:encoded']));
+    const m = /<img[^>]+src=["']([^"']+)["']/i.exec(html);
+    if (m) cands.push({ url: m[1], w: 0 });
+  }
+  cands.sort((a, b) => b.w - a.w);
+  const u = cands[0]?.url;
+  return u && /^https?:\/\//.test(u) ? u : null;
+}
+
 function parseFeed(xml) {
   const x = parser.parse(xml);
   if (x.rss?.channel) {
@@ -64,6 +86,7 @@ function parseFeed(xml) {
       url: text(cd(it.link)) || text(it.guid),
       publishedAt: it.pubDate ?? it['dc:date'] ?? null,
       excerpt: clean(text(cd(it.description)) || text(cd(it['content:encoded'])) || text(cd(it.summary))),
+      imageUrl: imageFrom(it),
     }));
   }
   if (x.feed) {
@@ -76,6 +99,7 @@ function parseFeed(xml) {
         url: alt?.['@_href'] ?? text(alt) ?? '',
         publishedAt: e.published ?? e.updated ?? null,
         excerpt: clean(text(cd(e.summary)) || text(cd(e.content))),
+        imageUrl: imageFrom({ ...e, description: e.content }),
       };
     });
   }
@@ -105,11 +129,12 @@ function dropDuplicateParagraphs(lead, excerpt) {
 async function extractLead(url) {
   const html = await fetchText(url, 10_000);
   const { document } = parseHTML(html);
+  const og = document.querySelector('meta[property="og:image"], meta[name="twitter:image"]')?.getAttribute('content') ?? null;
   const article = new Readability(document, { charThreshold: 200 }).parse();
-  if (!article?.content) return null;
+  if (!article?.content) return { lead: null, og };
   const { document: doc } = parseHTML(`<div>${article.content}</div>`);
   const paras = [...doc.querySelectorAll('p')].map((p) => p.textContent.replace(/\s+/g, ' ').trim()).filter((t) => t.length >= 50 && !/^(advertisement|image source|getty images|reuters|afp|listen|share|read more|sign up)/i.test(t) && !/hide caption|\/(AP|AFP|Getty|Reuters)\b|Getty Images|toggle caption|photograph:/i.test(t));
-  if (!paras.length) return null;
+  if (!paras.length) return { lead: null, og };
   const out = [];
   let total = 0;
   for (const p of paras.slice(0, 3)) {
@@ -117,7 +142,68 @@ async function extractLead(url) {
     out.push(total + p.length > LEAD_MAX_CHARS ? truncate(p, LEAD_MAX_CHARS - total) : p);
     total += p.length;
   }
-  return out.join('\n\n');
+  return { lead: out.join('\n\n'), og };
+}
+
+/** Daily quote: cycles through the curated file by day number, so it changes every day and repeats only after a full cycle. */
+async function quoteFor(dateYMD) {
+  try {
+    const { quotes } = JSON.parse(await readFile('public/data/quotes.json', 'utf8'));
+    const dayNumber = Math.floor(Date.parse(`${dateYMD}T12:00:00Z`) / 86400e3);
+    return quotes[dayNumber % quotes.length];
+  } catch {
+    return null;
+  }
+}
+
+/** Stock in focus (Mon–Fri) or the week's scoreboard (Sat–Sun). Never throws; returns { kind: 'unavailable' } on failure. */
+async function stockBlock(dateYMD, headlines) {
+  let log = { picks: [] };
+  try { log = JSON.parse(await readFile('state/stocks.json', 'utf8')); } catch { /* first run */ }
+  const dow = new Date(`${dateYMD}T12:00:00Z`).getUTCDay(); // 0 Sun .. 6 Sat
+  const isWeekend = dow === 0 || dow === 6;
+  try {
+    if (isWeekend) {
+      const monday = new Date(`${dateYMD}T12:00:00Z`);
+      monday.setUTCDate(monday.getUTCDate() - ((dow + 6) % 7));
+      const weekOf = monday.toISOString().slice(0, 10);
+      const picks = log.picks.filter((p) => p.date >= weekOf && p.date <= dateYMD);
+      if (!picks.length) return { kind: 'scoreboard', weekOf, rows: [], combinedPct: null, counted: 0, note: 'No picks were recorded this week.', rule: RULE_TEXT };
+      const barsByTicker = {};
+      for (const p of picks) {
+        barsByTicker[p.ticker] = await fetchBars(p.ticker, '1mo');
+        await sleep(200);
+      }
+      const sb = scoreboard(picks, barsByTicker);
+      const best = [...sb.rows].filter((r) => r.changePct != null).sort((a, b) => b.changePct - a.changePct);
+      return { kind: 'scoreboard', weekOf, ...sb, best: best[0]?.ticker ?? null, worst: best[best.length - 1]?.ticker ?? null, rule: RULE_TEXT,
+        note: 'Hypothetical: buy at the open on the day featured, hold to the latest close, equal amounts, no fees or taxes. Five stocks over one week is mostly noise; judge the rule over months, not days.' };
+    }
+    if (log.picks.some((p) => p.date === dateYMD)) {
+      const p = log.picks.find((x) => x.date === dateYMD);
+      return { kind: 'pick', ...p, rule: RULE_TEXT };
+    }
+    const rows = [];
+    for (const [ticker, name] of UNIVERSE) {
+      try {
+        rows.push({ ticker, name, m: metricsFor(await fetchBars(ticker)) });
+      } catch { rows.push({ ticker, name, m: null }); }
+      await sleep(120);
+    }
+    const ok = rows.filter((r) => r.m).length;
+    if (ok < UNIVERSE.length * 0.7) return { kind: 'unavailable', reason: `Only ${ok} of ${UNIVERSE.length} stocks returned data`, rule: RULE_TEXT };
+    const recent = new Set(log.picks.slice(-10).map((p) => p.ticker));
+    const mentions = countMentions(headlines);
+    const pick = pickStock(rows, { recent, mentions });
+    if (!pick) return { kind: 'unavailable', reason: 'No stock met the rule today', rule: RULE_TEXT };
+    const rec = { date: dateYMD, ticker: pick.ticker, name: pick.name, lastClose: pick.m.last, asOf: pick.m.lastDate, r5: pick.m.r5, r20: pick.m.r20, volRatio: pick.m.volRatio, pctOfHigh60: pick.m.pctOfHigh60, mentions: mentions[pick.ticker] ?? 0 };
+    log.picks.push(rec);
+    log.picks = log.picks.slice(-120);
+    await writeFile('state/stocks.json', JSON.stringify(log, null, 1));
+    return { kind: 'pick', ...rec, rule: RULE_TEXT, scanned: ok };
+  } catch (e) {
+    return { kind: 'unavailable', reason: String(e.message ?? e).slice(0, 120), rule: RULE_TEXT };
+  }
 }
 
 async function main() {
@@ -154,6 +240,7 @@ async function main() {
         let n = 0;
         for (const raw of parsed) {
           if (!raw.title || !raw.url) continue;
+          if (feed.requireKeyword && !feed.requireKeyword.test(`${raw.title} ${raw.excerpt}`)) continue;
           const publishedAt = raw.publishedAt ? new Date(raw.publishedAt) : null;
           if (!publishedAt || Number.isNaN(publishedAt.getTime())) continue;
           const item = {
@@ -165,9 +252,11 @@ async function main() {
             feedId: feed.id,
             topic: feed.topic,
             lang: feed.lang ?? 'en',
+            sub: feed.sub ?? null,
+            imageUrl: raw.imageUrl ?? null,
           };
           if (item.excerpt.toLowerCase() === item.title.toLowerCase()) item.excerpt = '';
-          item.score = scoreItem(item, feed, { boosts: BOOSTS[feed.topic] ?? [], matchReport: MATCH_REPORT, now });
+          item.score = scoreItem(item, feed, { boosts: BOOSTS[feed.topic] ?? [], matchReport: MATCH_REPORT, matchReportPenalty: MATCH_REPORT_PENALTY[feed.topic] ?? MATCH_REPORT_PENALTY.default, halfLifeHours: HALF_LIFE_HOURS[feed.topic] ?? 18, now });
           items.push(item);
           n++;
         }
@@ -179,7 +268,7 @@ async function main() {
   );
 
   // 2) Select per topic.
-  const perTopic = selectPerTopic(items, { perTopic: PER_TOPIC, maxAgeHours: MAX_AGE_HOURS, seen, now, topics: TOPICS });
+  const perTopic = selectPerTopic(items, { perTopic: PER_TOPIC, maxAgeHours: MAX_AGE_HOURS, seen, now, topics: TOPICS, slotRules: SLOT_RULES, subjects: SUBJECTS });
   let stories = TOPICS.flatMap((t) => perTopic[t]);
 
   // 3) Extract opening paragraphs for allow-listed publishers, best-effort, bounded.
@@ -191,7 +280,9 @@ async function main() {
       if (!leadOK.get(s.feedId)) continue;
       leadsTried++;
       try {
-        s.lead = dropDuplicateParagraphs(await extractLead(s.url), s.excerpt);
+        const { lead, og } = await extractLead(s.url);
+        s.lead = dropDuplicateParagraphs(lead, s.excerpt);
+        if (!s.imageUrl && og && /^https?:\/\//.test(og)) s.imageUrl = og;
         if (s.lead) leadsGot++;
       } catch {
         s.lead = null;
@@ -214,13 +305,20 @@ async function main() {
     leadSource: s.lead ? 'extracted' : null,
     isBackground: s.isBackground,
     lang: s.lang,
+    sub: s.sub,
+    imageUrl: s.imageUrl ?? null,
     glossaryTerms: s.topic === 'finance' || s.topic === 'world' ? tagGlossary(s, glossary) : [],
   }));
+
+  const quote = await quoteFor(today);
+  const stock = args.includes('--no-stock') ? { kind: 'unavailable', reason: 'skipped', rule: RULE_TEXT } : await stockBlock(today, items.filter((i) => i.topic === 'finance' || i.topic === 'ai').map((i) => i.title));
 
   const edition = {
     schemaVersion: 1,
     date: today,
     preparedAt: new Date().toISOString(),
+    quote,
+    stock,
     stories,
     sources: sources.sort((a, b) => TOPICS.indexOf(a.topic) - TOPICS.indexOf(b.topic) || a.name.localeCompare(b.name)),
     counts: Object.fromEntries(TOPICS.map((t) => [t, perTopic[t].length])),
@@ -236,7 +334,7 @@ async function main() {
   await writeFile('public/data/editions/index.json', JSON.stringify({ dates: files.slice(0, KEEP_EDITIONS).map((f) => f.replace('.json', '')) }));
 
   const failed = sources.filter((s) => !s.ok);
-  console.log(`Edition ${today}: ${stories.length} stories`, edition.counts, `| leads ${leadsGot}/${leadsTried} | feeds ok ${sources.length - failed.length}/${sources.length}`);
+  console.log(`Edition ${today}: ${stories.length} stories`, edition.counts, `| leads ${leadsGot}/${leadsTried} | images ${stories.filter((x) => x.imageUrl).length} | feeds ok ${sources.length - failed.length}/${sources.length} | stock: ${stock.kind}${stock.ticker ? ' ' + stock.ticker : ''}${stock.reason ? ' (' + stock.reason + ')' : ''}`);
   for (const f of failed) console.log(`  FAILED ${f.name} (${f.id}): ${f.error}`);
 }
 
