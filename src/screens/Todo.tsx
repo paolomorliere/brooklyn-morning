@@ -1,27 +1,44 @@
-import { useState } from 'preact/hooks';
-import { Check, ChevronDown, ChevronRight, Plus, Star } from 'lucide-preact';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { Check, ChevronDown, ChevronRight, Plus, SlidersHorizontal, Star } from 'lucide-preact';
 import type { Category, Task } from '@/types';
 import { ScreenHeader } from '@/ui/ScreenHeader';
+import { useToast } from '@/ui/Toast';
+import { onResume } from '@/state/store';
+import { todoActions, todoStore } from '@/state/todo';
+import { sortCompleted, sortOpen } from '@/lib/tasks';
+import { TaskSheet } from './todo/TaskSheet';
+import { CategoriesSheet } from './todo/CategoriesSheet';
 
-interface Props {
-  categories: Category[];
-  tasks: Task[];
-  onAdd?: (text: string, categoryId: string) => void;
-}
-
-export function Todo({ categories, tasks, onAdd }: Props) {
+export function Todo() {
+  const { tasks, categories, ready } = todoStore.use();
+  const toast = useToast();
   const [text, setText] = useState('');
-  const [catId, setCatId] = useState(categories.find((c) => c.system)?.id ?? categories[0]?.id ?? '');
+  const [catId, setCatId] = useState('inbox');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [editing, setEditing] = useState<Task | null>(null);
+  const [managing, setManaging] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // 12-hour cleanup runs on load, resume, visibility change, and every 5 minutes.
+  useEffect(() => onResume(() => void todoActions.purge()), []);
+  useEffect(() => {
+    if (ready && !categories.some((c) => c.id === catId)) setCatId(categories.find((c) => c.system)?.id ?? categories[0]?.id ?? 'inbox');
+  }, [ready, categories, catId]);
 
   const open = tasks.filter((t) => !t.completedAt);
-  const done = tasks.filter((t) => t.completedAt);
+  const done = sortCompleted(tasks.filter((t) => t.completedAt));
 
-  const submit = () => {
+  const submit = async () => {
     const v = text.trim();
     if (!v) return;
-    onAdd?.(v, catId);
     setText('');
+    await todoActions.add(v, catId);
+    inputRef.current?.focus(); // keep the keyboard up for rapid entry
+  };
+
+  const complete = async (t: Task) => {
+    await todoActions.complete(t.id);
+    toast({ message: `Done: ${t.text}`, actionLabel: 'Undo', onAction: () => void todoActions.uncomplete(t.id) });
   };
 
   return (
@@ -31,34 +48,44 @@ export function Todo({ categories, tasks, onAdd }: Props) {
           class="quickadd-row"
           onSubmit={(e) => {
             e.preventDefault();
-            submit();
+            void submit();
           }}
         >
           <input
+            ref={inputRef}
             class="input"
             placeholder="Add a task…"
             value={text}
             onInput={(e) => setText((e.target as HTMLInputElement).value)}
             enterkeyhint="done"
             autocapitalize="sentences"
+            autocomplete="off"
             aria-label="New task"
           />
-          <button class="btn" type="submit" aria-label="Add">
+          <button class="btn" type="submit" aria-label="Add" disabled={!text.trim()}>
             <Plus size={20} />
           </button>
         </form>
         <div class="chip-row" role="radiogroup" aria-label="Category for new task">
           {categories.map((c) => (
-            <button key={c.id} class="chip" role="radio" aria-checked={catId === c.id} aria-pressed={catId === c.id} onClick={() => setCatId(c.id)}>
+            <button key={c.id} type="button" class="chip" role="radio" aria-checked={catId === c.id} aria-pressed={catId === c.id} onClick={() => setCatId(c.id)}>
               {c.name}
             </button>
           ))}
         </div>
       </div>
 
-      <ScreenHeader title="To Do" sub={`${open.length} open`} />
+      <ScreenHeader
+        title="To Do"
+        sub={ready ? `${open.length} open` : ' '}
+        right={
+          <button class="icon-btn" aria-label="Manage categories" onClick={() => setManaging(true)}>
+            <SlidersHorizontal size={22} strokeWidth={1.8} />
+          </button>
+        }
+      />
 
-      {open.length === 0 && (
+      {ready && open.length === 0 && (
         <div class="empty">
           <h3>All clear</h3>
           <p>Type above and press return. Tasks land in Inbox unless you pick a category.</p>
@@ -66,7 +93,7 @@ export function Todo({ categories, tasks, onAdd }: Props) {
       )}
 
       {categories.map((c) => {
-        const items = open.filter((t) => t.categoryId === c.id).sort((a, b) => Number(b.starred) - Number(a.starred) || a.order - b.order);
+        const items = sortOpen(open.filter((t) => t.categoryId === c.id));
         if (items.length === 0) return null;
         const isCollapsed = collapsed[c.id];
         return (
@@ -79,18 +106,7 @@ export function Todo({ categories, tasks, onAdd }: Props) {
             {!isCollapsed && (
               <ul>
                 {items.map((t) => (
-                  <li class="task" key={t.id}>
-                    <button class="task-check" role="checkbox" aria-checked="false" aria-label={`Complete ${t.text}`}>
-                      <Check size={14} strokeWidth={3} />
-                    </button>
-                    <div class="task-body">
-                      <div class="task-text">{t.text}</div>
-                      {t.notes && <div class="task-notes">{t.notes}</div>}
-                    </div>
-                    <button class="task-star" aria-pressed={t.starred} aria-label="Priority">
-                      <Star size={18} fill={t.starred ? 'currentColor' : 'none'} />
-                    </button>
-                  </li>
+                  <TaskRow key={t.id} task={t} onComplete={() => void complete(t)} onOpen={() => setEditing(t)} onStar={() => void todoActions.update(t.id, { starred: !t.starred })} />
                 ))}
               </ul>
             )}
@@ -106,11 +122,35 @@ export function Todo({ categories, tasks, onAdd }: Props) {
           {done.map((t) => (
             <div class="row" key={t.id}>
               <span>{t.text}</span>
-              <button class="btn btn--quiet" style="color:var(--terracotta-deep)">Undo</button>
+              <button class="btn btn--quiet" style="color:var(--terracotta-deep)" onClick={() => void todoActions.uncomplete(t.id)}>
+                Undo
+              </button>
             </div>
           ))}
         </div>
       )}
+
+      {editing && <TaskSheet task={tasks.find((t) => t.id === editing.id) ?? editing} categories={categories} onClose={() => setEditing(null)} onManageCategories={() => { setEditing(null); setManaging(true); }} />}
+      {managing && <CategoriesSheet categories={categories} tasks={tasks} onClose={() => setManaging(false)} />}
     </main>
   );
 }
+
+function TaskRow({ task, onComplete, onOpen, onStar }: { task: Task; onComplete: () => void; onOpen: () => void; onStar: () => void }) {
+  return (
+    <li class="task">
+      <button class="task-check" role="checkbox" aria-checked="false" aria-label={`Complete ${task.text}`} onClick={onComplete}>
+        <Check size={14} strokeWidth={3} />
+      </button>
+      <button class="task-body" onClick={onOpen} style="text-align:left">
+        <div class="task-text">{task.text}</div>
+        {task.notes && <div class="task-notes">{task.notes}</div>}
+      </button>
+      <button class="task-star" aria-pressed={task.starred} aria-label={task.starred ? 'Remove priority' : 'Mark priority'} onClick={onStar}>
+        <Star size={18} fill={task.starred ? 'currentColor' : 'none'} />
+      </button>
+    </li>
+  );
+}
+
+export type { Category };

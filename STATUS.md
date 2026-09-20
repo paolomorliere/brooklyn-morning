@@ -20,8 +20,12 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 
 - Phase 1 (2026-09-19): design tokens (`src/styles/tokens.css`), shell (hash router, tab bar, toast), Home/To Do/Groceries/Library/Settings screens rendering preview fixtures (`fixtures/preview.ts`, real feed snapshot in `fixtures/sample-stories.json`). Screenshot helper: `node scripts/shots.mjs` (dev server on :5173). Screenshots sent to Paolo for design feedback.
 
+- Design feedback (2026-09-19): quick-add stays at top, dark lesson card stays.
+- Phase 2 (2026-09-19): `personal` IndexedDB (`src/db/personal.ts`, stores tasks/categories/list/history/library/kv), task repo + pure rules (`src/lib/tasks.ts`), reactive store (`src/state/`), wired To Do screen with edit sheet, categories manager (add/rename/move up-down/remove with mandatory move picker), completion + Undo toast, 12-h purge on load/resume/visibility/5-min interval. Backup export (share sheet → download fallback) and validated atomic restore in Settings; 14-day reminder banner. Tests: 14 Vitest, 4 Playwright specs × 3 viewports.
+- Deviation to note: category reorder uses up/down arrows instead of drag handles (reliable on iOS Safari, no library). Drag can be added later if wanted.
+
 ## In progress
-- Awaiting Paolo's design feedback on Phase 1 screenshots; meanwhile Phase 2 (To Do data layer) can start since it does not depend on visual tweaks.
+- Phase 3: Groceries — `scripts/build-catalog.mjs` (Open Food Facts import + validation + coverage report), catalog DB, search index, list/history/buy-again/discover rules, failure paths.
 
 ## Remaining
 - Phase 2 To Do · Phase 3 Groceries + catalog script · Phase 4 Morning pipeline + 56 lessons + workflow · Phase 5 Library/Settings/icon · Phase 6 tests, deploy, install guide, final report.

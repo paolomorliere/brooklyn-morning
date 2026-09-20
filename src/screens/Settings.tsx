@@ -1,4 +1,5 @@
 import { ChevronLeft } from 'lucide-preact';
+import { BackupSection } from './settings/BackupSection';
 
 function Row({ label, value, action }: { label: string; value?: string; action?: string }) {
   return (
@@ -27,9 +28,7 @@ export function Settings() {
       <Row label="Topics & sources" value="5 topics on" action="Edit" />
       <Row label="Past editions" value="Last 14 days" action="Open" />
 
-      <div class="section-title"><h2>Backup</h2></div>
-      <Row label="Export everything" value="Tasks, groceries, library, lesson progress · JSON" action="Export" />
-      <Row label="Restore from file" value="Replaces current data after confirmation" action="Restore" />
+      <BackupSection />
 
       <div class="section-title"><h2>To Do</h2></div>
       <Row label="Manage categories" value="6 categories" action="Edit" />
