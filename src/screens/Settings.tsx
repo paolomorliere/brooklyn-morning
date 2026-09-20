@@ -1,5 +1,6 @@
 import { ChevronLeft } from 'lucide-preact';
 import { BackupSection } from './settings/BackupSection';
+import { GrocerySection } from './settings/GrocerySection';
 
 function Row({ label, value, action }: { label: string; value?: string; action?: string }) {
   return (
@@ -33,9 +34,7 @@ export function Settings() {
       <div class="section-title"><h2>To Do</h2></div>
       <Row label="Manage categories" value="6 categories" action="Edit" />
 
-      <div class="section-title"><h2>Groceries</h2></div>
-      <Row label="Catalog" value="Open Food Facts · not loaded yet" action="Update" />
-      <Row label="Purchase history" value="Hide items or clear" action="Manage" />
+      <GrocerySection />
 
       <div class="section-title"><h2>About</h2></div>
       <Row label="Brooklyn Morning" value="Personal app · no tracking, no ads, no accounts" />

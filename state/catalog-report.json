@@ -1,0 +1,31 @@
+{
+  "raw": 5690,
+  "noName": 80,
+  "notTJ": 1089,
+  "dupes": 443,
+  "tooShort": 1,
+  "kept": 4077,
+  "withImage": 3234,
+  "withSize": 1664,
+  "withTags": 1700,
+  "bySection": {
+    "Cheese & Deli": 380,
+    "Beverages": 338,
+    "Pantry": 629,
+    "Dairy & Eggs": 207,
+    "Other": 544,
+    "Bakery": 248,
+    "Snacks": 804,
+    "Frozen": 227,
+    "Meat & Seafood": 444,
+    "Produce": 251,
+    "Flowers & Home": 5
+  },
+  "previousCount": 4099,
+  "problems": [],
+  "version": "2026-09-20",
+  "checksum": "5de1f25c8f34f3bb85f91c09f72cf12c5ac9493e7d044f67694a194d1630f547",
+  "imagePct": 79,
+  "sizePct": 41,
+  "tagsPct": 42
+}

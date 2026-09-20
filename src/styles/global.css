@@ -368,3 +368,6 @@ textarea.input { min-height: 88px; resize: vertical; line-height: 1.45; }
 .error { color: var(--danger); font-size: var(--fs-13); margin-top: 6px; }
 @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
 @keyframes sheet-up { from { transform: translateY(24px); opacity: 0.6; } to { transform: none; opacity: 1; } }
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }

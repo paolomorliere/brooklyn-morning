@@ -13,7 +13,6 @@ import { seedFixtures } from '../fixtures/seed';
 // Phase 1: screens are driven by preview fixtures. Phase 2+ replaces these with IndexedDB stores.
 const params = new URLSearchParams(location.search);
 const fixtures = params.get('fixtures') === '1' && ['localhost', '127.0.0.1'].includes(location.hostname);
-const gstate = params.get('gstate'); // preview: first | list | suggest
 if (fixtures) void seedFixtures(params.get('seed') ?? 'all');
 
 export function App() {
@@ -32,14 +31,7 @@ export function App() {
           />
         )}
         {route === 'todo' && <Todo />}
-        {route === 'groceries' && (
-          <Groceries
-            list={fixtures && gstate !== 'first' && gstate !== 'suggest' ? fx.previewList : []}
-            history={fixtures && gstate !== 'first' ? fx.previewHistory : []}
-            buyAgain={fx.previewProducts.slice(0, 6)}
-            discover={fx.previewDiscover}
-          />
-        )}
+        {route === 'groceries' && <Groceries />}
         {route === 'library' && <Library entries={fixtures ? fx.previewLibrary : []} />}
         {route === 'settings' && <Settings />}
         {route !== 'settings' && <TabBar route={route} />}
