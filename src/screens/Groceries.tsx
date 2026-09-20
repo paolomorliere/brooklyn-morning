@@ -18,11 +18,7 @@ export function Groceries() {
   const [otherOpen, setOtherOpen] = useState<string | null>(null);
 
   // Check for a catalog on first open of the screen (cheap when unchanged; silent when offline).
-  useEffect(() => {
-    if (g.ready && !g.catalogLoading && (g.catalog.count === 0 || !g.catalog.lastCheckedAt || Date.now() - new Date(g.catalog.lastCheckedAt).getTime() > 7 * 86400e3)) {
-      void groceryActions.syncCatalog();
-    }
-  }, [g.ready]);
+  useEffect(() => void groceryActions.maybeSyncCatalog(), []);
 
   const state = groceryState(g.list, g.history);
   const results = useMemo(() => (q.trim().length >= 2 && g.index ? g.index.search(q, 25) : []), [q, g.index]);

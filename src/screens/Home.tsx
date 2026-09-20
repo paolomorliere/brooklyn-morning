@@ -11,7 +11,7 @@ import { editionActions, editionStore, type GlossaryTerm } from '@/state/edition
 import { lessonActions, lessonStore } from '@/state/lessons';
 import { libraryActions, libraryStore } from '@/state/library';
 import { prefsStore } from '@/state/prefs';
-import { groceryActions, groceryStore } from '@/state/grocery';
+import { groceryActions } from '@/state/grocery';
 
 const nyToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
@@ -30,8 +30,7 @@ export function Home() {
   useEffect(() => onResume(() => {
     void editionActions.refresh(false);
     void lessonActions.sync();
-    const g = groceryStore.get();
-    if (g.ready && g.catalog.count === 0 && !g.catalogLoading) void groceryActions.syncCatalog();
+    void groceryActions.maybeSyncCatalog();
   }, 30 * 60_000), []);
 
   useEffect(() => {

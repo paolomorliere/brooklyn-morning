@@ -1,0 +1,63 @@
+# Prepare the morning edition before 6:00 AM New York time, then redeploy.
+# Two crons cover daylight saving: 09:50 UTC = 5:50 EDT (Mar–Nov), 10:50 UTC = 5:50 EST (Nov–Mar).
+# The script checks the New York date and exits if today's edition already exists, so only one run does work.
+# 12:20 UTC is a bounded retry in case GitHub delayed or skipped the earlier runs.
+name: Morning edition
+
+on:
+  schedule:
+    - cron: '50 9 * * *'
+    - cron: '50 10 * * *'
+    - cron: '20 12 * * *'
+  workflow_dispatch:
+    inputs:
+      force:
+        description: Rebuild even if today's edition exists
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: edition
+  cancel-in-progress: false
+
+jobs:
+  build-edition:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build edition
+        run: node scripts/build-edition.mjs ${{ inputs.force && '--force' || '' }}
+      - name: Commit data
+        id: commit
+        run: |
+          git config user.name "brooklyn-morning-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/data/edition.json public/data/editions state/seen.json
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new edition."
+          else
+            git commit -m "Edition $(TZ=America/New_York date +%F)"
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+  deploy:
+    needs: build-edition
+    if: needs.build-edition.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

@@ -34,7 +34,7 @@ export default defineConfig({
       workbox: {
         // App shell + fonts precached; data files are fetched at runtime with their own strategies.
         globPatterns: ['**/*.{js,css,html,woff2,svg,png}'],
-        globIgnores: ['**/data/**'],
+        globIgnores: ['**/data/**', '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'],
         navigateFallback: `${base}index.html`,
         runtimeCaching: [
           {

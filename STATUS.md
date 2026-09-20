@@ -26,8 +26,12 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 
 - Phase 3 (2026-09-20): `scripts/build-catalog.mjs` imports Open Food Facts → `public/data/catalog.json` (+ `.meta.json` with sha256, report in `state/catalog-report.json`). Result: 5,690 raw → 4,077 kept (1,089 non-US/German "Trader Joe's"-brand Aldi records and non-English names dropped, 422 dupes merged); 79% have photos, 41% sizes, 13% land in "Other". Section rules shared in `scripts/lib/sections.mjs`. Client: `brooklyn-catalog` IndexedDB with validated atomic swap (checksum, schema, ≥80% of previous count), search index, list/history repo, three-state screen, Buy again ranking, ≤3 Discover suggestions with reasons + dismiss, Other-item sheet, Settings: catalog status/retry, history hide/clear. Tests: 23 Vitest, 11 Playwright specs × 3 viewports (incl. corrupt catalog, truncated catalog, broken images, offline).
 
+- Phase 4 (2026-09-20): `scripts/feeds.config.mjs` (27 feeds, all verified working), `scripts/lib/rank.mjs` (scoring, boosts, match-report penalty, dedupe, per-topic selection with publisher cap 2 and ≤50% French), `scripts/build-edition.mjs` (15 s/2 retries per feed, ≤20 lead extractions via Readability from allow-listed publishers, seen-state 14 d, archive 14 editions). `public/data/glossary.json` (44 terms). Client: edition store with IndexedDB cache + archive + 10-min manual throttle; glossary sheet; lesson store with auto pack download, Mon–Sun progression, Review-week label, optional import. 56 lessons in `scripts/lessons/week-0N.mjs` → `public/data/lessons/` via `scripts/build-lessons.mjs`. Library wired (save/edit/tags/search). Workflows: `deploy.yml`, `edition.yml` (09:50/10:50/12:20 UTC + dispatch), `catalog.yml` (monthly).
+- Phase 5 (2026-09-20): Settings complete (stories per topic, topic toggles, lessons status + import, backup, categories, catalog, history, licences). App icon set via `scripts/make-icons.mjs`. Production build verified: SW registers, manifest OK, offline reload serves shell + cached edition.
+- Tests: 37 Vitest, 15 Playwright specs × 3 viewports = 45 passing.
+
 ## In progress
-- Phase 4: Morning — `scripts/build-edition.mjs`, feeds config, ranking, glossary, Actions workflow, client rendering + edition cache, 56 lessons + progression + auto pack download.
+- Phase 6: push to GitHub (needs repo URL), enable Pages, confirm first scheduled run, install guide, final report.
 
 ## Remaining
 - Phase 2 To Do · Phase 3 Groceries + catalog script · Phase 4 Morning pipeline + 56 lessons + workflow · Phase 5 Library/Settings/icon · Phase 6 tests, deploy, install guide, final report.

@@ -60,6 +60,14 @@ export const groceryActions = {
     await repo.clearHistory();
     await reloadPersonal();
   },
+  /** Download the catalog if we have none, or re-check the version once a week. Silent when offline. */
+  async maybeSyncCatalog() {
+    await groceryStore.ensure();
+    const { catalog, catalogLoading } = groceryStore.get();
+    if (catalogLoading) return;
+    const stale = !catalog.lastCheckedAt || Date.now() - new Date(catalog.lastCheckedAt).getTime() > 7 * 86400e3;
+    if (catalog.count === 0 || stale) await groceryActions.syncCatalog();
+  },
   /** Check for a new catalog (cheap when unchanged). `force` re-downloads even if the version matches. */
   async syncCatalog(force = false) {
     await groceryStore.ensure();
