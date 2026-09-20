@@ -33,8 +33,10 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 - Favorites (2026-09-20, Paolo's request): star button on search results, list rows, and Buy-again cards; Favorites grid on the Groceries screen; `favorites` store (personal DB v2); included in backup (optional field, old backups still valid). e2e + unit tests added.
 - Pushed to https://github.com/paolomorliere/brooklyn-morning (2026-09-20). First deploy failed only because Pages was not yet set to "GitHub Actions"; Paolo enabled it.
 
+- Deployed 2026-09-20 to https://paolomorliere.github.io/brooklyn-morning/ — manifest, SW, edition, catalog, lessons all served; smoke test passed. Tests: 38 Vitest, 48 Playwright.
+
 ## In progress
-- Phase 6: push to GitHub (needs repo URL), enable Pages, confirm first scheduled run, install guide, final report.
+- Phase 6: confirm the first *scheduled* edition run (cron 09:50 UTC = 5:50 AM EDT on 2026-09-21); Paolo installs on iPhone and runs the checklist in README.
 
 ## Remaining
 - Phase 2 To Do · Phase 3 Groceries + catalog script · Phase 4 Morning pipeline + 56 lessons + workflow · Phase 5 Library/Settings/icon · Phase 6 tests, deploy, install guide, final report.
