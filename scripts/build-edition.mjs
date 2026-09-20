@@ -10,7 +10,7 @@ import { XMLParser } from 'fast-xml-parser';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MAX_AGE_HOURS, PER_TOPIC } from './feeds.config.mjs';
-import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary } from './lib/rank.mjs';
+import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
 
 const UA = 'Mozilla/5.0 (compatible; BrooklynMorning/0.1; personal RSS reader; +https://github.com)';
 const args = process.argv.slice(2);
@@ -83,6 +83,23 @@ function parseFeed(xml) {
     return [].concat(x['rdf:RDF'].item ?? []).map((it) => ({ title: clean(text(it.title)), url: text(it.link), publishedAt: it['dc:date'] ?? null, excerpt: clean(text(it.description)) }));
   }
   throw new Error('Unrecognized feed format');
+}
+
+/** Drop lead paragraphs the excerpt already covers, so "Opening" never just repeats "From publisher". */
+function dropDuplicateParagraphs(lead, excerpt) {
+  if (!lead) return null;
+  const norm = (t) => t.toLowerCase().replace(/[’‘]/g, "'").replace(/[“”]/g, '"').replace(/\s+/g, ' ').trim();
+  const ex = norm(excerpt.replace(/…$/, ''));
+  const kept = lead.split('\n\n').filter((p) => {
+    const pl = norm(p);
+    if (/^[a-z]/.test(p)) return false; // sentence fragment (usually a byline stripped of the author's name)
+    if (/<[a-z]+[\s>]|^embed\b/i.test(p)) return false; // leaked markup / audio embeds
+    if ((p.match(/\d/g) ?? []).length / p.length > 0.12) return false; // results tables, not prose
+    if (/\b(editor|reporter|correspondent|writer|journalist)\b.*\b(covers|covered|has been|joined|based in)\b/i.test(p)) return false;
+    if (ex.length > 40 && (pl.startsWith(ex.slice(0, 60)) || ex.startsWith(pl.slice(0, 60)))) return false;
+    return titleSimilarity(p, excerpt) < 0.7;
+  });
+  return kept.length ? kept.join('\n\n') : null;
 }
 
 async function extractLead(url) {
@@ -174,7 +191,7 @@ async function main() {
       if (!leadOK.get(s.feedId)) continue;
       leadsTried++;
       try {
-        s.lead = await extractLead(s.url);
+        s.lead = dropDuplicateParagraphs(await extractLead(s.url), s.excerpt);
         if (s.lead) leadsGot++;
       } catch {
         s.lead = null;
