@@ -1,0 +1,66 @@
+:root {
+  /* Brooklyn Morning palette */
+  --ivory: #f7f1e6;
+  --paper: #fffbf3;
+  --paper-2: #fbf6ec;
+  --espresso: #2b1d16;
+  --ink-muted: #6b5b52;
+  --ink-faint: #9a8b81;
+  --terracotta: #c0623b;
+  --terracotta-deep: #a64f2c;
+  --terracotta-soft: #f3dfd4;
+  --sage: #8a9a7b;
+  --sage-deep: #61705a;
+  --sage-soft: #e3e8dc;
+  --line: #e6dccd;
+  --line-strong: #d2c4b0;
+  --danger: #a13d2f;
+  --focus: #c0623b;
+
+  /* type */
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-ui: 'Inter Variable', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+  --fs-12: 0.75rem;
+  --fs-13: 0.8125rem;
+  --fs-14: 0.875rem;
+  --fs-15: 0.9375rem;
+  --fs-16: 1rem;
+  --fs-18: 1.125rem;
+  --fs-22: 1.375rem;
+  --fs-28: 1.75rem;
+  --fs-36: 2.25rem;
+
+  /* spacing (8-pt) */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 20px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-10: 40px;
+
+  --radius-s: 8px;
+  --radius-m: 12px;
+  --radius-l: 18px;
+  --radius-pill: 999px;
+
+  --shadow-card: 0 1px 2px rgba(43, 29, 22, 0.05), 0 6px 18px -8px rgba(43, 29, 22, 0.12);
+  --shadow-sheet: 0 -8px 32px -12px rgba(43, 29, 22, 0.35);
+
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  --t-fast: 150ms;
+  --t-med: 220ms;
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --tabbar-h: 56px;
+  --tap: 44px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --t-fast: 0ms;
+    --t-med: 0ms;
+  }
+}

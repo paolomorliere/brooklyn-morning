@@ -1,0 +1,101 @@
+.quickadd {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin: 0 calc(-1 * var(--s-4));
+  padding: calc(var(--safe-top) + var(--s-2)) var(--s-4) var(--s-2);
+  background: color-mix(in srgb, var(--ivory) 94%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.quickadd-row {
+  display: flex;
+  gap: var(--s-2);
+}
+.quickadd-row .input { flex: 1; }
+.quickadd-row .btn { padding: 0 14px; border-radius: var(--radius-m); }
+.quickadd .chip-row { margin-top: var(--s-2); }
+
+.cat {
+  margin-top: var(--s-5);
+}
+.cat-head {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: var(--s-2) 0;
+  width: 100%;
+  text-align: left;
+}
+.cat-head h2 {
+  font-size: var(--fs-18);
+  flex: 1;
+}
+.cat-head .count { color: var(--ink-faint); font-size: var(--fs-13); }
+.cat-head svg { color: var(--ink-faint); }
+
+.task {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  margin-bottom: var(--s-2);
+  box-shadow: var(--shadow-card);
+}
+.task-check {
+  flex: none;
+  width: 24px;
+  height: 24px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: transparent;
+  transition: all var(--t-fast) var(--ease);
+}
+.task-check[aria-checked='true'] {
+  background: var(--sage);
+  border-color: var(--sage);
+  color: #fff;
+}
+.task-body { flex: 1; min-width: 0; }
+.task-text { font-size: var(--fs-16); line-height: 1.35; }
+.task-notes {
+  font-size: var(--fs-13);
+  color: var(--ink-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.task-star { flex: none; color: var(--line-strong); padding: 0 2px; }
+.task-star[aria-pressed='true'] { color: var(--terracotta); }
+.task--done .task-text { color: var(--ink-faint); text-decoration: line-through; }
+
+.completed-strip {
+  margin-top: var(--s-6);
+  padding: var(--s-3) var(--s-4);
+  background: var(--paper-2);
+  border-radius: var(--radius-m);
+  border: 1px solid var(--line);
+}
+.completed-strip .row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-2);
+  padding: 6px 0;
+  font-size: var(--fs-14);
+  color: var(--ink-muted);
+}
+.completed-strip .row span:first-child {
+  text-decoration: line-through;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

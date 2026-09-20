@@ -1,0 +1,122 @@
+.search-wrap {
+  position: relative;
+}
+.search-wrap svg.lead {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--ink-faint);
+}
+.search-wrap .input { padding-left: 42px; }
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) 0;
+  border-bottom: 1px solid var(--line);
+  width: 100%;
+  text-align: left;
+}
+.thumb {
+  flex: none;
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-s);
+  background: var(--paper-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  color: var(--ink-faint);
+  overflow: hidden;
+}
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+.result-body { flex: 1; min-width: 0; }
+.result-name { font-size: var(--fs-15); font-weight: 500; }
+.result-sub { font-size: var(--fs-13); color: var(--ink-muted); }
+
+.gsection { margin-top: var(--s-5); }
+.gsection h2 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--sage-deep);
+  font-weight: 600;
+  margin-bottom: var(--s-2);
+}
+.gitem {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  margin-bottom: var(--s-2);
+  box-shadow: var(--shadow-card);
+}
+.gitem .thumb { width: 44px; height: 44px; }
+.qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.qty button {
+  width: 32px;
+  height: 32px;
+  display: grid;
+  place-items: center;
+  color: var(--ink-muted);
+}
+.qty span {
+  min-width: 22px;
+  text-align: center;
+  font-weight: 600;
+  font-size: var(--fs-14);
+}
+
+.buyagain {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-2);
+}
+.buyagain button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: var(--s-2);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  text-align: left;
+  min-height: 120px;
+}
+.buyagain .thumb { width: 100%; height: 64px; }
+.buyagain .name {
+  font-size: var(--fs-13);
+  font-weight: 500;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.buyagain .sub { font-size: 11px; color: var(--ink-faint); }
+
+.discover {
+  display: flex;
+  gap: var(--s-3);
+  align-items: center;
+  padding: var(--s-3);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  margin-bottom: var(--s-2);
+}
+.discover .thumb { width: 56px; height: 56px; }
+.discover .why { font-size: var(--fs-12); color: var(--sage-deep); margin-top: 2px; }

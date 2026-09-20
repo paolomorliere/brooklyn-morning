@@ -14,9 +14,8 @@
     "isolatedModules": true,
     "noEmit": true,
     "skipLibCheck": true,
-    "types": ["vite/client", "vite-plugin-pwa/client"],
-    "baseUrl": ".",
-    "paths": { "@/*": ["src/*"] }
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"],
+    "paths": { "@/*": ["./src/*"] }
   },
-  "include": ["src", "tests", "vite.config.ts"]
+  "include": ["src", "tests", "fixtures", "vite.config.ts"]
 }

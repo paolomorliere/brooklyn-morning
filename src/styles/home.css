@@ -1,0 +1,193 @@
+.masthead {
+  padding: calc(var(--safe-top) + var(--s-2)) 0 var(--s-4);
+  border-bottom: 1px solid var(--line-strong);
+  margin-bottom: var(--s-2);
+}
+.masthead-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--fs-13);
+  color: var(--ink-muted);
+}
+.masthead h1 {
+  font-size: var(--fs-36);
+  font-weight: 500;
+  font-variation-settings: 'opsz' 144, 'SOFT' 50;
+  letter-spacing: -0.02em;
+  margin-top: var(--s-2);
+}
+.masthead-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  margin-top: var(--s-3);
+}
+
+.topic-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin: var(--s-8) 0 var(--s-3);
+  padding-bottom: var(--s-2);
+  border-bottom: 2px solid var(--espresso);
+}
+.topic-head h2 {
+  font-size: var(--fs-22);
+  font-weight: 600;
+}
+.topic-head .blurb {
+  display: block;
+  font-size: var(--fs-13);
+  color: var(--ink-muted);
+  font-family: var(--font-ui);
+  font-weight: 400;
+  margin-top: 2px;
+}
+
+.story {
+  padding: var(--s-4) 0;
+  border-bottom: 1px solid var(--line);
+}
+.story:last-child { border-bottom: 0; }
+.story-meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font-size: var(--fs-12);
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+.story-meta .pub { font-weight: 600; color: var(--espresso); }
+.story-meta .dot { color: var(--ink-faint); }
+.story h3 {
+  font-size: var(--fs-18);
+  font-weight: 600;
+  line-height: 1.25;
+}
+.story h3 a { color: inherit; text-decoration: none; }
+.story-excerpt {
+  margin-top: var(--s-2);
+  font-size: var(--fs-15);
+  line-height: 1.5;
+  color: var(--espresso);
+}
+.label-src {
+  font-size: var(--fs-12);
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-right: 6px;
+}
+.story-lead {
+  margin-top: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-left: 3px solid var(--sage);
+  background: var(--paper);
+  border-radius: 0 var(--radius-s) var(--radius-s) 0;
+  font-size: var(--fs-15);
+  line-height: 1.55;
+}
+.story-lead p + p { margin-top: var(--s-2); }
+.story-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  margin-top: var(--s-2);
+  margin-left: -8px;
+}
+.story-actions .btn--quiet { font-size: var(--fs-13); gap: 6px; }
+.gloss {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: var(--s-2);
+}
+.gloss .pill { cursor: pointer; }
+
+.notice {
+  display: flex;
+  gap: var(--s-3);
+  align-items: flex-start;
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-m);
+  background: var(--paper-2);
+  border: 1px dashed var(--line-strong);
+  color: var(--ink-muted);
+  font-size: var(--fs-14);
+}
+
+/* Lesson */
+.lesson {
+  margin-top: var(--s-8);
+  padding: var(--s-5) var(--s-4) var(--s-4);
+  background: var(--espresso);
+  color: var(--ivory);
+  border-radius: var(--radius-l);
+}
+.lesson .eyebrow { color: #e7b39a; }
+.lesson h2 {
+  color: var(--ivory);
+  font-size: var(--fs-28);
+  font-weight: 500;
+  margin-top: var(--s-2);
+}
+.lesson-theme {
+  color: #cdbfb4;
+  font-size: var(--fs-14);
+  margin-top: 4px;
+}
+.lesson-progress {
+  display: flex;
+  gap: 5px;
+  margin-top: var(--s-4);
+}
+.lesson-progress span {
+  flex: 1;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.18);
+}
+.lesson-progress span.done { background: var(--sage); }
+.lesson-progress span.today { background: var(--terracotta); }
+.lesson-body {
+  margin-top: var(--s-5);
+  font-size: var(--fs-16);
+  line-height: 1.6;
+}
+.lesson-body h4 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #cdbfb4;
+  margin: var(--s-5) 0 var(--s-2);
+}
+.lesson-body p + p { margin-top: var(--s-3); }
+.lesson-example {
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-m);
+  background: rgba(255, 255, 255, 0.07);
+}
+.lesson-exercise summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-3) 0;
+  font-weight: 600;
+}
+.lesson-exercise summary::-webkit-details-marker { display: none; }
+.lesson-answer {
+  margin-top: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-radius: var(--radius-m);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+.lesson-footer {
+  display: flex;
+  gap: var(--s-2);
+  margin-top: var(--s-5);
+}
+.lesson .btn--ghost { background: transparent; color: var(--ivory); border-color: rgba(255, 255, 255, 0.3); }
