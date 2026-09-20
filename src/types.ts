@@ -100,6 +100,16 @@ export interface ListItem {
   addedAt: string;
 }
 
+export interface Favorite {
+  key: string; // productId, or "other:<lowercase name>" for free-text items
+  productId: string | null;
+  name: string;
+  size: string;
+  section: Section;
+  imageUrl: string | null;
+  addedAt: string;
+}
+
 export interface HistoryEvent {
   id: string;
   productId: string | null;

@@ -4,12 +4,13 @@ import { BACKUP_SCHEMA, validateBackup, type Backup } from '@/lib/backup';
 export async function exportBackup(): Promise<Backup> {
   const db = await personalDB();
   const tx = db.transaction(STORES, 'readonly');
-  const [tasks, categories, list, history, library] = await Promise.all([
+  const [tasks, categories, list, history, library, favorites] = await Promise.all([
     tx.objectStore('tasks').getAll(),
     tx.objectStore('categories').getAll(),
     tx.objectStore('list').getAll(),
     tx.objectStore('history').getAll(),
     tx.objectStore('library').getAll(),
+    tx.objectStore('favorites').getAll(),
   ]);
   await tx.done;
   return {
@@ -21,6 +22,7 @@ export async function exportBackup(): Promise<Backup> {
     list,
     history,
     library,
+    favorites,
     prefs: await getPrefs(),
     lessonProgress: await getLessonProgress(),
   };
@@ -39,6 +41,7 @@ export async function restoreBackup(data: unknown): Promise<Backup> {
   for (const it of b.list) tx.objectStore('list').put(it);
   for (const h of b.history) tx.objectStore('history').put(h);
   for (const e of b.library) tx.objectStore('library').put(e);
+  for (const f of b.favorites ?? []) tx.objectStore('favorites').put(f);
   tx.objectStore('kv').put({ key: 'prefs', value: { ...DEFAULT_PREFS, ...(b.prefs ?? {}) } });
   if (b.lessonProgress) tx.objectStore('kv').put({ key: 'lessonProgress', value: b.lessonProgress });
   await tx.done;

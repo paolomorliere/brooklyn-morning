@@ -51,3 +51,27 @@ describe('backup round trip', () => {
     expect(await allTasks()).toHaveLength(1);
   });
 });
+
+describe('favorites', () => {
+  beforeEach(() => {
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+  });
+  it('toggles, survives a backup round trip, and accepts old backups without favorites', async () => {
+    const { toggleFavorite, allFavorites } = await import('@/db/grocery');
+    const item = { productId: 'p1', name: 'Sourdough', size: '24 oz', section: 'Bakery' as const, imageUrl: null };
+    expect(await toggleFavorite(item)).toBe(true);
+    expect(await toggleFavorite({ productId: null, name: '  Bananas ', section: 'Produce', imageUrl: null })).toBe(true);
+    expect((await allFavorites()).map((f) => f.key).sort()).toEqual(['other:bananas', 'p1']);
+    const b = await exportBackup();
+    expect(b.favorites).toHaveLength(2);
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+    await restoreBackup(JSON.parse(JSON.stringify(b)));
+    expect(await allFavorites()).toHaveLength(2);
+    expect(await toggleFavorite(item)).toBe(false);
+    expect(await allFavorites()).toHaveLength(1);
+    const { favorites: _f, ...old } = b;
+    expect(validateBackup(old)).toEqual([]);
+  });
+});

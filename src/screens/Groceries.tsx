@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { AlertTriangle, Check, Minus, Plus, Search, X } from 'lucide-preact';
-import type { ListItem, Product } from '@/types';
+import { AlertTriangle, Check, Minus, Plus, Search, Star, X } from 'lucide-preact';
+import type { Favorite, ListItem, Product } from '@/types';
 import { ScreenHeader } from '@/ui/ScreenHeader';
 import { Sheet } from '@/ui/Sheet';
 import { Thumb } from '@/ui/Thumb';
@@ -8,6 +8,7 @@ import { useToast } from '@/ui/Toast';
 import { groceryActions, groceryStore } from '@/state/grocery';
 import { prefsStore, updatePrefs } from '@/state/prefs';
 import { discover, groceryState, rankBuyAgain } from '@/lib/grocery';
+import { favoriteKey } from '@/db/grocery';
 import { SECTIONS } from '../../scripts/lib/sections.mjs';
 
 export function Groceries() {
@@ -48,6 +49,18 @@ export function Groceries() {
   };
   const dismiss = (id: string) => void updatePrefs({ hiddenSuggestions: [...prefs.hiddenSuggestions, id] });
 
+  const favKeys = useMemo(() => new Set(g.favorites.map((f) => f.key)), [g.favorites]);
+  const isFav = (it: { productId: string | null; name: string }) => favKeys.has(favoriteKey(it));
+  const toggleFav = async (it: { productId: string | null; name: string; size?: string; section: string; imageUrl: string | null }) => {
+    const now = await groceryActions.toggleFavorite({ ...it, section: it.section as ListItem['section'] });
+    toast({ message: now ? `★ ${it.name} added to Favorites` : `${it.name} removed from Favorites` }, 1500);
+  };
+  const addFav = async (f: Favorite) => {
+    const p = f.productId ? g.products.find((x) => x.id === f.productId) : undefined;
+    if (p) await groceryActions.addProduct(p);
+    else await groceryActions.addOther(f.name, f.section);
+    toast({ message: `Added ${f.name}` }, 1500);
+  };
   const searching = q.trim().length >= 2;
 
   return (
@@ -107,8 +120,8 @@ export function Groceries() {
               {results.map((p) => {
                 const qty = onList.get(p.id);
                 return (
-                  <li key={p.id}>
-                    <button class="result" onClick={() => void add(p)} aria-label={`Add ${p.name}`}>
+                  <li key={p.id} style="display:flex;align-items:center;gap:4px">
+                    <button class="result" style="flex:1;border-bottom:0" onClick={() => void add(p)} aria-label={`Add ${p.name}`}>
                       <Thumb src={p.imageUrl} />
                       <div class="result-body">
                         <div class="result-name">{p.name}</div>
@@ -119,12 +132,17 @@ export function Groceries() {
                       </div>
                       {qty ? <span class="pill pill--sage">On list ×{qty}</span> : <Plus size={18} style="color:var(--ink-faint)" />}
                     </button>
+                    <FavButton on={isFav({ productId: p.id, name: p.name })} name={p.name} onToggle={() => void toggleFav({ productId: p.id, name: p.name, size: p.size, section: p.section, imageUrl: p.imageUrl })} class="result-fav" />
                   </li>
                 );
               })}
             </ul>
           )}
         </section>
+      )}
+
+      {!searching && g.favorites.length > 0 && (
+        <FavoritesSection favorites={g.favorites} onList={new Set(g.list.map((it) => favoriteKey(it)))} onAdd={(f) => void addFav(f)} onRemove={(f) => void toggleFav(f)} />
       )}
 
       {!searching && state === 'first' && g.ready && (
@@ -135,7 +153,7 @@ export function Groceries() {
       )}
 
       {!searching && state === 'list' && (
-        <ListView list={g.list} onCheck={(it) => void check(it)} onQty={(it, d) => void groceryActions.setQty(it.id, it.qty + d)} />
+        <ListView list={g.list} onCheck={(it) => void check(it)} onQty={(it, d) => void groceryActions.setQty(it.id, it.qty + d)} isFav={isFav} onFav={(it) => void toggleFav(it)} />
       )}
 
       {!searching && state === 'suggest' && (
@@ -152,11 +170,14 @@ export function Groceries() {
               </div>
               <div class="buyagain">
                 {buyAgain.map((r) => (
-                  <button key={r.key} onClick={() => void addBack(r)} aria-label={`Add ${r.name}`}>
-                    <Thumb src={r.imageUrl} />
-                    <div class="name">{r.name}</div>
-                    <div class="sub">{r.times ? `Bought ${r.times}×` : 'Added before'}</div>
-                  </button>
+                  <div key={r.key} style="position:relative">
+                    <button class="card-btn" style="width:100%" onClick={() => void addBack(r)} aria-label={`Add ${r.name}`}>
+                      <Thumb src={r.imageUrl} />
+                      <div class="name">{r.name}</div>
+                      <div class="sub">{r.times ? `Bought ${r.times}×` : 'Added before'}</div>
+                    </button>
+                    <FavButton on={favKeys.has(r.key)} name={r.name} onToggle={() => void toggleFav({ productId: r.productId, name: r.name, size: r.size, section: r.section, imageUrl: r.imageUrl })} />
+                  </div>
                 ))}
               </div>
             </>
@@ -189,7 +210,39 @@ export function Groceries() {
   );
 }
 
-function ListView({ list, onCheck, onQty }: { list: ListItem[]; onCheck: (it: ListItem) => void; onQty: (it: ListItem, d: number) => void }) {
+function FavButton({ on, name, onToggle, class: cls = '' }: { on: boolean; name: string; onToggle: () => void; class?: string }) {
+  return (
+    <button class={`fav-btn ${cls}`} aria-pressed={on} aria-label={on ? `Remove ${name} from Favorites` : `Add ${name} to Favorites`} onClick={(e) => { e.stopPropagation(); onToggle(); }}>
+      <Star size={20} fill={on ? 'currentColor' : 'none'} strokeWidth={1.8} />
+    </button>
+  );
+}
+
+function FavoritesSection({ favorites, onList, onAdd, onRemove }: { favorites: Favorite[]; onList: Set<string>; onAdd: (f: Favorite) => void; onRemove: (f: Favorite) => void }) {
+  const sorted = [...favorites].sort((a, b) => a.name.localeCompare(b.name));
+  return (
+    <section aria-labelledby="fav-title">
+      <div class="section-title">
+        <h2 id="fav-title" style="display:flex;align-items:center;gap:8px"><Star size={20} fill="currentColor" style="color:var(--star)" /> Favorites</h2>
+        <span class="count">tap to add to list</span>
+      </div>
+      <div class="buyagain">
+        {sorted.map((f) => (
+          <div key={f.key} style="position:relative">
+            <button class="card-btn" style={`width:100%;${onList.has(f.key) ? 'opacity:.6' : ''}`} onClick={() => onAdd(f)} aria-label={`Add ${f.name}`}>
+              <Thumb src={f.imageUrl} />
+              <div class="name">{f.name}</div>
+              <div class="sub">{onList.has(f.key) ? 'On list' : f.size || f.section}</div>
+            </button>
+            <FavButton on name={f.name} onToggle={() => onRemove(f)} />
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function ListView({ list, onCheck, onQty, isFav, onFav }: { list: ListItem[]; onCheck: (it: ListItem) => void; onQty: (it: ListItem, d: number) => void; isFav: (it: ListItem) => boolean; onFav: (it: ListItem) => void }) {
   const order = new Map(SECTIONS.map((s, i) => [s, i]));
   const groups = new Map<string, ListItem[]>();
   for (const it of list) groups.set(it.section, [...(groups.get(it.section) ?? []), it]);
@@ -214,6 +267,7 @@ function ListView({ list, onCheck, onQty }: { list: ListItem[]; onCheck: (it: Li
                 <span>{it.qty}</span>
                 <button aria-label={`Increase ${it.name}`} onClick={() => onQty(it, 1)}><Plus size={14} /></button>
               </div>
+              <FavButton on={isFav(it)} name={it.name} onToggle={() => onFav(it)} />
             </div>
           ))}
         </section>

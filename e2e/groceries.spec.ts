@@ -123,3 +123,24 @@ test('works offline after first load (list persisted, catalog cached)', async ({
   await expect(page.locator('button.result').first()).toBeVisible();
   await context.setOffline(false);
 });
+
+test('favorites: star fills, item appears in Favorites, tap adds to list, unstar removes', async ({ page }) => {
+  await fresh(page);
+  await waitCatalog(page);
+  await search(page).fill('sourdough');
+  const row = page.locator('li', { has: page.locator('button.result') }).first();
+  const name = (await row.locator('.result-name').textContent())!.trim();
+  const star = row.getByRole('button', { name: `Add ${name} to Favorites` });
+  await star.click();
+  await expect(row.getByRole('button', { name: `Remove ${name} from Favorites` })).toHaveAttribute('aria-pressed', 'true');
+  await page.getByRole('button', { name: 'Clear search' }).click();
+  const favs = page.locator('section', { has: page.getByRole('heading', { name: 'Favorites' }) });
+  await expect(favs.locator('.name', { hasText: name })).toBeVisible();
+  await favs.getByRole('button', { name: `Add ${name}`, exact: true }).click();
+  await expect(page.locator('.gitem .result-name', { hasText: name })).toBeVisible();
+  await expect(page.locator('.gitem').getByRole('button', { name: `Remove ${name} from Favorites` })).toBeVisible(); // star also lit on the list row
+  await page.reload();
+  await expect(favs.locator('.name', { hasText: name })).toBeVisible(); // persisted
+  await favs.getByRole('button', { name: `Remove ${name} from Favorites` }).click();
+  await expect(favs).toHaveCount(0);
+});

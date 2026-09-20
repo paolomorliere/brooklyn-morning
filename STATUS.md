@@ -30,6 +30,9 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 - Phase 5 (2026-09-20): Settings complete (stories per topic, topic toggles, lessons status + import, backup, categories, catalog, history, licences). App icon set via `scripts/make-icons.mjs`. Production build verified: SW registers, manifest OK, offline reload serves shell + cached edition.
 - Tests: 37 Vitest, 15 Playwright specs × 3 viewports = 45 passing.
 
+- Favorites (2026-09-20, Paolo's request): star button on search results, list rows, and Buy-again cards; Favorites grid on the Groceries screen; `favorites` store (personal DB v2); included in backup (optional field, old backups still valid). e2e + unit tests added.
+- Pushed to https://github.com/paolomorliere/brooklyn-morning (2026-09-20). First deploy failed only because Pages was not yet set to "GitHub Actions"; Paolo enabled it.
+
 ## In progress
 - Phase 6: push to GitHub (needs repo URL), enable Pages, confirm first scheduled run, install guide, final report.
 

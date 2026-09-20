@@ -1,5 +1,5 @@
 import { openDB, type DBSchema, type IDBPDatabase } from 'idb';
-import type { Category, HistoryEvent, LessonProgress, LibraryEntry, ListItem, Prefs, Task } from '@/types';
+import type { Category, Favorite, HistoryEvent, LessonProgress, LibraryEntry, ListItem, Prefs, Task } from '@/types';
 
 // All personal data. Never contains catalog rows; the catalog has its own database.
 export interface PersonalDB extends DBSchema {
@@ -8,12 +8,13 @@ export interface PersonalDB extends DBSchema {
   list: { key: string; value: ListItem };
   history: { key: string; value: HistoryEvent; indexes: { byAt: string } };
   library: { key: string; value: LibraryEntry };
+  favorites: { key: string; value: Favorite };
   kv: { key: string; value: { key: string; value: unknown } };
 }
 
 export const PERSONAL_DB = 'brooklyn-personal';
-export const PERSONAL_VERSION = 1;
-export const STORES = ['tasks', 'categories', 'list', 'history', 'library', 'kv'] as const;
+export const PERSONAL_VERSION = 2;
+export const STORES = ['tasks', 'categories', 'list', 'history', 'library', 'favorites', 'kv'] as const;
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'inbox', name: 'Inbox', order: 0, system: true },
@@ -45,6 +46,9 @@ export function personalDB(): Promise<IDBPDatabase<PersonalDB>> {
         history.createIndex('byAt', 'at');
         db.createObjectStore('library', { keyPath: 'id' });
         db.createObjectStore('kv', { keyPath: 'key' });
+      }
+      if (oldVersion < 2) {
+        db.createObjectStore('favorites', { keyPath: 'key' });
       }
     },
   }).then(async (db) => {

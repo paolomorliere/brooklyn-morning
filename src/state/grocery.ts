@@ -1,4 +1,4 @@
-import type { HistoryEvent, ListItem, Product, Section } from '@/types';
+import type { Favorite, HistoryEvent, ListItem, Product, Section } from '@/types';
 import { createStore } from './store';
 import * as repo from '@/db/grocery';
 import { catalogStatus, loadProducts, syncCatalog, type CatalogStatus } from '@/db/catalog';
@@ -7,6 +7,7 @@ import { buildIndex, type SearchIndex } from '@/lib/catalog';
 interface GroceryState {
   list: ListItem[];
   history: HistoryEvent[];
+  favorites: Favorite[];
   products: Product[];
   index: SearchIndex | null;
   catalog: CatalogStatus;
@@ -17,17 +18,17 @@ interface GroceryState {
 const emptyIndex: SearchIndex = { search: () => [] };
 
 export const groceryStore = createStore<GroceryState>(
-  { list: [], history: [], products: [], index: null, catalog: { version: null, count: 0, updatedAt: null, lastError: null, lastCheckedAt: null }, catalogLoading: false, ready: false },
+  { list: [], history: [], favorites: [], products: [], index: null, catalog: { version: null, count: 0, updatedAt: null, lastError: null, lastCheckedAt: null }, catalogLoading: false, ready: false },
   async () => {
-    const [list, history, products, catalog] = await Promise.all([repo.allList(), repo.allHistory(), loadProducts(), catalogStatus()]);
-    return { list, history, products, index: products.length ? buildIndex(products) : emptyIndex, catalog, catalogLoading: false, ready: true };
+    const [list, history, favorites, products, catalog] = await Promise.all([repo.allList(), repo.allHistory(), repo.allFavorites(), loadProducts(), catalogStatus()]);
+    return { list, history, favorites, products, index: products.length ? buildIndex(products) : emptyIndex, catalog, catalogLoading: false, ready: true };
   },
 );
 
 const patch = (p: Partial<GroceryState>) => groceryStore.set({ ...groceryStore.get(), ...p });
 const reloadPersonal = async () => {
   await groceryStore.ensure();
-  patch({ list: await repo.allList(), history: await repo.allHistory() });
+  patch({ list: await repo.allList(), history: await repo.allHistory(), favorites: await repo.allFavorites() });
 };
 
 export const groceryActions = {
@@ -55,6 +56,11 @@ export const groceryActions = {
   async remove(id: string) {
     await repo.removeFromList(id);
     await reloadPersonal();
+  },
+  async toggleFavorite(it: { productId: string | null; name: string; size?: string; section: Section; imageUrl: string | null }) {
+    const now = await repo.toggleFavorite(it);
+    await reloadPersonal();
+    return now;
   },
   async clearHistory() {
     await repo.clearHistory();

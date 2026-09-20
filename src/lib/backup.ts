@@ -1,4 +1,4 @@
-import type { Category, HistoryEvent, LessonProgress, LibraryEntry, ListItem, Prefs, Task } from '@/types';
+import type { Category, Favorite, HistoryEvent, LessonProgress, LibraryEntry, ListItem, Prefs, Task } from '@/types';
 
 export const BACKUP_SCHEMA = 1;
 
@@ -11,6 +11,7 @@ export interface Backup {
   list: ListItem[];
   history: HistoryEvent[];
   library: LibraryEntry[];
+  favorites?: Favorite[]; // added after the first release; older backups omit it
   prefs: Prefs;
   lessonProgress: LessonProgress | null;
 }
@@ -50,12 +51,16 @@ export function validateBackup(data: unknown): string[] {
   (b.library as LibraryEntry[]).forEach((e, i) => {
     if (!isStr(e.id) || !isStr(e.title)) p.push(`Library entry ${i} malformed`);
   });
+  if (b.favorites !== undefined) {
+    if (!isArr(b.favorites)) p.push('Favorites malformed');
+    else (b.favorites as Favorite[]).forEach((f, i) => { if (!isStr(f.key) || !isStr(f.name)) p.push(`Favorite ${i} malformed`); });
+  }
   if (b.prefs !== undefined && (typeof b.prefs !== 'object' || b.prefs === null)) p.push('Prefs malformed');
   return p;
 }
 
 export function summarizeBackup(b: Backup): string {
-  return `${b.tasks.length} tasks · ${b.categories.length} categories · ${b.list.length} list items · ${b.history.length} history events · ${b.library.length} library entries`;
+  return `${b.tasks.length} tasks · ${b.categories.length} categories · ${b.list.length} list items · ${b.history.length} history events · ${(b.favorites ?? []).length} favorites · ${b.library.length} library entries`;
 }
 
 export function backupFilename(date = new Date()): string {

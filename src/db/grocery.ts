@@ -1,4 +1,4 @@
-import type { HistoryEvent, ListItem, Product, Section } from '@/types';
+import type { Favorite, HistoryEvent, ListItem, Product, Section } from '@/types';
 import { newId, personalDB } from './personal';
 
 export async function allList(): Promise<ListItem[]> {
@@ -84,4 +84,22 @@ export async function removeFromList(id: string): Promise<void> {
 
 export async function clearHistory(): Promise<void> {
   await (await personalDB()).clear('history');
+}
+
+export const favoriteKey = (it: { productId: string | null; name: string }) => it.productId ?? `other:${it.name.trim().toLowerCase()}`;
+
+export async function allFavorites(): Promise<Favorite[]> {
+  return (await personalDB()).getAll('favorites');
+}
+
+/** Add or remove a favorite. Returns true if it is now a favorite. */
+export async function toggleFavorite(it: { productId: string | null; name: string; size?: string; section: Section; imageUrl: string | null }): Promise<boolean> {
+  const db = await personalDB();
+  const key = favoriteKey(it);
+  const tx = db.transaction('favorites', 'readwrite');
+  const existing = await tx.store.get(key);
+  if (existing) await tx.store.delete(key);
+  else await tx.store.put({ key, productId: it.productId, name: it.name.trim(), size: it.size ?? '', section: it.section, imageUrl: it.imageUrl, addedAt: new Date().toISOString() });
+  await tx.done;
+  return !existing;
 }
