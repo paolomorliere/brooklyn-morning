@@ -44,6 +44,11 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 ## Remaining
 - Phase 2 To Do · Phase 3 Groceries + catalog script · Phase 4 Morning pipeline + 56 lessons + workflow · Phase 5 Library/Settings/icon · Phase 6 tests, deploy, install guide, final report.
 
+## Scheduling watch (2026-09-21)
+- 09-20: the three scheduled runs fired ~4 h late (13:42/14:21/16:16 UTC) and failed at "Commit data" because `git add state/stocks.json` had no file on a weekend. Fixed: `git add state` (directory) + rebase before push.
+- 09-21: no scheduled run at all by 15:44 UTC. Added seven cron slots 08:50–12:20 UTC. If GitHub keeps dropping crons for several days, propose a fallback (e.g. Cloudflare Workers cron on the free plan, no card) — check terms first.
+- Today's edition (09-21) was built locally and pushed; the first pick of the stock screen is INTC.
+
 ## Blockers / needs Paolo
 - Empty public GitHub repo URL (no `gh` CLI installed; push via plain git after Paolo authenticates).
 - Enable Pages: repo Settings → Pages → Source: GitHub Actions.
