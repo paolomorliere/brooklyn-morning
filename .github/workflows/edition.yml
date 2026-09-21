@@ -1,13 +1,17 @@
 # Prepare the morning edition before 6:00 AM New York time, then redeploy.
-# Two crons cover daylight saving: 09:50 UTC = 5:50 EDT (Mar–Nov), 10:50 UTC = 5:50 EST (Nov–Mar).
-# The script checks the New York date and exits if today's edition already exists, so only one run does work.
-# 12:20 UTC is a bounded retry in case GitHub delayed or skipped the earlier runs.
+# GitHub often starts scheduled jobs late (observed: 4 hours on a Sunday), so several crons are listed starting
+# at 08:50 UTC (4:50 AM EDT / 3:50 AM EST). The script checks the New York date and exits at once if today's
+# edition already exists, so only the first run that actually starts does any work; the rest cost seconds.
 name: Morning edition
 
 on:
   schedule:
+    - cron: '50 8 * * *'
+    - cron: '20 9 * * *'
     - cron: '50 9 * * *'
+    - cron: '20 10 * * *'
     - cron: '50 10 * * *'
+    - cron: '30 11 * * *'
     - cron: '20 12 * * *'
   workflow_dispatch:
     inputs:
@@ -44,12 +48,15 @@ jobs:
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
-          git add public/data/edition.json public/data/editions state/seen.json state/stocks.json
+          # `state/` always exists (the script creates it); individual files may not, so add the directory.
+          git add public/data/edition.json public/data/editions state
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No new edition."
           else
             git commit -m "Edition $(TZ=America/New_York date +%F)"
+            # Another run (or a manual push) may have landed meanwhile: rebase once, then push.
+            git pull --rebase --autostash origin main || true
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
