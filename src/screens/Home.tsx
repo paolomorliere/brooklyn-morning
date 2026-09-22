@@ -94,6 +94,12 @@ export function Home() {
             <button class="pill pill--terra" onClick={() => setViewingDate(null)}>Back to latest</button>
           )}
         </div>
+        {!viewingDate && edition && !isToday && (
+          <p class="small muted" style="margin-top:8px">
+            Today's edition hasn't been published yet, so this is {formatDateLong(edition.preparedAt)}.{' '}
+            <button class="btn btn--quiet" style="display:inline;padding:0;min-height:0;color:var(--terracotta-deep)" onClick={() => void editionActions.refresh(true)}>Check again</button>
+          </p>
+        )}
         {ed.lastError && !viewingDate && <p class="small muted" style="margin-top:8px">{ed.lastError}</p>}
       </div>
 

@@ -91,3 +91,16 @@ test('offline: shows the last saved edition with a clear message; refresh is thr
   await expect(page.getByText(/Checked less than 10 minutes ago|offline/)).toBeVisible();
   await context.setOffline(false);
 });
+
+test('a late edition is announced, not silently shown as current', async ({ page }) => {
+  await page.route('**/data/edition.json', async (route) => {
+    const res = await route.fetch();
+    const body = await res.json();
+    body.date = '2026-01-02';
+    body.preparedAt = '2026-01-02T09:52:00.000Z';
+    await route.fulfill({ json: body });
+  });
+  await page.goto('/?fixtures=1&seed=none#/home');
+  await expect(page.getByText(/Today's edition hasn't been published yet/)).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator('.masthead-meta .pill').first()).toHaveText(/From Jan 2/);
+});
