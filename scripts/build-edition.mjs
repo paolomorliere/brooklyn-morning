@@ -16,6 +16,9 @@ import { UNIVERSE, RULE_TEXT, fetchBars, metricsFor, pickStock, countMentions, s
 const UA = 'Mozilla/5.0 (compatible; BrooklynMorning/0.1; personal RSS reader; +https://github.com)';
 const args = process.argv.slice(2);
 const FORCE = args.includes('--force');
+// A refresh rebuilds today's edition in place (same date, same stock pick, same quote) with the latest stories.
+// Used when a delayed scheduled run finally lands and the existing edition is hours old.
+const REFRESH = args.includes('--refresh');
 const NO_LEADS = args.includes('--no-leads');
 const DATE_ARG = args[args.indexOf('--date') + 1];
 const TZ = 'America/New_York';
@@ -210,20 +213,25 @@ async function main() {
   await mkdir('public/data/editions', { recursive: true });
   await mkdir('state', { recursive: true });
 
-  if (!FORCE) {
-    try {
-      const cur = JSON.parse(await readFile('public/data/edition.json', 'utf8'));
-      if (cur.date === today) {
+  let refreshing = false;
+  try {
+    const cur = JSON.parse(await readFile('public/data/edition.json', 'utf8'));
+    if (cur.date === today) {
+      if (!FORCE && !REFRESH) {
         console.log(`Edition for ${today} already exists (prepared ${cur.preparedAt}); nothing to do.`);
         return;
       }
-    } catch { /* no edition yet */ }
-  }
+      refreshing = true;
+      console.log(`Refreshing the ${today} edition (previous one prepared ${cur.preparedAt}).`);
+    }
+  } catch { /* no edition yet */ }
 
   let seen = {};
   try { seen = JSON.parse(await readFile('state/seen.json', 'utf8')); } catch { /* first run */ }
   // Forget URLs older than 14 days.
   for (const [u, d] of Object.entries(seen)) if (now - new Date(d).getTime() > 14 * 86400e3) delete seen[u];
+  // When refreshing, today's own picks must be selectable again, otherwise the rebuild would drop its best stories.
+  if (refreshing) for (const [u, d] of Object.entries(seen)) if (d === today) delete seen[u];
 
   const glossaryFile = JSON.parse(await readFile('public/data/glossary.json', 'utf8'));
   const glossary = glossaryFile.terms.map((t) => ({ id: t.id, pattern: new RegExp(t.match, 'i') }));

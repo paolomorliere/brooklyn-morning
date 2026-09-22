@@ -1,24 +1,26 @@
-# Prepare the morning edition before 6:00 AM New York time, then redeploy.
-# GitHub often starts scheduled jobs late (observed: 4 hours on a Sunday), so several crons are listed starting
-# at 08:50 UTC (4:50 AM EDT / 3:50 AM EST). The script checks the New York date and exits at once if today's
-# edition already exists, so only the first run that actually starts does any work; the rest cost seconds.
+# Prepare the morning edition so it is ready before 6:00 AM New York time.
+#
+# GitHub runs scheduled workflows on a best-effort basis. On this repository they have started 3.5–6 hours
+# after the requested slot, so a single 5:50 AM cron is useless. Instead the workflow asks for a slot every
+# 30 minutes from just after New York midnight (04:05 UTC in EDT) through late morning, and a dependency-free
+# pre-check makes the runs that have nothing to do cost one checkout (~10 s) instead of a full install.
+#
+#   no edition for today's NY date        -> build it, commit, deploy
+#   today's edition older than 2.5 h and  -> refresh it in place (same date, same stock pick and quote,
+#     it is between 04:00 and 09:00 NY       latest stories), commit, deploy
+#   otherwise                             -> skip
 name: Morning edition
 
 on:
   schedule:
-    - cron: '50 8 * * *'
-    - cron: '20 9 * * *'
-    - cron: '50 9 * * *'
-    - cron: '20 10 * * *'
-    - cron: '50 10 * * *'
-    - cron: '30 11 * * *'
-    - cron: '20 12 * * *'
+    - cron: '5,35 4-12 * * *'
   workflow_dispatch:
     inputs:
-      force:
-        description: Rebuild even if today's edition exists
-        type: boolean
-        default: false
+      mode:
+        description: What to do
+        type: choice
+        default: auto
+        options: [auto, refresh, force]
 
 permissions:
   contents: write
@@ -36,30 +38,51 @@ jobs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Decide what to do
+        id: check
+        run: |
+          if [ "${{ inputs.mode }}" = "force" ]; then echo "action=force" >> "$GITHUB_OUTPUT"; echo "force: manual run"; exit 0; fi
+          if [ "${{ inputs.mode }}" = "refresh" ]; then echo "action=refresh" >> "$GITHUB_OUTPUT"; echo "refresh: manual run"; exit 0; fi
+          node scripts/edition-needed.mjs
+
       - uses: actions/setup-node@v4
+        if: steps.check.outputs.action != 'skip'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+        if: steps.check.outputs.action != 'skip'
+
       - name: Build edition
-        run: node scripts/build-edition.mjs ${{ inputs.force && '--force' || '' }}
+        if: steps.check.outputs.action != 'skip'
+        run: |
+          case "${{ steps.check.outputs.action }}" in
+            force)   node scripts/build-edition.mjs --force ;;
+            refresh) node scripts/build-edition.mjs --refresh ;;
+            *)       node scripts/build-edition.mjs ;;
+          esac
+
       - name: Commit data
         id: commit
+        if: steps.check.outputs.action != 'skip'
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
-          # `state/` always exists (the script creates it); individual files may not, so add the directory.
+          # `state/` always exists (the scripts create it); individual files inside may not, so add the directory.
           git add public/data/edition.json public/data/editions state
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No new edition."
           else
-            git commit -m "Edition $(TZ=America/New_York date +%F)"
-            # Another run (or a manual push) may have landed meanwhile: rebase once, then push.
+            verb=$([ "${{ steps.check.outputs.action }}" = "refresh" ] && echo "Refresh" || echo "Edition")
+            git commit -m "$verb $(TZ=America/New_York date +%F' '%H:%M)"
+            # A delayed run may land after another push: rebase once, then push.
             git pull --rebase --autostash origin main || true
             git push
             echo "changed=true" >> "$GITHUB_OUTPUT"
           fi
+
   deploy:
     needs: build-edition
     if: needs.build-edition.outputs.changed == 'true'
