@@ -70,6 +70,11 @@ test('says when it is waiting for this week’s poll, and still shows the real o
   await expect(page.locator('.polo-partial')).toContainText('Awaiting this week’s poll');
   await expect(page.locator('.polo-partial')).toContainText('Week 3');
   await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(22);
+  // The manual retry has to open the POLL workflow. The results workflow does not fetch polls.
+  await expect(page.locator('.polo-partial').getByRole('link', { name: 'Check now' })).toHaveAttribute(
+    'href',
+    /actions\/workflows\/poll\.yml$/,
+  );
 });
 
 test('a published poll is never replaced by an older week', async ({ page }) => {

@@ -14,6 +14,14 @@ interface PollState {
 const REFRESH_MIN_MS = 10 * 60_000;
 const base = () => import.meta.env.BASE_URL;
 
+/**
+ * The poll's own workflow page. collegiatewaterpolo.org sends no CORS headers either, so a manual
+ * poll check is the same arrangement as the scores: open the workflow, tap Run workflow, and let
+ * the app read what the job publishes. This is deliberately NOT the water polo results workflow —
+ * that one does not fetch polls, and the poll job does not fetch scores.
+ */
+export const POLL_RUN_URL = 'https://github.com/paolomorliere/brooklyn-morning/actions/workflows/poll.yml';
+
 // Re-downloadable, so it lives in `kv` with the other published files and stays out of the backup.
 export const pollStore = createStore<PollState>(
   { poll: null, lastFetchAt: null, lastError: null, refreshing: false, ready: false },

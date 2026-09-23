@@ -80,9 +80,12 @@ jobs:
         if: steps.poll.outputs.saved == 'true' && steps.due.outputs.slot != ''
         run: node scripts/poll-due.mjs --claim "${{ steps.due.outputs.slot }}" "${{ steps.poll.outputs.week }}"
 
+      # `always()` on purpose: when the poll cannot be read at all, build-poll.mjs still records the
+      # attempt on the last verified poll so the screen can say it is awaiting this week's. That
+      # marker is worth publishing even though the job itself is about to be reported as failed.
       - name: Commit data
         id: commit
-        if: steps.due.outputs.action == 'run'
+        if: always() && steps.due.outputs.action == 'run'
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"

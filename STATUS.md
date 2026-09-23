@@ -87,6 +87,7 @@ Team screens, conference tables, the CWPA national poll, a manual check, and a w
 - Six genuine score disagreements between official pages surfaced once opponent pages were read (e.g. Iona says 11-31 v UC Davis, UC Davis says 29-11 — both verified by re-fetching). The watched school's verified number is shown with the disagreement on the record; a game neither side had verified is withheld.
 - Conference classification depends on the CWPA publishing the fixture. An unlisted game stays unclassified rather than being guessed.
 - GitHub's best-effort cron delay applies to the poll job too.
+- **Not yet observed running.** `deploy.yml` ran on 8d65e91 and both files are live, but `poll.yml` has never run and `waterpolo.yml` last ran on the round-1 commit. There is no `gh` CLI or token in this environment, so the two ingestion jobs could not be triggered from here. Their next scheduled runs are Wednesday 18:00 NY (poll) and Saturday 09:00 NY (scores); either can be started immediately from the app — "Check sources now" for the results, "Check now" in the poll screen's awaiting notice — which is the same one-tap-on-GitHub mechanism the feature is built around.
 
 ## Water polo screen (2026-09-23)
 Fifth tab: NCAA men's water polo results, 2026 season only, 13 watched teams.

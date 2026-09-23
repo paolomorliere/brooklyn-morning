@@ -2,8 +2,7 @@ import { useEffect } from 'preact/hooks';
 import { ChevronLeft, ExternalLink, Info, RefreshCw } from 'lucide-preact';
 import { navigate } from '@/ui/router';
 import { onResume } from '@/state/store';
-import { pollActions, pollStore } from '@/state/poll';
-import { RUN_URL } from '@/state/waterpolo';
+import { POLL_RUN_URL, pollActions, pollStore } from '@/state/poll';
 import { formatLongDate } from '@/lib/polo';
 import { TeamCrest } from './WaterPolo';
 
@@ -74,7 +73,7 @@ export function Poll() {
               <span>
                 Awaiting this week&rsquo;s poll. This is Week {poll.week}, the most recent one the CWPA has published.
                 The next check is Wednesday evening, with a backup on Thursday morning.{' '}
-                <a href={RUN_URL} target="_blank" rel="noopener noreferrer">
+                <a href={POLL_RUN_URL} target="_blank" rel="noopener noreferrer">
                   Check now
                 </a>
                 .
