@@ -122,6 +122,18 @@ function logoFrom(img, origin) {
 }
 
 /**
+ * The classic location block holds the city and the facility as separate spans. Joined with plain
+ * spaces they read as one run-on string, so join them with a separator instead.
+ */
+function locationOf(li) {
+  const box = li.querySelector('.sidearm-schedule-game-location');
+  if (!box) return null;
+  const parts = [...box.children].map((el) => text(el)).filter(Boolean);
+  const joined = parts.length > 1 ? [...new Set(parts)].join(' \u00b7 ') : text(box);
+  return joined || null;
+}
+
+/**
  * Both generations mark a non-counting game with a small badge next to the game. Read the badge
  * rather than the whole row, so a tournament or opponent name can never be mistaken for one.
  */
@@ -196,7 +208,7 @@ export function parseClassic(html, ctx) {
       neutral,
       away,
       exhibition: isExhibition(li),
-      venue: text(li.querySelector('.sidearm-schedule-game-location')) || null,
+      venue: locationOf(li),
       tournament: tournamentEl ? text(tournamentEl.querySelector('p')) || null : null,
       opponentLogo: logoFrom(li.querySelector('.sidearm-schedule-game-opponent-logo img'), origin),
       detailUrl: links[0] || null,
