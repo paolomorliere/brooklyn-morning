@@ -88,7 +88,7 @@ describe('same-day rematches stay separate', () => {
       ]],
     ]);
     expect(feed).toHaveLength(2);
-    expect(feed.map((g) => g.time)).toEqual(['12:30', '16:30']);
+    expect(feed.map((g) => g.time)).toEqual(['16:30', '12:30']);
     expect(new Set(feed.map((g) => g.id)).size).toBe(2);
   });
 
@@ -218,13 +218,22 @@ describe('scope and shape', () => {
     expect(involvesWatched({ home: { team: 'gannon' }, away: { team: 'mercyhurst' } })).toBe(false);
   });
 
-  it('orders the feed newest date first, then by start time', () => {
+  it('orders the feed newest date first, then latest start time first within the day', () => {
     const { feed } = run([['liu', [
       row({ opponentRaw: 'Gannon', date: '2026-08-29', time: '19:20', neutral: true }),
       row({ opponentRaw: 'Wagner', date: '2026-08-29', time: '14:00', neutral: true }),
       row({ opponentRaw: 'Navy', date: '2026-09-12', time: '15:30', neutral: true }),
     ]]]);
-    expect(feed.map((g) => `${g.date} ${g.time}`)).toEqual(['2026-09-12 15:30', '2026-08-29 14:00', '2026-08-29 19:20']);
+    expect(feed.map((g) => `${g.date} ${g.time}`)).toEqual(['2026-09-12 15:30', '2026-08-29 19:20', '2026-08-29 14:00']);
+  });
+
+  it('sorts a game with no known start time after every game that has one', () => {
+    const { feed } = run([['liu', [
+      row({ opponentRaw: 'Gannon', date: '2026-08-29', time: null, neutral: true }),
+      row({ opponentRaw: 'Wagner', date: '2026-08-29', time: '14:00', neutral: true }),
+      row({ opponentRaw: 'Navy', date: '2026-08-29', time: '19:20', neutral: true }),
+    ]]]);
+    expect(feed.map((g) => g.time)).toEqual(['19:20', '14:00', null]);
   });
 
   it('names watched teams from the registry, and others from the short-name list or the page', () => {

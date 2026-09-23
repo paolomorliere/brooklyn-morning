@@ -32,6 +32,18 @@ const bucketOf = (date, a, b) => `${date}|${teamPair(a, b).join('|')}`;
 const timeRank = (t) => t ?? '99:99';
 
 /**
+ * Within one day, the latest verified start time comes first.
+ * A game whose start time no source printed sorts after every game that has one — it is never given
+ * an invented time to sort by — and ties break on the stable game id so the order does not wobble.
+ */
+export function byLatestFirst(x, y) {
+  if (!x.time && !y.time) return x.id.localeCompare(y.id);
+  if (!x.time) return 1;
+  if (!y.time) return -1;
+  return y.time.localeCompare(x.time) || x.id.localeCompare(y.id);
+}
+
+/**
  * Who hosted, as far as this row can tell.
  *   neutral site            -> nobody
  *   "at <opponent>"         -> the opponent, whatever else the row says
@@ -70,6 +82,7 @@ export function toCandidates(rows, cfg, verifiedAt, season = SEASON) {
       ot: row.ot ?? null,
       exhibition: !!row.exhibition,
       tournament: row.tournament ?? null,
+      conferenceMarker: row.conferenceMarker ?? null,
       venue: row.venue ?? null,
       opponentName: row.opponentRaw,
       opponentSlug: opponent,
@@ -136,6 +149,10 @@ function emptyGame(cand) {
     exhibition: false,
     tournament: null,
     venue: null,
+    // Set by the build from the CWPA's published conference schedule, never by the merge.
+    conference: null,
+    conferenceSource: null,
+    conferenceMarker: null,
     sources: [],
     conflict: null,
     firstSeenAt: cand.source.verifiedAt,
@@ -182,6 +199,7 @@ export function mergeGames(archive, candidates) {
     game.time = fill(game.time, cand.time);
     game.ot = fill(game.ot, cand.ot);
     game.tournament = fill(game.tournament, cand.tournament);
+    game.conferenceMarker = fill(game.conferenceMarker, cand.conferenceMarker);
     game.venue = fill(game.venue, cand.venue);
     game.neutral = fill(game.neutral, cand.neutral);
     game.homeTeam = game.neutral === true ? null : fill(game.homeTeam, cand.homeTeam);
@@ -260,6 +278,11 @@ export function toFeedGames(games) {
         exhibition: !!g.exhibition,
         tournament: g.tournament ?? null,
         venue: g.venue ?? null,
+        // `conference` is only ever set from the CWPA's own conference schedule. `conferenceMarker`
+        // is what the school printed on its own row and is corroboration, not classification.
+        conference: g.conference ?? null,
+        conferenceSource: g.conferenceSource ?? null,
+        conferenceMarker: g.conferenceMarker ?? null,
         sources: g.sources
           .map((s) => ({
             id: s.id,
@@ -275,7 +298,7 @@ export function toFeedGames(games) {
         firstSeenAt: g.firstSeenAt ?? null,
       };
     })
-    .sort((x, y) => y.date.localeCompare(x.date) || timeRank(x.time).localeCompare(timeRank(y.time)) || x.id.localeCompare(y.id));
+    .sort((x, y) => y.date.localeCompare(x.date) || byLatestFirst(x, y));
 }
 
 /** The teams table the app needs to render names and logos, built from the games actually present. */
@@ -319,6 +342,9 @@ export function fromFeedGames(feedGames) {
     exhibition: !!g.exhibition,
     tournament: g.tournament ?? null,
     venue: g.venue ?? null,
+    conference: g.conference ?? null,
+    conferenceSource: g.conferenceSource ?? null,
+    conferenceMarker: g.conferenceMarker ?? null,
     sources: (g.sources ?? []).map((s) => ({
       id: s.id,
       url: s.url,

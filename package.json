@@ -13,6 +13,7 @@
     "build:edition": "node scripts/build-edition.mjs",
     "icons": "node scripts/make-icons.mjs",
     "build:waterpolo": "node scripts/build-waterpolo.mjs",
+    "build:poll": "node scripts/build-poll.mjs",
     "logos": "node scripts/fetch-logos.mjs"
   },
   "dependencies": {

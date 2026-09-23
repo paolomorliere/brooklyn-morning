@@ -65,16 +65,53 @@ Watchlist and sources — all thirteen verified 2026-09-22:
 - **Season is pinned to 2026 and validated on every fetch.** A school's URL can quietly serve a different year, so each page must name 2026 (in its title, heading or `og:title`); where it names no year at all, every game date must fall inside the season. A page that fails is reported as unchecked and its saved games are kept.
 - **One row per game.** A game between two watched teams appears on both schools' pages, each from its own perspective. They are matched on the teams, the date and the start time, never on the score, so a later correction updates the row instead of adding one. Two genuine meetings on the same day stay separate.
 - **When two schools disagree**, the feed shows one row and never averages. If an official box score or recap settles it, that result is shown with the evidence linked in the details sheet; if nothing does, the score is withheld and the row says so.
-- Tap any row for the venue, the event, overtime, exhibition status and a link to the official page each score came from.
+- Tap a **team name** for that team's 2026 season: its record, a link to its official roster, and every completed game. Tap **anywhere else on the row** for the venue, the event, overtime, exhibition status and a link to the official page each score came from. Both team names work, including opponents outside the watchlist.
+- Within a day, the **latest start time comes first**. A game whose start time no source printed sorts last; no time is ever invented to order it.
 - The freshness line says how many of the thirteen schools were actually read. A school that failed is never counted as checked.
 - Logos are downloaded once into `public/logos/` so the screen works offline and sends no requests to school websites while you read. A team without one shows its initials.
 
+### Filters, conferences and the table
+`All teams` plus one chip per watched team; `All games`, `NWPC` and `MAWPC`. Picking a team clears the day filter and shows its whole season. A single **Reset** clears everything.
+
+Choosing a conference puts its table at the top: `# · crest · Team · Pts · W · L · GD`. **Three points for a win and none for a loss — my own calculation, not the CWPA's official standings or its tiebreakers**, and the screen says so under the table. The table is season-wide and does not change when a day filter is also on. It is recomputed from the games on every render, so a corrected score moves both teams at once.
+
+A game counts as a conference game **only when the CWPA's own conference schedule lists that exact fixture**. Two teams sharing a conference is never enough — Fordham and Navy are both MAWPC and also meet at invitationals. A school's own "CWPA" badge is recorded as corroboration, never as the decision. Membership comes from the same two pages:
+
+| Conference | 2026 members |
+|---|---|
+| NWPC | Princeton, Brown, Harvard, LIU, Iona, MIT |
+| MAWPC | Fordham, Navy, George Washington, Bucknell, Mount St. Mary's, Mercyhurst, Wagner |
+
+Air Force is on the watchlist and is in neither conference. Mercyhurst is a MAWPC member and is not on the watchlist — it still gets a standings row, because a table missing a member would be wrong.
+
+### Team screens and opponent coverage
+Each build also reads **every opponent the watched schools played**, so a team screen can show that team's whole season rather than only the games a watched school reported. A school's link to an opponent is a hint, not a fact — one page links "UC San Diego" to the University of San Diego and another links "UC Santa Barbara" to Stanford — so every fetched page has to name 2026 men's water polo *and* list a game that team is already known to have played before anything is believed.
+
+Three of the twenty-nine opponents could not be read at all: **UCLA** and **San Jose State** render their schedules in the browser, so there is nothing to parse at build time, and **Austin College**'s athletics site does not answer. Their screens say "from the results collected so far" and link the official site.
+
+## CWPA Top 20
+A separate screen, reached from the **CWPA Top 20** button, showing the Collegiate Water Polo Association's national men's varsity poll exactly as published: `Rank · crest · Team · previous week · Points`, with ties (`6 (T)`) and receiving-votes rows (`RV`) kept verbatim.
+
+**The points are copied from the CWPA's table. Nothing on that screen is calculated** — in particular the three-points-per-win rule used for the conference table never touches them.
+
+The poll is read on **Wednesday at 6:00 p.m. New York**, with a backup on **Thursday at 6:00 a.m.** that only runs if Wednesday did not actually save a new poll. Finding last week's poll again is not success: `state/poll-runs.json` records a week only when a newer one was parsed, validated and written, and `scripts/poll-due.mjs` reads that before deciding whether Thursday is due. If this week's poll is not out yet, the last verified table stays on screen with its real week and date, labelled "Awaiting this week's poll". A stale job can never replace a newer poll with an older one.
+
 ### When it updates
-Sources are read on **Saturday and Sunday at 9:00, 11:30, 2:00 and 4:30 New York time** — four checks a day, no weekday checks. The workflow asks for eight UTC slots (those four times under both daylight-saving offsets) and `scripts/polo-due.mjs` turns them into exactly four real checks by reading the actual New York clock.
+Sources are read on New York wall-clock time:
 
-GitHub runs scheduled workflows on a best-effort basis and has started this repository's runs 3.5–6 hours late, so a check will often happen later in the day than the time above. Nothing is lost when it does: every run re-reads all thirteen complete 2026 schedules, so Friday games, other weekday games, late postings and corrections are all picked up by the next check and filed under **the date they were played**. Saturday's 9:00 check is what collects Friday's results. Anything posted after Sunday's 4:30 check waits for the following Saturday, by design.
+| Day | Checks |
+|---|---|
+| Saturday | 9:00, 11:30, 2:00, 4:30 |
+| Sunday | 9:00, 11:30, 2:00, 4:30, **10:00 p.m.** |
+| Monday | **9:00 a.m.** |
 
-The **refresh button** on the screen re-downloads the published results file. It does not read the school websites — only the weekend job does that.
+The workflow asks for every one of those times under both daylight-saving offsets and `scripts/polo-due.mjs` turns them into exactly one real check per slot by reading the actual New York clock.
+
+GitHub runs scheduled workflows on a best-effort basis and has started this repository's runs 3.5–6 hours late, so a check will often happen later in the day than the time above. The guard has an eight-hour look-back for exactly that reason: the Sunday 10 p.m. check is asked for by a Monday 02:00 UTC cron, and a run that starts after midnight in New York still does the Sunday job instead of being thrown away. Nothing is lost either way — every run re-reads all thirteen complete 2026 schedules, every opponent's season and both conference schedules, so weekday games, late postings and corrections are all picked up by the next check and filed under **the date they were played**.
+
+**Check sources now** opens the workflow's page on GitHub, where one tap on **Run workflow** starts the real job; the screen then watches the published file every 20 seconds for up to 12 minutes and says what it finds — new results, nothing new, partial coverage, or that the run may still be going. It takes one tap on GitHub's page because a true one-tap refresh would need a server holding a token, which the zero-cost rule rules out. **No credential of any kind is in the app**, and nothing on the screen ever contacts a school or the CWPA.
+
+The small **refresh icon** in the header re-downloads the published results file only.
 
 Maintenance: if a school redesigns its site, `node scripts/build-waterpolo.mjs --dry-run` will report that source as failed while the other twelve keep working. The registry of URLs and team aliases is `scripts/waterpolo.config.mjs`.
 
@@ -85,10 +122,11 @@ Everything lives in the phone's browser storage. Deleting the app from the Home 
 | Service | Used for | Why it cannot bill |
 |---|---|---|
 | GitHub Pages | hosting | free for public repositories |
-| GitHub Actions | daily edition, weekend water polo results, monthly catalog, deploy | free minutes for public repos; with no payment method on the account, usage blocks instead of charging |
+| GitHub Actions | daily edition, water polo results, the CWPA poll, monthly catalog, deploy | free minutes for public repos; with no payment method on the account, usage blocks instead of charging |
 | Open Food Facts | product catalog | non-profit open database, no paid tier, no key |
 | Publisher RSS feeds | headlines and excerpts | public feeds |
-| School athletics sites | water polo schedules and results | ordinary requests to public pages, no key, no account |
+| School athletics sites | water polo schedules, rosters and results | ordinary requests to public pages, no key, no account |
+| collegiatewaterpolo.org | conference schedules and the national poll | ordinary requests to public pages, no key, no account |
 | Fontsource, Lucide, Preact, Vite, Workbox | fonts, icons, code | open-source licences |
 
 No accounts, analytics, ads, tracking, or AI APIs. **Never add a payment method to the GitHub account for this project.**

@@ -14,6 +14,8 @@ export interface PoloRow {
   venue: string | null;
   tournament: string | null;
   opponentLogo: string | null;
+  opponentSite: string | null;
+  conferenceMarker: string | null;
   detailUrl: string | null;
 }
 export function normalizeOvertime(raw: string | null | undefined): string | null;

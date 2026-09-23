@@ -147,6 +147,56 @@ function isExhibition(root) {
 }
 
 /**
+ * The conference badge a school puts on its own row — "CWPA" on classic, "MAWPC"/"NWPC" on nextgen.
+ *
+ * This is corroboration only. Whether a game counts as a conference game is decided by the CWPA's
+ * published conference schedule, never by this marker and never by both teams sharing a conference.
+ */
+function conferenceMarker(root) {
+  const el =
+    root.querySelector('.sidearm-schedule-game-conference') ||
+    root.querySelector('.s-game-card__header__conf-text');
+  const t = text(el);
+  return t || null;
+}
+
+/**
+ * The tournament chip on a nextgen card.
+ *
+ * The tournament pill and the conference pill are both rendered as `s-descriptor` and therefore
+ * share `data-test-id="s-descriptor__text"`. Reading the first one happens to give the tournament
+ * today only because Sidearm prints it first; a card with only a conference chip would silently
+ * report "MAWPC" as its tournament. Scope by the conference pill's own class instead of trusting
+ * document order.
+ */
+function tournamentChip(card) {
+  for (const el of card.querySelectorAll('[data-test-id="s-descriptor__text"]')) {
+    if (el.closest('.s-game-card__header__conf-text')) continue;
+    const t = text(el);
+    if (t) return t;
+  }
+  return null;
+}
+
+/**
+ * The origin of an opponent link, normalized to https and without a `www.` prefix, or null.
+ * Sidearm stores these as free text, so they arrive as `http://www.example.com/`, `example.com`
+ * and everything between.
+ */
+function siteHint(href) {
+  if (!href) return null;
+  const raw = String(href).trim();
+  if (!raw || raw.startsWith('#') || raw.startsWith('/')) return null;
+  try {
+    const u = new URL(/^https?:\/\//i.test(raw) ? raw : `https://${raw}`);
+    if (!u.hostname.includes('.')) return null;
+    return `https://${u.hostname.replace(/^www\./i, '')}`;
+  } catch {
+    return null;
+  }
+}
+
+/**
  * A link to the official recap or box score for one game. Sites label these by their text
  * ("Recap", "Box Score"), not by a predictable URL shape, so match the label.
  */
@@ -210,7 +260,12 @@ export function parseClassic(html, ctx) {
       exhibition: isExhibition(li),
       venue: locationOf(li),
       tournament: tournamentEl ? text(tournamentEl.querySelector('p')) || null : null,
+      conferenceMarker: conferenceMarker(li),
       opponentLogo: logoFrom(li.querySelector('.sidearm-schedule-game-opponent-logo img'), origin),
+      // The opponent's own athletics site, where the school links it. It is a hint, not a fact:
+      // schools do mislink (one page links "UC San Diego" to usdtoreros.com), so anything fetched
+      // from here has to prove it is the right team before its games are believed.
+      opponentSite: siteHint(li.querySelector('.sidearm-schedule-game-opponent-name a')?.getAttribute('href')),
       detailUrl: links[0] || null,
     });
   }
@@ -262,10 +317,14 @@ export function parseNextgen(html, ctx) {
       venue:
         text(card.querySelector('[data-test-id="s-game-card-facility-and-location__standard-location-details"]')) ||
         null,
-      // The tournament chip is a generic "descriptor" pill; it is the only one on a game card.
-      tournament: text(card.querySelector('[data-test-id="s-descriptor__text"]')) || null,
+      tournament: tournamentChip(card),
+      conferenceMarker: conferenceMarker(card),
       opponentLogo:
         card.querySelector('[data-test-id="s-game-card-opponent-logo__link"] img')?.getAttribute('src') ?? null,
+      opponentSite: siteHint(
+        card.querySelector(NG('header-team-opponent-link'))?.getAttribute('href') ??
+          card.querySelector('[data-test-id="s-game-card-opponent-logo__link"]')?.getAttribute('href'),
+      ),
       detailUrl: links[0] || null,
     });
   }

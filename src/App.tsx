@@ -6,6 +6,8 @@ import { Home } from '@/screens/Home';
 import { Todo } from '@/screens/Todo';
 import { Groceries } from '@/screens/Groceries';
 import { WaterPolo } from '@/screens/WaterPolo';
+import { TeamDetail } from '@/screens/TeamDetail';
+import { Poll } from '@/screens/Poll';
 import { Library } from '@/screens/Library';
 import { Settings } from '@/screens/Settings';
 import { Quiz } from '@/screens/Quiz';
@@ -27,11 +29,13 @@ export function App() {
         {route === 'todo' && <Todo />}
         {route === 'groceries' && <Groceries />}
         {route === 'waterpolo' && <WaterPolo />}
+        {route === 'team' && <TeamDetail />}
+        {route === 'poll' && <Poll />}
         {route === 'library' && <Library />}
         {route === 'settings' && <Settings />}
         {route === 'quiz' && <Quiz />}
         {route === 'product' && <ProductDetail />}
-        {!['settings', 'quiz', 'product'].includes(route) && <TabBar route={route} />}
+        {!['settings', 'quiz', 'product', 'team', 'poll'].includes(route) && <TabBar route={route} />}
       </div>
     </ToastProvider>
   );

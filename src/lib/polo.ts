@@ -1,4 +1,4 @@
-import type { PoloFeed, PoloGame, PoloSourceStatus } from '@/types';
+import type { Poll, PoloFeed, PoloGame, PoloTeam, PoloSourceStatus } from '@/types';
 
 /** Games that happened on one date, newest date first. */
 export interface PoloDay {
@@ -6,13 +6,22 @@ export interface PoloDay {
   games: PoloGame[];
 }
 
-/** Rows with no known start time sort last within their day; we never invent a time to order them. */
-const timeRank = (t: string | null) => t ?? '99:99';
-
 /**
- * Group by the date the game was played, newest day first, and order each day by start time.
- * Ties fall back to the game id so the order is the same on every render.
+ * Within one day, the latest verified start time comes first — the last game of the day is the one
+ * Paolo is looking for when he opens the screen.
+ *
+ * A game whose start time no source printed sorts after every game that has one. It is never given
+ * an invented time to sort by, and ties break on the stable game id so the order does not wobble
+ * between renders.
  */
+export function byLatestFirst(x: PoloGame, y: PoloGame): number {
+  if (!x.time && !y.time) return x.id.localeCompare(y.id);
+  if (!x.time) return 1;
+  if (!y.time) return -1;
+  return y.time.localeCompare(x.time) || x.id.localeCompare(y.id);
+}
+
+/** Group by the date the game was played, newest day first, latest game first within each day. */
 export function groupByDate(games: PoloGame[]): PoloDay[] {
   const byDate = new Map<string, PoloGame[]>();
   for (const g of games) {
@@ -22,12 +31,7 @@ export function groupByDate(games: PoloGame[]): PoloDay[] {
   }
   return [...byDate.entries()]
     .sort((a, b) => b[0].localeCompare(a[0]))
-    .map(([date, list]) => ({
-      date,
-      games: [...list].sort(
-        (x, y) => timeRank(x.time).localeCompare(timeRank(y.time)) || x.id.localeCompare(y.id),
-      ),
-    }));
+    .map(([date, list]) => ({ date, games: [...list].sort(byLatestFirst) }));
 }
 
 /** Every date that actually has a result, newest first — the date strip only offers these. */
@@ -123,4 +127,141 @@ export function validFeed(value: unknown): value is PoloFeed {
     !!f.teams &&
     typeof f.teams === 'object'
   );
+}
+
+/**
+ * Games that count toward a record: a final score on both sides, and not an exhibition.
+ * A withheld score is not a result, so it counts for nobody.
+ */
+export function counts(game: PoloGame): boolean {
+  return !game.exhibition && game.home.score !== null && game.away.score !== null;
+}
+
+export interface TeamRecord {
+  wins: number;
+  losses: number;
+  ties: number;
+  played: number;
+  scored: number;
+  conceded: number;
+}
+
+const EMPTY_RECORD: TeamRecord = { wins: 0, losses: 0, ties: 0, played: 0, scored: 0, conceded: 0 };
+
+/**
+ * One team's record from its own completed games.
+ *
+ * Deliberately independent of every filter on the screen: conference and non-conference games count
+ * alike, an overtime win is a win, and each game is counted once however many schools reported it.
+ * Games without a final score and exhibitions are excluded rather than treated as anything.
+ */
+export function recordOf(games: PoloGame[], slug: string): TeamRecord {
+  const seen = new Set<string>();
+  const r = { ...EMPTY_RECORD };
+  for (const g of games) {
+    if (seen.has(g.id) || !counts(g)) continue;
+    const side = g.home.team === slug ? 'home' : g.away.team === slug ? 'away' : null;
+    if (!side) continue;
+    seen.add(g.id);
+    const mine = side === 'home' ? g.home.score! : g.away.score!;
+    const theirs = side === 'home' ? g.away.score! : g.home.score!;
+    r.played++;
+    r.scored += mine;
+    r.conceded += theirs;
+    if (mine > theirs) r.wins++;
+    else if (mine < theirs) r.losses++;
+    else r.ties++;
+  }
+  return r;
+}
+
+/** "5–3", or "5–3–1" when a game finished level. En dashes, as the sport writes them. */
+export function formatRecord(r: TeamRecord): string {
+  return r.ties > 0 ? `${r.wins}–${r.losses}–${r.ties}` : `${r.wins}–${r.losses}`;
+}
+
+export interface StandingsRow {
+  position: number;
+  team: string;
+  name: string;
+  points: number;
+  wins: number;
+  losses: number;
+  ties: number;
+  played: number;
+  goalDifference: number;
+  /** True when this team's own schedule page could not be read, so its row may be incomplete. */
+  partial: boolean;
+  /** True when the team has no conference game yet AND its source was read — a genuine zero. */
+  unplayed: boolean;
+}
+
+/**
+ * The conference table, computed here and stored nowhere.
+ *
+ * This is Paolo's own system — three points for a win, none for a loss — not the CWPA's official
+ * standings or its tiebreakers. Only games the CWPA's conference schedule actually lists are
+ * counted, each once. Every member of the official membership list gets a row even with no game
+ * played, because a table missing a member would be wrong.
+ *
+ * Teams level on points and goal difference share a position; the alphabetical order between them
+ * is for a stable display only and does not claim one is ahead of the other.
+ */
+export function standingsOf(
+  games: PoloGame[],
+  conference: 'MAWPC' | 'NWPC',
+  members: string[],
+  teams: Record<string, PoloTeam>,
+): StandingsRow[] {
+  const relevant = games.filter((g) => g.conference === conference);
+  const rows = members.map((slug) => {
+    const r = recordOf(relevant, slug);
+    const coverage = teams[slug]?.coverage ?? 'full';
+    return {
+      position: 0,
+      team: slug,
+      name: teams[slug]?.name ?? slug,
+      // Three points a win, nothing for a loss or a draw. Nothing else feeds this number.
+      points: r.wins * 3,
+      wins: r.wins,
+      losses: r.losses,
+      ties: r.ties,
+      played: r.played,
+      goalDifference: r.scored - r.conceded,
+      partial: coverage === 'partial',
+      unplayed: r.played === 0 && coverage !== 'partial',
+    };
+  });
+
+  rows.sort((a, b) => b.points - a.points || b.goalDifference - a.goalDifference || a.name.localeCompare(b.name));
+  rows.forEach((row, i) => {
+    const above = rows[i - 1];
+    row.position =
+      above && above.points === row.points && above.goalDifference === row.goalDifference ? above.position : i + 1;
+  });
+  return rows;
+}
+
+/** Every conference that has at least one member in this feed, in a fixed order. */
+export const CONFERENCE_ORDER: Array<'NWPC' | 'MAWPC'> = ['NWPC', 'MAWPC'];
+
+/** Shape check before a downloaded poll is allowed to replace the cached one. */
+export function validPoll(value: unknown): value is Poll {
+  const p = value as Partial<Poll>;
+  return (
+    !!p &&
+    p.schemaVersion === 1 &&
+    typeof p.season === 'number' &&
+    typeof p.week === 'number' &&
+    Array.isArray(p.rows) &&
+    p.rows.length > 0 &&
+    !!p.teams &&
+    typeof p.teams === 'object'
+  );
+}
+
+/** "September 16, 2026" — the poll's publication date, spelled out. */
+export function formatLongDate(date: string): string {
+  const d = new Date(`${date}T12:00:00`);
+  return Number.isNaN(d.getTime()) ? date : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 }

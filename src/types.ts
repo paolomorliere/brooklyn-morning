@@ -207,6 +207,17 @@ export interface PoloTeam {
   watched: boolean;
   /** Path relative to the site base, e.g. "logos/liu.webp". Null means draw initials instead. */
   logo: string | null;
+  /**
+   * `full` means this team's own 2026 schedule page was read; `partial` means the games shown are
+   * only the ones other schools reported, so its record and standings row may be incomplete.
+   */
+  coverage?: 'full' | 'partial';
+  /** Why the team's own page could not be read, when it could not. */
+  coverageNote?: string;
+  /** Official 2026 conference, from the CWPA's membership. Null for a team in neither. */
+  conference?: 'MAWPC' | 'NWPC' | null;
+  scheduleUrl?: string | null;
+  rosterUrl?: string | null;
 }
 
 export interface PoloSource {
@@ -244,6 +255,15 @@ export interface PoloGame {
   exhibition: boolean;
   tournament: string | null;
   venue: string | null;
+  /**
+   * Set only when this exact fixture appears on the CWPA's published conference schedule.
+   * Two teams sharing a conference is never enough, so an unlisted game stays null.
+   */
+  conference: 'MAWPC' | 'NWPC' | null;
+  /** The CWPA page that lists this fixture. */
+  conferenceSource: string | null;
+  /** What the school itself printed on the row ("CWPA", "MAWPC"). Corroboration, not proof. */
+  conferenceMarker: string | null;
   sources: PoloSource[];
   conflict: PoloConflict | null;
   firstSeenAt: string | null;
@@ -261,12 +281,76 @@ export interface PoloSourceStatus {
   note: string | null;
 }
 
+/** One opponent's own schedule page, read so its team screen can show a whole season. */
+export interface PoloOpponentSource {
+  id: string;
+  url: string | null;
+  site: string | null;
+  ok: boolean;
+  checkedAt: string;
+  found: number;
+  rosterUrl: string | null;
+  error: string | null;
+  note: string | null;
+}
+
+export interface PoloConferenceInfo {
+  name: string;
+  short: string;
+  scheduleUrl: string;
+  members: string[];
+}
+
+export interface PoloConferenceBlock {
+  checkedAt: string;
+  sources: { id: string; url: string; ok: boolean; fixtures: number; skipped: number; error: string | null }[];
+  classified: number;
+  dropped: string[];
+  members: Record<string, PoloConferenceInfo>;
+}
+
 export interface PoloFeed {
   schemaVersion: 1;
   season: number;
   sport: string;
   builtAt: string;
   sources: PoloSourceStatus[];
+  opponentSources?: PoloOpponentSource[];
+  conference?: PoloConferenceBlock;
   teams: Record<string, PoloTeam>;
   games: PoloGame[];
+}
+
+/** One row of the CWPA national poll, exactly as published. */
+export interface PollRow {
+  /** Verbatim: "1", "6 (T)", "RV". Never turned into a number. */
+  rank: string;
+  /** The name the CWPA printed. */
+  name: string;
+  team: string;
+  /** The previous poll's rank for this team, verbatim, or null. */
+  previous: string | null;
+  /** Copied from the article. Never computed. */
+  points: number | null;
+  pointsText: string | null;
+}
+
+export interface Poll {
+  schemaVersion: 1;
+  season: number;
+  week: number;
+  title: string;
+  heading: string;
+  publishedAt: string | null;
+  previous: { week: number; label: string } | null;
+  sourceUrl: string;
+  indexUrl: string;
+  builtAt: string;
+  lastAttemptAt: string;
+  lastSuccessAt: string;
+  /** True when a later check ran and this week's poll was not out yet. */
+  awaiting: boolean;
+  note: string | null;
+  teams: Record<string, PoloTeam>;
+  rows: PollRow[];
 }

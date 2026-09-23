@@ -61,6 +61,33 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 - Actions cron can be delayed; scheduled workflows pause after 60 days of repo inactivity (daily commits should count; re-enable note in install guide).
 - No background refresh on iPhone; edition fetched on open.
 
+## Water polo round 2 (2026-09-23)
+Team screens, conference tables, the CWPA national poll, a manual check, and a wider schedule. The round-1 screen below is unchanged in what it claims; everything here is added on top of it.
+
+- **Manual check.** "Check sources now" opens `actions/workflows/waterpolo.yml` in Safari, where one tap on GitHub's Run workflow button starts the real job; the screen then polls the published file every 20 s for up to 12 min and reports *waiting* → *updated, N new* / *nothing new* / *partial* / *may still be going*. One watcher at a time, 30 s cooldown with the seconds shown, filters and scroll untouched. **No token is in the app.** Nothing reachable from the phone is CORS-enabled (verified on brownbears.com, navysports.com and collegiatewaterpolo.org), so all ingestion stays in Actions and a true one-tap refresh would need a server — which the $0 rule rules out.
+- **Schedule widened** (explicitly replacing the old no-weekday-checks rule): Sat 09:00/11:30/14:00/16:30, Sun the same plus 22:00, Mon 09:00, New York. Crons `0 13,14,18,19 * * 6,0`, `30 15,16,20,21 * * 6,0`, `0 2,3,13,14 * * 1`. `polo-due.mjs` now has an **eight-hour look-back**: the Sunday 22:00 check is requested by a Monday 02:00 UTC cron, and GitHub's 3.5-6 h delay would push it past midnight in New York onto a day whose only slot is 09:00 — the check would have been silently dropped precisely when delayed. Covered by a test.
+- **Conference classification** (`scripts/lib/polo-conference.mjs`). Both CWPA conference schedules are parsed each run; a game is marked `conference` only when that exact (date, pair) fixture is listed. 42 MAWPC + 30 NWPC fixtures read with zero unexplained rows; 7 played so far (6 MAWPC, 1 NWPC) and all 7 classify. The championship bracket on the same page is deliberately excluded. Sharing a conference is never enough — the school's own "CWPA" badge is stored as `conferenceMarker`, corroboration only. Ambiguous or doubly-claimed fixtures are dropped rather than guessed.
+- **Standings** (pure, in `src/lib/polo.ts`): Pts/W/L/GD, three points a win, ties share a position, every official member gets a row, a genuine zero reads `0` and a team whose own page failed reads `—`. Labelled on screen as Paolo's own calculation, not the CWPA's. The CWPA's own table uses 2 points a win — deliberately not used.
+- **Opponent seasons.** A second build pass fetches every opponent a watched school played (29 teams) so team screens show whole seasons; the feed grew 113 → 261 games, 60 teams. A school's opponent link is a hint, not a fact: one links "UC San Diego" to usdtoreros.com and another links "UC Santa Barbara" to gostanford.com. Every fetched page must pass the season and sport gates **and** list a game that team is already known to have played. 26 of 29 read.
+- **CWPA poll** (`scripts/lib/poll-parse.mjs`, `build-poll.mjs`, `poll.yml`, `#/poll`). Week 3 imported: 22 rows, ties and RV kept verbatim, points copied. The national table is chosen by its own title row, so the Division III and two conference tables on the same page can never be mistaken for it. Wednesday 18:00 NY primary, Thursday 06:00 NY backup that skips only when `state/poll-runs.json` records a week that was actually **saved** — an HTTP 200 or re-finding last week's poll is not success. `supersedes()` refuses to replace a poll with an equal or older week, on both the build and the app side.
+- **Parser bug fixed** (found while planning): the nextgen tournament chip and conference chip share `data-test-id="s-descriptor__text"`. Reading the first worked only because Sidearm happens to print the tournament first — Bucknell v Fordham carries both. Now scoped by the conference pill's own class.
+- **Identity gaps closed** while the opponent pass widened the team list: accents folded (San José/San Jose State), an unbracketed `RV ` prefix and a trailing `(Exhib.)` stripped, and aliases added for Cal, Cal State Fullerton, Concordia Irvine, Pomona-Pitzer, Redlands, Wheaton, Austin College and the CWPA's own formal names and typos (`Forhdham Universtiy`, `Bucknell Universtiy`, …). The archive was rebuilt once from the sources so no game kept an old slug.
+- **Row tap targets split**: the row is a container with two team-name buttons above a full-area "Game details" button. The score column needed `pointer-events: none` — it is positioned for the overtime marker and was swallowing taps on the middle of the row.
+- Tests: **207 Vitest** (was 132), **183 Playwright** across 320/390/430 (was 102).
+
+### Verified against reality (2026-09-23)
+- Five records re-derived from the schools' own pages and compared with the app: Wagner 3-9, LIU 5-6, Navy 7-1, Brown 8-2, Fordham 9-0 — all exact.
+- All 7 played conference games match the CWPA schedule; the MAWPC table (Fordham 9/+51, Navy 3/+1, Wagner 3/-3, Bucknell 3/-5) recomputes from them.
+- The rendered Top 20 matches the published Week 3 article row by row, including `6 (T)`, `11 (T)`, both `RV` rows and Brown's `18 (T)` previous rank.
+- E2E asserts no request leaves the app to any school or to collegiatewaterpolo.org.
+
+### Known limits (round 2)
+- The manual check needs one tap on GitHub's page. A true one-tap refresh needs a server holding a token.
+- **UCLA** and **San Jose State** render their schedules client-side (no server-rendered rows, no free JSON endpoint found), and **Austin College**'s athletics host does not answer. Those three team screens say "from the results collected so far" and link the official site.
+- Six genuine score disagreements between official pages surfaced once opponent pages were read (e.g. Iona says 11-31 v UC Davis, UC Davis says 29-11 — both verified by re-fetching). The watched school's verified number is shown with the disagreement on the record; a game neither side had verified is withheld.
+- Conference classification depends on the CWPA publishing the fixture. An unlisted game stays unclassified rather than being guessed.
+- GitHub's best-effort cron delay applies to the poll job too.
+
 ## Water polo screen (2026-09-23)
 Fifth tab: NCAA men's water polo results, 2026 season only, 13 watched teams.
 

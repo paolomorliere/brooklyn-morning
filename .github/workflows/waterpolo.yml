@@ -1,25 +1,35 @@
 # NCAA men's water polo results, 2026 season.
 #
-# Paolo asked for four checks on Saturday and Sunday: 9:00, 11:30, 2:00 and 4:30 p.m. New York.
-# No weekday checks, no 6 p.m. check.
+# The checking times, in New York wall-clock:
 #
-# GitHub cron is UTC-only, so this asks for eight weekend slots — those four times under both
-# daylight-saving offsets — and `scripts/polo-due.mjs` turns them into exactly four real checks a day
-# by reading the actual New York wall clock and claiming the slot it lands in. That also absorbs
-# GitHub's scheduling delay (3.5-6 h observed on this repository): a run that arrives late does the
-# check for the slot it arrives in instead of being thrown away. A slot that is already done costs
-# one checkout, about ten seconds.
+#   Saturday  09:00  11:30  14:00  16:30
+#   Sunday    09:00  11:30  14:00  16:30  22:00
+#   Monday    09:00
 #
-# Every run reconciles all thirteen complete 2026 schedules, so Friday games, weekday games, late
-# postings and corrections are all picked up by the next check and filed under their own game date.
+# The Sunday-night and Monday-morning checks replace the earlier rule of no weekday checks at all:
+# Sunday evening games finish after the 16:30 check and some schools post a weekend result only on
+# Monday morning.
+#
+# GitHub cron is UTC-only, so this asks for every one of those times under both daylight-saving
+# offsets and `scripts/polo-due.mjs` turns them into exactly one real check per slot by reading the
+# actual New York wall clock. That also absorbs GitHub's scheduling delay (3.5-6 h observed on this
+# repository): a run that arrives late does the check for the slot it arrives in, including a
+# Sunday 22:00 run that does not start until after midnight. A slot that is already done costs one
+# checkout, about ten seconds.
+#
+# Every run reconciles all thirteen complete 2026 schedules, every opponent's season and both CWPA
+# conference schedules, so Friday games, weekday games, late postings and corrections are all picked
+# up by the next check and filed under their own game date.
 name: Water polo results
 
 on:
   schedule:
-    # 09:00, 14:00 New York — EDT and EST
+    # Sat/Sun 09:00, 14:00 New York — EDT and EST
     - cron: '0 13,14,18,19 * * 6,0'
-    # 11:30, 16:30 New York — EDT and EST
+    # Sat/Sun 11:30, 16:30 New York — EDT and EST
     - cron: '30 15,16,20,21 * * 6,0'
+    # Sunday 22:00 New York (02:00/03:00 UTC Monday) and Monday 09:00 New York (13:00/14:00 UTC)
+    - cron: '0 2,3,13,14 * * 1'
   workflow_dispatch:
     inputs:
       mode:

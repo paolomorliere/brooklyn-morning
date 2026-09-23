@@ -1,7 +1,17 @@
 import { useEffect, useState } from 'preact/hooks';
 
-export type Route = 'home' | 'todo' | 'groceries' | 'waterpolo' | 'library' | 'settings' | 'quiz' | 'product';
-const ROUTES: Route[] = ['home', 'todo', 'groceries', 'waterpolo', 'library', 'settings', 'quiz', 'product'];
+export type Route =
+  | 'home'
+  | 'todo'
+  | 'groceries'
+  | 'waterpolo'
+  | 'team'
+  | 'poll'
+  | 'library'
+  | 'settings'
+  | 'quiz'
+  | 'product';
+const ROUTES: Route[] = ['home', 'todo', 'groceries', 'waterpolo', 'team', 'poll', 'library', 'settings', 'quiz', 'product'];
 
 function read(): Route {
   const h = location.hash.replace(/^#\/?/, '').split('/')[0] as Route;

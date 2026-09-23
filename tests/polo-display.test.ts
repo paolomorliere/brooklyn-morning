@@ -24,6 +24,9 @@ const game = (over: Partial<PoloGame> = {}): PoloGame => ({
   exhibition: false,
   tournament: null,
   venue: null,
+  conference: null,
+  conferenceSource: null,
+  conferenceMarker: null,
   sources: [],
   conflict: null,
   firstSeenAt: null,
@@ -44,14 +47,14 @@ const source = (over: Partial<PoloSourceStatus> = {}): PoloSourceStatus => ({
 });
 
 describe('grouping by the date the game was played', () => {
-  it('lists the most recent day first and orders each day by start time', () => {
+  it('lists the most recent day first and the latest game of each day first', () => {
     const days = groupByDate([
       game({ id: 'a', date: '2026-08-29', time: '19:20' }),
       game({ id: 'b', date: '2026-09-12', time: '15:30' }),
       game({ id: 'c', date: '2026-08-29', time: '14:00' }),
     ]);
     expect(days.map((d) => d.date)).toEqual(['2026-09-12', '2026-08-29']);
-    expect(days[1].games.map((g) => g.id)).toEqual(['c', 'a']);
+    expect(days[1].games.map((g) => g.id)).toEqual(['a', 'c']);
   });
 
   it('puts games with no known start time last, without inventing one', () => {

@@ -145,10 +145,14 @@ const DECORATIONS = [
   /^no\.\s*\d+\s*/i,
   /^#\s*\d+\s*/,
   /^\(rv\)\s*/i,
+  // Some pages print the receiving-votes marker without brackets: "RV Wagner College".
+  /^rv\s+(?=[a-z])/i,
   /^\(t\)\s*/i,
   /^\(d-?i{1,3}\)\s*/i,
   /^\(rv\/\d+\)\s*/i,
   /^\(\d+\)\s*/,
+  // A trailing exhibition marker is part of the row's status, not part of the team's name.
+  /\s*\((?:exhib?|exh|scrimmage)\.?\)\s*$/i,
 ];
 
 /** Parenthetical state qualifiers: "Biola (Calif.)", "Mount St. Mary's (Md.)". */
@@ -277,9 +281,61 @@ const ALIASES = new Map(
     'washington & jefferson': 'washington-jefferson',
     'mckendree': 'mckendree',
     'austin college': 'austin-college',
+    austin: 'austin-college',
+    'austin roos': 'austin-college',
+    cal: 'california',
+    'california state university fullerton': 'cal-state-fullerton',
+    'california state university, fullerton': 'cal-state-fullerton',
+    'california state university at fullerton': 'cal-state-fullerton',
+    'concordia irvine': 'concordia-irvine',
+    'concordia university irvine': 'concordia-irvine',
+    cui: 'concordia-irvine',
+    pomona: 'pomona-pitzer',
+    'pomona pitzer': 'pomona-pitzer',
+    'university of redlands': 'redlands',
+    'washington and jefferson': 'washington-jefferson',
+    'wheaton college': 'wheaton',
+    'saddleback college': 'saddleback',
+    'austin roos': 'austin-college',
     'monmouth': 'monmouth',
     'saint francis': 'saint-francis-pa',
     'saint francis (pa.)': 'saint-francis-pa',
+
+    // ---- the CWPA's own spellings ----
+    // collegiatewaterpolo.org writes formal names where schedules write short ones, and its
+    // conference schedule tables carry long-standing typos. Both are mapped rather than corrected
+    // in place, so a name we have not seen before still fails loudly instead of being guessed at.
+    'uc los angeles': 'ucla',
+    'university of california': 'california',
+    'university of california-los angeles': 'ucla',
+    'university of southern california': 'usc',
+    'university of california-san diego': 'uc-san-diego',
+    'university of california-santa barbara': 'uc-santa-barbara',
+    'university of california-irvine': 'uc-irvine',
+    'university of california-davis': 'uc-davis',
+    'university of california-berkeley': 'california',
+    'california baptist univeristy': 'california-baptist',
+    'mercyhurst university': 'mercyhurst',
+    'gannon university': 'gannon',
+    'johns hopkins university': 'johns-hopkins',
+    'salem international university': 'salem',
+    'penn state behrend college': 'penn-state-behrend',
+    'washington and jefferson college': 'washington-jefferson',
+    'washington & jefferson college': 'washington-jefferson',
+    'connecticut college (conn. college)': 'connecticut-college',
+    // Misspellings printed verbatim by the CWPA conference schedules (verified 2026-09-23).
+    'bucknell universtiy': 'bucknell',
+    'iona universtiy': 'iona',
+    'forhdham universtiy': 'fordham',
+    'fordham universtiy': 'fordham',
+    'harvard universtiy': 'harvard',
+    'princeton universtiy': 'princeton',
+    'wagner colllege': 'wagner',
+    'navel academy': 'navy',
+    'u.s. naval academy': 'navy',
+    'us naval academy': 'navy',
+    'u.s. air force academy': 'air-force',
+    'us air force academy': 'air-force',
   }),
 );
 
@@ -288,6 +344,10 @@ export function normalizeTeamName(raw) {
   let s = String(raw ?? '')
     .replace(/ /g, ' ')
     .replace(/[‘’ʼ]/g, "'")
+    // "San José State" and "San Jose State" are one school. Folding the accents keeps them one
+    // identity instead of two rows that can never be reconciled.
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ')
     .trim();
   let changed = true;
@@ -316,6 +376,18 @@ export function isNonTeam(name) {
  * Keeps the results row readable without inventing a name the school does not use.
  */
 const TEAM_NAMES = {
+  // The CWPA prints formal names ("University of California-Los Angeles") where the schools' own
+  // schedules print short ones. The short form is what fits a phone row and what Paolo would say.
+  ucla: 'UCLA',
+  usc: 'USC',
+  stanford: 'Stanford',
+  california: 'California',
+  'uc-davis': 'UC Davis',
+  'uc-irvine': 'UC Irvine',
+  'uc-san-diego': 'UC San Diego',
+  pacific: 'Pacific',
+  pepperdine: 'Pepperdine',
+  'santa-clara': 'Santa Clara',
   'california-baptist': 'Cal Baptist',
   'uc-santa-barbara': 'UC Santa Barbara',
   'saint-marys-ca': "Saint Mary's (Cal.)",
@@ -339,7 +411,7 @@ function* aliasForms(clean) {
   const base = clean.toLowerCase().replace(/\.$/, '');
   yield base;
   // "University of California - Santa Barbara" / "University of California, Davis" -> "uc santa barbara"
-  const uc = base.replace(/^university of california\s*[-,]?\s*/, 'uc ');
+  const uc = base.replace(/^university of california\s*[-,]?\s*/, 'uc ').trim();
   if (uc !== base) yield uc;
   // A trailing institutional word, but only where the shorter form is itself a known team.
   const trimmed = base.replace(/\s+(university|college|academy)$/, '');
@@ -403,3 +475,82 @@ export const RESOLUTIONS = new Map([
 export function resolutionFor(date, slugA, slugB) {
   return RESOLUTIONS.get(`${date}|${[slugA, slugB].sort().join('|')}`) ?? null;
 }
+
+/**
+ * Official 2026 conference membership, taken from the CWPA's own conference schedule pages
+ * (not from a poll, and never inferred from who plays whom):
+ *   https://collegiatewaterpolo.org/2026-mid-atlantic-water-polo-conference-schedule/
+ *   https://collegiatewaterpolo.org/2026-northeast-water-polo-conference-schedule/
+ *
+ * Air Force is on the watchlist but is in neither conference. Mercyhurst is in the MAWPC but is
+ * not on the watchlist — it still gets a standings row, because a table missing a member would be
+ * wrong. Membership decides who appears in a standings table; it never decides whether a game
+ * counts as a conference game. Only a fixture listed on the CWPA schedule does that.
+ */
+export const CONFERENCES = {
+  MAWPC: {
+    id: 'MAWPC',
+    name: 'Mid-Atlantic Water Polo Conference',
+    short: 'MAWPC',
+    scheduleUrl: 'https://collegiatewaterpolo.org/2026-mid-atlantic-water-polo-conference-schedule/',
+    members: ['fordham', 'navy', 'george-washington', 'bucknell', 'mount-st-marys', 'mercyhurst', 'wagner'],
+  },
+  NWPC: {
+    id: 'NWPC',
+    name: 'Northeast Water Polo Conference',
+    short: 'NWPC',
+    scheduleUrl: 'https://collegiatewaterpolo.org/2026-northeast-water-polo-conference-schedule/',
+    members: ['princeton', 'brown', 'harvard', 'liu', 'iona', 'mit'],
+  },
+};
+
+export const CONFERENCE_IDS = Object.keys(CONFERENCES);
+
+/** The conference a team belongs to, or null. Membership only — never a game's classification. */
+export function conferenceOf(slug) {
+  for (const c of Object.values(CONFERENCES)) if (c.members.includes(slug)) return c.id;
+  return null;
+}
+
+/** Where the CWPA publishes the men's varsity polls. */
+export const POLL_INDEX_URL = 'https://collegiatewaterpolo.org/varsity/polls/men/';
+
+/** Sidearm's sport slug for a school, defaulting to the one 12 of the 13 watched schools use. */
+export function sportSlugFor(slug) {
+  return SCHOOLS.find((s) => s.id === slug)?.sportSlug ?? 'mens-water-polo';
+}
+
+/**
+ * Sidearm path helpers. Both are *candidates*: the build verifies every URL it fetches, and a
+ * school that does not follow this layout is reported as unreachable rather than linked blindly.
+ */
+export function schedulePath(sportSlug = 'mens-water-polo', season = SEASON) {
+  return `/sports/${sportSlug}/schedule/${season}`;
+}
+
+export function rosterPath(sportSlug = 'mens-water-polo', season = SEASON) {
+  return `/sports/${sportSlug}/roster/${season}`;
+}
+
+/** The watched school record for a slug, if it is one. */
+export function schoolFor(slug) {
+  return SCHOOLS.find((s) => s.id === slug) ?? null;
+}
+
+/**
+ * Athletics domains verified by hand, for teams whose site cannot be discovered from the schedules.
+ *
+ * Schools link each other by hand and get it wrong: one watched school links "UC Santa Barbara" to
+ * gostanford.com and another links "UC San Diego" to usdtoreros.com (the University of San Diego).
+ * These entries are tried FIRST, ahead of whatever the pages link. Nothing here is trusted on its
+ * own — a page fetched from one of these domains still has to pass the season and sport gates and
+ * still has to list a game this team is already known to have played.
+ *
+ * Each was confirmed to return HTTP 200 for the men's water polo schedule on 2026-09-23.
+ */
+export const ATHLETICS_SITES = {
+  'uc-santa-barbara': 'https://ucsbgauchos.com',
+  'uc-san-diego': 'https://ucsdtritons.com',
+  pepperdine: 'https://pepperdinewaves.com',
+  'connecticut-college': 'https://camelathletics.com',
+};

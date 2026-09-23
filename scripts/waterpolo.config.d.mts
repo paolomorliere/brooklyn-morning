@@ -23,3 +23,19 @@ export function normalizeTeamName(raw: unknown): string;
 export function isNonTeam(name: unknown): boolean;
 export function teamSlug(raw: unknown): string;
 export function displayName(slug: string, fallback: string): string;
+export interface ConferenceConfig {
+  id: 'MAWPC' | 'NWPC';
+  name: string;
+  short: string;
+  scheduleUrl: string;
+  members: string[];
+}
+export const CONFERENCES: Record<'MAWPC' | 'NWPC', ConferenceConfig>;
+export const CONFERENCE_IDS: string[];
+export const POLL_INDEX_URL: string;
+export const ATHLETICS_SITES: Record<string, string>;
+export function conferenceOf(slug: string): 'MAWPC' | 'NWPC' | null;
+export function sportSlugFor(slug: string): string;
+export function schedulePath(sportSlug?: string, season?: number): string;
+export function rosterPath(sportSlug?: string, season?: number): string;
+export function schoolFor(slug: string): SchoolConfig | null;

@@ -1,13 +1,13 @@
 # Brooklyn Morning — project instructions
 
-Personal iPhone PWA for Paolo: morning edition (news + one daily lesson), fast to-do capture, Trader Joe's grocery list, NCAA men's water polo results (2026), Library. Full approved spec: `SPEC.md`. Progress and continuation point: `STATUS.md` — update it at the end of every work session.
+Personal iPhone PWA for Paolo: morning edition (news + one daily lesson), fast to-do capture, Trader Joe's grocery list, NCAA men's water polo results (2026, with team screens, conference tables and the CWPA Top 20), Library. Full approved spec: `SPEC.md`. Progress and continuation point: `STATUS.md` — update it at the end of every work session.
 
 ## Hard rules (never relax)
 - **Zero additional cost.** Only free, non-metered services: GitHub Pages + Actions on a public repo, Open Food Facts, public RSS feeds, OSS packages. No paid/metered AI APIs at build or run time, no free trials, no billing-enabled infrastructure. If a free service stops, keep data and fall back to cache — never route around it with a paid one.
 - **Privacy.** `about-me.md` and any personal file must never be committed or deployed (`.gitignore` covers it). No employer or student records. Personal data lives only in the browser's IndexedDB (`personal` DB). Dev fixtures under `fixtures/` load only with `?fixtures=1` on localhost.
 - **No advertising, tracking, analytics, affiliate links, or monetization.**
 - **News honesty.** Never fabricate stories, quotes, or links. Publisher excerpts are labeled "From publisher"; build-time extracted lead paragraphs are labeled "Opening of the article"; the app never rewrites or claims to have read an article. No paywall circumvention. Freshness labels always show the edition's real date.
-- **Results honesty (water polo).** Never invent or infer a score. A missing score is never 0-0. Season is pinned to 2026 and re-validated on every fetch. When two official pages disagree, show one row and either the result an official box score settles (with the link) or nothing at all — never an average, never two rows. Freshness must state how many of the 13 schools were actually read.
+- **Results honesty (water polo).** Never invent or infer a score. A missing score is never 0-0. Season is pinned to 2026 and re-validated on every fetch. When two official pages disagree, show one row and either the result an official box score settles (with the link) or nothing at all — never an average, never two rows. Freshness must state how many of the 13 schools were actually read. A game is a **conference game only when the CWPA's own conference schedule lists that fixture** — never because both teams share a conference. The conference table is Paolo's own 3-points-per-win calculation and must always say so; **poll points are copied from the CWPA and never computed**. An opponent's page is only believed once it names 2026 men's water polo and lists a game that team is already known to have played.
 - **Never silently weaken a feature.** If something can't be done at zero cost, say so and record it in `STATUS.md`.
 
 ## Stack
@@ -16,7 +16,7 @@ Vite + Preact + TypeScript · `vite-plugin-pwa` (Workbox) · IndexedDB via `idb`
 ## Layout
 - `src/` app code (`ui/` components, `screens/`, `db/`, `lib/` pure logic, `styles/`)
 - `public/logos/` team crests, downloaded once by `scripts/fetch-logos.mjs` (never hotlinked at runtime)
-- `public/data/` edition, editions archive, lessons, glossary, catalog (generated + authored data)
+- `public/data/` edition, editions archive, lessons, glossary, catalog, water polo feed, CWPA poll (generated + authored data)
 - `scripts/` Node build scripts · `tests/` Vitest · `e2e/` Playwright · `fixtures/` dev fixtures
 - `state/` build-time state (seen URLs)
 
@@ -27,4 +27,4 @@ Vite + Preact + TypeScript · `vite-plugin-pwa` (Workbox) · IndexedDB via `idb`
 - Commit messages: short imperative subject; no personal info.
 
 ## Commands
-`npm run dev` · `npm run build` · `npm test` · `npm run e2e` · `npm run build:edition` · `npm run build:catalog` · `npm run build:waterpolo` (`--dry-run`, `--school=<id>`) · `npm run logos` · `npm run icons`
+`npm run dev` · `npm run build` · `npm test` · `npm run e2e` · `npm run build:edition` · `npm run build:catalog` · `npm run build:waterpolo` (`--dry-run`, `--school=<id>`, `--no-opponents`, `--no-conference`) · `npm run build:poll` (`--dry-run`, `--url=<article>`) · `npm run logos` · `npm run icons`

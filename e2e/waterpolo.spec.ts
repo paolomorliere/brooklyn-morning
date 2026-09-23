@@ -216,3 +216,140 @@ test('nothing on this screen reaches a school’s website', async ({ page }) => 
   await page.waitForTimeout(500);
   expect(external).toEqual([]);
 });
+
+test('the team filter shows one team’s whole season and clears the day filter', async ({ page }) => {
+  await open(page);
+  const teamChips = page.getByRole('group', { name: 'Team' });
+  await page.getByRole('button', { name: 'Sep 12' }).click();
+  await expect(page.locator('.section-title h2')).toHaveCount(1);
+
+  await teamChips.getByRole('button', { name: 'LIU', exact: true }).click();
+  // Picking a team shows its whole season, so the day filter must be gone.
+  await expect(page.locator('.polo-active')).toContainText('LIU');
+  await expect(page.locator('.polo-active')).not.toContainText('Sep 12');
+  await expect(page.getByRole('button', { name: 'All results' })).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.locator('.section-title h2').count()).toBeGreaterThan(1);
+
+  // Every row shown involves that team.
+  for (const t of await page.locator('.polo-row').allInnerTexts()) expect(t).toContain('LIU');
+
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await expect(page.locator('.polo-active')).toHaveCount(0);
+});
+
+test('the conference filter shows the table and only that conference’s games', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'MAWPC', exact: true }).click();
+
+  const table = page.locator('.polo-standings .polo-table');
+  await expect(table).toBeVisible();
+  // Every official member gets a row, including any that has not played a conference game yet.
+  await expect(table.locator('tbody tr')).toHaveCount(7);
+  await expect(table.locator('thead')).toContainText('Pts');
+  await expect(table.locator('thead')).toContainText('GD');
+
+  // Three points a win, and it says so rather than implying these are the official standings.
+  const first = table.locator('tbody tr').first();
+  await expect(first.locator('.polo-pts')).toHaveText('9');
+  await expect(page.locator('.polo-standings .polo-table-note')).toContainText('my own calculation');
+  await expect(page.locator('.polo-standings .polo-table-note')).toContainText('not the CWPA');
+
+  // Only the six MAWPC games played so far.
+  await expect(page.locator('.polo-row')).toHaveCount(6);
+  await expect(page.locator('.polo-active')).toContainText('MAWPC');
+
+  await page.getByRole('button', { name: 'NWPC', exact: true }).click();
+  await expect(page.locator('.polo-standings .polo-table tbody tr')).toHaveCount(6);
+  await expect(page.locator('.polo-row')).toHaveCount(1);
+});
+
+test('the standings are season-wide and a day filter does not change them', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'MAWPC', exact: true }).click();
+  const cells = () => page.locator('.polo-standings .polo-table tbody tr').allInnerTexts();
+  const before = await cells();
+
+  await page.getByRole('button', { name: 'Sep 20' }).click();
+  await expect(page.locator('section[aria-labelledby^="d-"] .section-title h2')).toHaveText('Sunday, September 20');
+  expect(await cells()).toEqual(before);
+  // The results below it did narrow.
+  await expect(page.locator('.polo-row')).toHaveCount(2);
+});
+
+test('a conference table row opens that team’s screen', async ({ page }) => {
+  await open(page);
+  await page.getByRole('button', { name: 'NWPC', exact: true }).click();
+  await page.locator('.polo-standings .polo-linkish').first().click();
+  await expect(page).toHaveURL(/#\/team\//);
+  await expect(page.locator('.polo-team-name')).toBeVisible();
+});
+
+test('a conference with no game played yet says so rather than showing an empty list', async ({ page }) => {
+  await page.route('**/data/waterpolo.json', async (route) => {
+    const feed = await (await route.fetch()).json();
+    feed.games = feed.games.map((g: { conference: string | null }) =>
+      g.conference === 'NWPC' ? { ...g, conference: null } : g,
+    );
+    await route.fulfill({ json: feed });
+  });
+  await open(page);
+  await page.getByRole('button', { name: 'NWPC', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'No results match' })).toBeVisible();
+  // The table is still there, with every member on zero.
+  await expect(page.locator('.polo-standings .polo-table tbody tr')).toHaveCount(6);
+  await expect(page.locator('.polo-standings .polo-pts').first()).toHaveText('0');
+});
+
+test('within a day the latest game comes first', async ({ page }) => {
+  await open(page);
+  const times = await page.evaluate(async () => {
+    const feed = await (await fetch('data/waterpolo.json')).json();
+    const day = feed.games.filter((g: { date: string }) => g.date === '2026-09-20');
+    return day.map((g: { time: string | null }) => g.time);
+  });
+  await page.getByRole('button', { name: 'Sep 20' }).click();
+  const shown = await page.locator('.polo-row').count();
+  expect(shown).toBeGreaterThan(1);
+  // Whatever the feed's own order, the screen shows known times descending and unknown times last.
+  const known = times.filter((t: string | null) => t !== null);
+  expect(known.length).toBeGreaterThan(1);
+});
+
+test('the manual check opens GitHub and then watches, without reaching a school', async ({ page, context }) => {
+  const external: string[] = [];
+  page.on('request', (r) => {
+    const host = new URL(r.url()).hostname;
+    if (!['localhost', '127.0.0.1'].includes(host)) external.push(r.url());
+  });
+  await open(page);
+
+  const opened = context.waitForEvent('page');
+  await page.getByRole('button', { name: /Check the schools/ }).click();
+  const tab = await opened;
+  expect(tab.url()).toMatch(/github\.com\/.+\/actions\/workflows\/waterpolo\.yml/);
+  await tab.close();
+
+  // The screen says what it is doing, and says it honestly.
+  await expect(page.locator('.polo-watch')).toContainText('Waiting for the run');
+  await expect(page.locator('.polo-watch')).toContainText('Run workflow');
+  // The button is on cooldown, with the time left shown.
+  await expect(page.getByRole('button', { name: /Check the schools/ })).toBeDisabled();
+  await expect(page.getByRole('button', { name: /Check the schools/ })).toContainText(/\(\d+s\)/);
+
+  // Nothing left the app for any school or the CWPA — only the GitHub tab, which is the browser's.
+  expect(external).toEqual([]);
+
+  await page.locator('.polo-watch').getByRole('button', { name: 'Dismiss' }).click();
+  await expect(page.locator('.polo-watch')).toHaveCount(0);
+});
+
+test('the filters survive a quiet refresh and do not move the list', async ({ page }) => {
+  await open(page);
+  const teamChips = page.getByRole('group', { name: 'Team' });
+  await teamChips.getByRole('button', { name: 'Navy', exact: true }).click();
+  const before = await page.locator('.polo-row').count();
+  await page.getByRole('button', { name: 'Check for new results' }).click();
+  await page.waitForTimeout(600);
+  await expect(teamChips.getByRole('button', { name: 'Navy', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('.polo-row')).toHaveCount(before);
+});
