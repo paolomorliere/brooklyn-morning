@@ -84,3 +84,5 @@ Fifth tab: NCAA men's water polo results, 2026 season only, 13 watched teams.
 - GitHub's best-effort cron delay (3.5–6 h here) shifts when weekend checks actually run. No $0 fix; every run reconciles all 13 full schedules so nothing is lost, only timing.
 - Coverage is what the 13 official pages publish. A game between two non-watched teams is out of scope by design.
 - Pinned to 2026. It will not roll forward to 2027 on its own — `SEASON`, `SEASON_START`, `SEASON_END` and the 13 URLs in `scripts/waterpolo.config.mjs` are a deliberate edit.
+- Bug found after the first real workflow run: `polo-due.mjs`'s entry-point check compared `import.meta.url` with an unencoded `file://${process.argv[1]}`, so on a path containing a space (this project's own path) the script ran and printed nothing. It worked on the GitHub runner by luck. Fixed with `pathToFileURL`; a subprocess test now covers it.
+- Verified on GitHub 2026-09-23: manual `workflow_dispatch` (force) ran the whole path on a clean checkout — 13/13 sources read, 112 games, 0 added, logos already present, committed, and `deploy.yml` published it. Run 35817169785.

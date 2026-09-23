@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { execFileSync } from 'node:child_process';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join, resolve } from 'node:path';
 import { SLOTS, decide, nyParts } from '../scripts/polo-due.mjs';
 
 const at = (iso: string, runs: Record<string, string> = {}) => decide(new Date(iso), runs);
@@ -101,5 +105,36 @@ describe('GitHub’s scheduling delay', () => {
     expect(parts.weekday).toBe('Sun');
     expect(parts.date).toBe('2026-09-27');
     expect(at('2026-09-28T02:00:00Z').action).toBe('run');
+  });
+});
+
+describe('running the guard as the workflow does', () => {
+  // The workflow calls `node scripts/polo-due.mjs` and reads what it writes to $GITHUB_OUTPUT.
+  // Exercising the real process catches things importing the module cannot — the entry-point check
+  // once compared `import.meta.url` with an unencoded path, so on any path containing a space the
+  // script ran, printed nothing and reported no decision at all.
+  const script = resolve('scripts/polo-due.mjs');
+
+  function runCli() {
+    const dir = mkdtempSync(join(tmpdir(), 'bm-polo-'));
+    const outFile = join(dir, 'gh-output');
+    writeFileSync(outFile, '');
+    try {
+      const stdout = execFileSync(process.execPath, [script], {
+        cwd: resolve('.'),
+        env: { ...process.env, GITHUB_OUTPUT: outFile },
+        encoding: 'utf8',
+      });
+      return { stdout: stdout.trim(), output: readFileSync(outFile, 'utf8') };
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  }
+
+  it('prints a decision and writes it to the step output', () => {
+    const { stdout, output } = runCli();
+    expect(stdout).toMatch(/^(run|skip): .+/);
+    expect(output).toMatch(/^action=(run|skip)$/m);
+    expect(output).toMatch(/^slot=/m);
   });
 });

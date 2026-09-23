@@ -16,6 +16,7 @@
 // Either way a weekend day can produce at most four checks, and never a weekday one.
 
 import { appendFile, readFile, writeFile } from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
 import { SEASON_END, SEASON_START } from './waterpolo.config.mjs';
 
 const TZ = 'America/New_York';
@@ -75,7 +76,10 @@ export async function claim(key, at) {
   await writeFile(RUNS_PATH, JSON.stringify(Object.fromEntries(keep), null, 2));
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// `file://${process.argv[1]}` is not a valid comparison: a path containing a space (or any character
+// that needs escaping) percent-encodes in `import.meta.url` but not in the raw path, so the check
+// silently fails and the script does nothing. pathToFileURL encodes both sides the same way.
+if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const mode = process.argv[2];
   if (mode === '--claim') {
     const key = process.argv[3];
