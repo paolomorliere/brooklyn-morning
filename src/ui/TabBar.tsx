@@ -1,10 +1,11 @@
-import { Newspaper, CheckSquare, ShoppingBasket, BookMarked } from 'lucide-preact';
+import { Newspaper, CheckSquare, ShoppingBasket, Waves, BookMarked } from 'lucide-preact';
 import { navigate, type Route } from './router';
 
 const TABS: { id: Route; label: string; Icon: typeof Newspaper }[] = [
   { id: 'home', label: 'Morning', Icon: Newspaper },
   { id: 'todo', label: 'To Do', Icon: CheckSquare },
   { id: 'groceries', label: 'Groceries', Icon: ShoppingBasket },
+  { id: 'waterpolo', label: 'Water Polo', Icon: Waves },
   { id: 'library', label: 'Library', Icon: BookMarked },
 ];
 

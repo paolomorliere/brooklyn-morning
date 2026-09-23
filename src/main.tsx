@@ -4,6 +4,7 @@ import '@/styles/global.css';
 import '@/styles/home.css';
 import '@/styles/todo.css';
 import '@/styles/groceries.css';
+import '@/styles/waterpolo.css';
 import { App } from './App';
 
 // Service worker: check for a new build whenever the app comes back to the foreground (iOS keeps the old page alive),

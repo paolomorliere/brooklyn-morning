@@ -60,3 +60,27 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 - Water polo feeds are thin (3 sources); section says so on empty days.
 - Actions cron can be delayed; scheduled workflows pause after 60 days of repo inactivity (daily commits should count; re-enable note in install guide).
 - No background refresh on iPhone; edition fetched on open.
+
+## Water polo screen (2026-09-23)
+Fifth tab: NCAA men's water polo results, 2026 season only, 13 watched teams.
+
+- **Sources**: all 13 schools run Sidearm Sports in one of two generations — `classic` (LIU, Harvard, MIT, Iona, Wagner, Fordham, Navy, Mount St. Mary's) and `nextgen` (Princeton, Brown, Bucknell, Air Force, GW). Both server-render the whole season and accept a season-pinned URL. Two adapters in `scripts/lib/polo-parse.mjs`, registry in `scripts/waterpolo.config.mjs`. No API, no key, no browser automation. Wagner's sport slug is `mens-polo`, not `mens-water-polo`.
+- **Season trap found and handled**: the classic season `<select option[data-current="1"]>` reports the program's current season, not the season on the page — `/schedule/2019` serves 2019 games while still saying 2026. Season is validated from the title/H1/`og:title` year, falling back to the game-date window (LIU's title names neither season nor sport; its `og:title` does).
+- **Identity**: `sha1(season | sorted team pair | date | slot)`, slot assigned by start time within a (date, pair) bucket. Never includes the score, so corrections update in place; same-day rematches stay separate. Verified idempotent — three consecutive builds produce byte-identical games.
+- **Conflict found in real data**: GW lists its 2026-09-04 game against Princeton as 11-23; Princeton lists 23-12. Princeton's official recap states "Princeton 23, George Washington 12", recorded in `RESOLUTIONS` with the link. Without such evidence the score would be withheld, not guessed.
+- **Team identity bug fixed during the build**: California Baptist appeared under three slugs and UCSB under a long one. `teamSlug` now tries progressively simpler spellings against the alias table and only accepts a shortened form if it matches a known team, so two different schools can never be merged. Mount St. Mary's vs Saint Mary's College of California is guarded explicitly and unit-tested.
+- **Backfill**: 112 unique games, 2026-08-28 to 2026-09-20, from 144 raw rows across 13 pages (31 games confirmed by two schools). 43 teams, all with logos (190 KB in `public/logos/`, precached). 1 exhibition (Brown v Pacific, flagged in the details sheet).
+- **Schedule**: `.github/workflows/waterpolo.yml`, cron `0 13,14,18,19 * * 6,0` and `30 15,16,20,21 * * 6,0` (the four NY times under both DST offsets); `scripts/polo-due.mjs` claims the most recent slot at or before the real New York time and records it in `state/waterpolo-runs.json`, giving exactly four checks per weekend day and none on weekdays. Delay-tolerant by design.
+- **Storage**: `kv` key `waterpolo:feed`. No IndexedDB version bump, not in the backup file — it is re-downloadable, like editions and lessons.
+- **Layout**: `devices['iPhone SE']` in Playwright is **320 px**, not 375 as assumed earlier. The row was retuned for it; names clamp at three lines so nothing clips at 320/390/430.
+- Tests: 129 Vitest (was 49), 102 Playwright across 3 viewports (was 63).
+
+### Decisions Paolo made
+- Exhibitions included, marked in the details sheet (not hidden).
+- Logos downloaded into the repo rather than hotlinked — they are trademarks used only to identify teams; say the word to switch to initials-only.
+- Keep the four requested slots and accept GitHub's delay, plus a manual refresh button on the screen (which re-reads the published file only, never the schools).
+
+### Known limits
+- GitHub's best-effort cron delay (3.5–6 h here) shifts when weekend checks actually run. No $0 fix; every run reconciles all 13 full schedules so nothing is lost, only timing.
+- Coverage is what the 13 official pages publish. A game between two non-watched teams is out of scope by design.
+- Pinned to 2026. It will not roll forward to 2027 on its own — `SEASON`, `SEASON_START`, `SEASON_END` and the 13 URLs in `scripts/waterpolo.config.mjs` are a deliberate edit.

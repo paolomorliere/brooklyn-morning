@@ -5,6 +5,7 @@ import { BackupBanner } from '@/ui/BackupBanner';
 import { Home } from '@/screens/Home';
 import { Todo } from '@/screens/Todo';
 import { Groceries } from '@/screens/Groceries';
+import { WaterPolo } from '@/screens/WaterPolo';
 import { Library } from '@/screens/Library';
 import { Settings } from '@/screens/Settings';
 import { Quiz } from '@/screens/Quiz';
@@ -25,6 +26,7 @@ export function App() {
         {route === 'home' && <Home />}
         {route === 'todo' && <Todo />}
         {route === 'groceries' && <Groceries />}
+        {route === 'waterpolo' && <WaterPolo />}
         {route === 'library' && <Library />}
         {route === 'settings' && <Settings />}
         {route === 'quiz' && <Quiz />}

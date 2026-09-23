@@ -1,0 +1,106 @@
+# NCAA men's water polo results, 2026 season.
+#
+# Paolo asked for four checks on Saturday and Sunday: 9:00, 11:30, 2:00 and 4:30 p.m. New York.
+# No weekday checks, no 6 p.m. check.
+#
+# GitHub cron is UTC-only, so this asks for eight weekend slots — those four times under both
+# daylight-saving offsets — and `scripts/polo-due.mjs` turns them into exactly four real checks a day
+# by reading the actual New York wall clock and claiming the slot it lands in. That also absorbs
+# GitHub's scheduling delay (3.5-6 h observed on this repository): a run that arrives late does the
+# check for the slot it arrives in instead of being thrown away. A slot that is already done costs
+# one checkout, about ten seconds.
+#
+# Every run reconciles all thirteen complete 2026 schedules, so Friday games, weekday games, late
+# postings and corrections are all picked up by the next check and filed under their own game date.
+name: Water polo results
+
+on:
+  schedule:
+    # 09:00, 14:00 New York — EDT and EST
+    - cron: '0 13,14,18,19 * * 6,0'
+    # 11:30, 16:30 New York — EDT and EST
+    - cron: '30 15,16,20,21 * * 6,0'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: What to do
+        type: choice
+        default: auto
+        options: [auto, force]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+# One check at a time. A delayed run must never overlap the next slot's run.
+concurrency:
+  group: waterpolo
+  cancel-in-progress: false
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Is a check due?
+        id: due
+        run: |
+          if [ "${{ inputs.mode }}" = "force" ]; then
+            echo "action=run" >> "$GITHUB_OUTPUT"
+            echo "slot=" >> "$GITHUB_OUTPUT"
+            echo "run: manual"
+            exit 0
+          fi
+          node scripts/polo-due.mjs
+
+      - uses: actions/setup-node@v4
+        if: steps.due.outputs.action == 'run'
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+        if: steps.due.outputs.action == 'run'
+
+      - name: Collect results
+        if: steps.due.outputs.action == 'run'
+        run: node scripts/build-waterpolo.mjs
+
+      # Any team that turned up for the first time needs its logo saved once.
+      - name: Fetch new logos
+        if: steps.due.outputs.action == 'run'
+        run: node scripts/fetch-logos.mjs
+
+      - name: Record the slot
+        if: steps.due.outputs.action == 'run' && steps.due.outputs.slot != ''
+        run: node scripts/polo-due.mjs --claim "${{ steps.due.outputs.slot }}"
+
+      - name: Commit data
+        id: commit
+        if: steps.due.outputs.action == 'run'
+        run: |
+          git config user.name "brooklyn-morning-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/data/waterpolo.json public/logos state
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new results."
+          else
+            git commit -m "Water polo results $(TZ=America/New_York date +%F' '%H:%M)"
+            # A delayed run may land after another push: rebase once, then push.
+            git pull --rebase --autostash origin main || true
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: collect
+    if: needs.collect.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

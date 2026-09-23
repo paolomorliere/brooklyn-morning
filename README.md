@@ -41,6 +41,43 @@ Monday–Friday the edition names one S&P 100 stock chosen by a fixed, published
 - Anything not found is one tap away via **Add other item**.
 - Buy again ranks your own history (purchases weigh more than adds, recent more than old). Discover shows up to three catalog items you have never added, with a reason, dismissable.
 
+## Water polo
+A results feed for **NCAA men's water polo, 2026 only**. It shows completed games involving any of the thirteen teams on the watchlist, including games against opponents outside it.
+
+Watchlist and sources — all thirteen verified 2026-09-22:
+
+| Team | Official 2026 schedule |
+|---|---|
+| LIU | https://liuathletics.com/sports/mens-water-polo/schedule/2026 |
+| Harvard | https://gocrimson.com/sports/mens-water-polo/schedule/2026 |
+| Princeton | https://goprincetontigers.com/sports/mens-water-polo/schedule/2026 |
+| MIT | https://mitathletics.com/sports/mens-water-polo/schedule/2026 |
+| Brown | https://brownbears.com/sports/mens-water-polo/schedule/2026 |
+| Iona | https://ionagaels.com/sports/mens-water-polo/schedule/2026 |
+| Wagner | https://wagnerathletics.com/sports/mens-polo/schedule/2026 |
+| Fordham | https://fordhamsports.com/sports/mens-water-polo/schedule/2026 |
+| Bucknell | https://bucknellbison.com/sports/mens-water-polo/schedule/2026 |
+| Air Force | https://goairforcefalcons.com/sports/mens-water-polo/schedule/2026 |
+| Navy | https://navysports.com/sports/mens-water-polo/schedule/2026 |
+| Mount St. Mary's | https://mountathletics.com/sports/mens-water-polo/schedule/2026 |
+| George Washington | https://gwsports.com/sports/mens-water-polo/schedule/2026 |
+
+- **Season is pinned to 2026 and validated on every fetch.** A school's URL can quietly serve a different year, so each page must name 2026 (in its title, heading or `og:title`); where it names no year at all, every game date must fall inside the season. A page that fails is reported as unchecked and its saved games are kept.
+- **One row per game.** A game between two watched teams appears on both schools' pages, each from its own perspective. They are matched on the teams, the date and the start time, never on the score, so a later correction updates the row instead of adding one. Two genuine meetings on the same day stay separate.
+- **When two schools disagree**, the feed shows one row and never averages. If an official box score or recap settles it, that result is shown with the evidence linked in the details sheet; if nothing does, the score is withheld and the row says so.
+- Tap any row for the venue, the event, overtime, exhibition status and a link to the official page each score came from.
+- The freshness line says how many of the thirteen schools were actually read. A school that failed is never counted as checked.
+- Logos are downloaded once into `public/logos/` so the screen works offline and sends no requests to school websites while you read. A team without one shows its initials.
+
+### When it updates
+Sources are read on **Saturday and Sunday at 9:00, 11:30, 2:00 and 4:30 New York time** — four checks a day, no weekday checks. The workflow asks for eight UTC slots (those four times under both daylight-saving offsets) and `scripts/polo-due.mjs` turns them into exactly four real checks by reading the actual New York clock.
+
+GitHub runs scheduled workflows on a best-effort basis and has started this repository's runs 3.5–6 hours late, so a check will often happen later in the day than the time above. Nothing is lost when it does: every run re-reads all thirteen complete 2026 schedules, so Friday games, other weekday games, late postings and corrections are all picked up by the next check and filed under **the date they were played**. Saturday's 9:00 check is what collects Friday's results. Anything posted after Sunday's 4:30 check waits for the following Saturday, by design.
+
+The **refresh button** on the screen re-downloads the published results file. It does not read the school websites — only the weekend job does that.
+
+Maintenance: if a school redesigns its site, `node scripts/build-waterpolo.mjs --dry-run` will report that source as failed while the other twelve keep working. The registry of URLs and team aliases is `scripts/waterpolo.config.mjs`.
+
 ## Backup and restore
 Everything lives in the phone's browser storage. Deleting the app from the Home Screen or clearing Safari website data deletes it. **Settings → Export everything** writes one JSON file (tasks, categories, list, history, library, settings, lesson progress) through the share sheet; **Restore** validates and replaces after confirmation. The app reminds you after 14 days without a backup.
 
@@ -48,9 +85,10 @@ Everything lives in the phone's browser storage. Deleting the app from the Home 
 | Service | Used for | Why it cannot bill |
 |---|---|---|
 | GitHub Pages | hosting | free for public repositories |
-| GitHub Actions | daily edition, monthly catalog, deploy | free minutes for public repos; with no payment method on the account, usage blocks instead of charging |
+| GitHub Actions | daily edition, weekend water polo results, monthly catalog, deploy | free minutes for public repos; with no payment method on the account, usage blocks instead of charging |
 | Open Food Facts | product catalog | non-profit open database, no paid tier, no key |
 | Publisher RSS feeds | headlines and excerpts | public feeds |
+| School athletics sites | water polo schedules and results | ordinary requests to public pages, no key, no account |
 | Fontsource, Lucide, Preact, Vite, Workbox | fonts, icons, code | open-source licences |
 
 No accounts, analytics, ads, tracking, or AI APIs. **Never add a payment method to the GitHub account for this project.**

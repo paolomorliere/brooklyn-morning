@@ -1,0 +1,239 @@
+/* Water polo results feed. Uses the shared tokens only — no new colours. */
+
+.polo-fresh {
+  margin-top: 2px;
+}
+.polo-partial {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: var(--ink-muted);
+}
+.polo-partial svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--terracotta);
+}
+
+/* ---------- date strip ---------- */
+.polo-dates {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  margin: 12px calc(-1 * var(--s-4)) 4px;
+  padding: 6px var(--s-4);
+  background: color-mix(in srgb, var(--ivory) 94%, transparent);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+}
+.polo-dates-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.polo-dates-chips {
+  flex: 1 1 auto;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  /* `.chip-row` bleeds past its container by design on the other screens. Here it sits between the
+     two day arrows, so the bleed has to go or the chips cover the arrows' tap targets. */
+  margin: 0;
+  padding-inline: 2px;
+}
+.polo-dates-chips::-webkit-scrollbar {
+  display: none;
+}
+.polo-dates-chips .chip {
+  flex: none;
+  scroll-snap-align: center;
+}
+.polo-dates-nav > .icon-btn {
+  flex: none; /* keep the full 44 pt tap target; never let the chip row squeeze it */
+}
+.polo-dates-nav .icon-btn:disabled {
+  opacity: 0.3;
+}
+
+/* ---------- result row ---------- */
+.polo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.polo-row {
+  width: 100%;
+  display: grid;
+  /* logo | name | score | name | logo — logos pinned outside, score fixed so it lines up down the column */
+  grid-template-columns: 34px minmax(0, 1fr) 78px minmax(0, 1fr) 34px;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  text-align: left;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  transition: background var(--t-fast) var(--ease);
+}
+.polo-row:active {
+  background: var(--paper-2);
+}
+
+.polo-crest {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.polo-crest img {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto; /* keep the crest's own proportions */
+  object-fit: contain;
+}
+.polo-crest--initials {
+  border-radius: 50%;
+  background: var(--sage-soft);
+  color: var(--sage-deep);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.polo-team {
+  font-size: var(--fs-14);
+  line-height: 1.25;
+  color: var(--ink-muted);
+  /* Break only a word that genuinely cannot fit, so "Mercyhurst" never splits as "Mercyhu/rst". */
+  overflow-wrap: break-word;
+  hyphens: manual;
+  display: -webkit-box;
+  /* Three lines is enough for every name these schools print, including "Saint Mary's (Cal.)",
+     so a long name wraps in full instead of being cut. The score column is fixed either way. */
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.polo-team--right {
+  text-align: right;
+}
+.polo-team--win {
+  color: var(--espresso);
+  font-weight: 650;
+}
+
+.polo-score {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 3px;
+  position: relative;
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-18);
+  color: var(--ink-muted);
+}
+.polo-score b {
+  font-weight: 600;
+}
+.polo-score i {
+  font-style: normal;
+  color: var(--ink-faint);
+}
+.polo-ot {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-style: normal;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--terracotta);
+}
+.polo-unconfirmed {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: var(--fs-14);
+  color: var(--terracotta);
+}
+
+/* ---------- details sheet ---------- */
+.polo-sheet-score {
+  font-family: var(--font-display);
+  font-size: var(--fs-22);
+  line-height: 1.3;
+  color: var(--espresso);
+  margin-bottom: 14px;
+}
+.polo-facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  font-size: var(--fs-14);
+}
+.polo-facts dt {
+  color: var(--ink-faint);
+}
+.polo-facts dd {
+  color: var(--espresso);
+}
+.polo-conflict {
+  margin-top: 16px;
+  align-items: flex-start;
+}
+.polo-conflict svg {
+  color: var(--terracotta);
+}
+.polo-sources {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* The narrowest phone this is tested on is 320 pt. Give the names back every pixel the crests and
+   the score column can spare, so a two-line name still fits without an ellipsis. */
+@media (max-width: 380px) {
+  .polo-row {
+    grid-template-columns: 26px minmax(0, 1fr) 60px minmax(0, 1fr) 26px;
+    gap: 5px;
+    padding: 10px 8px;
+  }
+  .polo-crest {
+    width: 26px;
+    height: 26px;
+  }
+  .polo-crest--initials {
+    font-size: 11px;
+  }
+  .polo-team {
+    font-size: var(--fs-12);
+  }
+  .polo-score {
+    font-size: var(--fs-16);
+  }
+}
+
+.polo-readings {
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 2px;
+}
+.polo-readings li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.polo-readings b {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}

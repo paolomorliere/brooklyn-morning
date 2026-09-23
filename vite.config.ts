@@ -33,7 +33,7 @@ export default defineConfig({
       },
       workbox: {
         // App shell + fonts precached; data files are fetched at runtime with their own strategies.
-        globPatterns: ['**/*.{js,css,html,woff2,svg,png}'],
+        globPatterns: ['**/*.{js,css,html,woff2,svg,png,webp}'],
         globIgnores: ['**/data/**', '**/*-{cyrillic,cyrillic-ext,greek,greek-ext,vietnamese}-*.woff2'],
         navigateFallback: `${base}index.html`,
         runtimeCaching: [
@@ -41,7 +41,7 @@ export default defineConfig({
             // Daily edition + lessons: try network, fall back to cache when offline.
             urlPattern: ({ url }) => url.pathname.includes('/data/'),
             handler: 'NetworkFirst',
-            options: { cacheName: 'data', networkTimeoutSeconds: 8, expiration: { maxEntries: 60 } },
+            options: { cacheName: 'data', networkTimeoutSeconds: 8, expiration: { maxEntries: 80 } },
           },
           {
             // Product photos from Open Food Facts.

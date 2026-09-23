@@ -199,3 +199,74 @@ export const TOPIC_META: Record<TopicId, { label: string; blurb: string }> = {
 };
 
 export const TOPIC_ORDER: TopicId[] = ['ai', 'world', 'finance', 'waterpolo', 'soccer'];
+
+// ---------- Water polo (NCAA men's, 2026) ----------
+
+export interface PoloTeam {
+  name: string;
+  watched: boolean;
+  /** Path relative to the site base, e.g. "logos/liu.webp". Null means draw initials instead. */
+  logo: string | null;
+}
+
+export interface PoloSource {
+  id: string;
+  url: string;
+  verifiedAt: string;
+  /** Official recap or box score for this game, when the school links one. */
+  detailUrl: string | null;
+  /** What this page said, verbatim, keyed by team slug. */
+  reading: Record<string, number> | null;
+}
+
+export interface PoloConflict {
+  detectedAt: string;
+  readings: { source: string; url: string; scores: Record<string, number> }[];
+  /** True when no result has ever been verified, so the numbers are not shown at all. */
+  withheld?: boolean;
+  showing?: Record<string, number>;
+  /** Set when an official box score or recap settled the disagreement. */
+  resolved?: { evidence: string; note: string };
+}
+
+export interface PoloGame {
+  id: string;
+  /** Date the game was played, not the date it was discovered. */
+  date: string; // YYYY-MM-DD
+  time: string | null; // HH:MM, 24-hour, New York
+  home: { team: string; score: number | null };
+  away: { team: string; score: number | null };
+  /** True when nobody hosted; the two sides are then ordered by slug, not by hosting. */
+  neutral: boolean;
+  /** Slug of the school that hosted, or null at a neutral site. */
+  hosted: string | null;
+  ot: string | null; // "OT" | "2OT"
+  exhibition: boolean;
+  tournament: string | null;
+  venue: string | null;
+  sources: PoloSource[];
+  conflict: PoloConflict | null;
+  firstSeenAt: string | null;
+}
+
+export interface PoloSourceStatus {
+  id: string;
+  school: string;
+  display: string;
+  url: string;
+  ok: boolean;
+  checkedAt: string;
+  found: number;
+  error: string | null;
+  note: string | null;
+}
+
+export interface PoloFeed {
+  schemaVersion: 1;
+  season: number;
+  sport: string;
+  builtAt: string;
+  sources: PoloSourceStatus[];
+  teams: Record<string, PoloTeam>;
+  games: PoloGame[];
+}

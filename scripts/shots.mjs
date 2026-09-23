@@ -8,6 +8,8 @@ const shots = [
   ['groceries-list', '/?fixtures=1#/groceries', false],
   ['groceries-suggest', '/?fixtures=1&gstate=suggest#/groceries', false],
   ['groceries-first', '/?fixtures=1&gstate=first#/groceries', false],
+  ['waterpolo', '/?fixtures=1#/waterpolo', false],
+  ['waterpolo-all', '/?fixtures=1#/waterpolo', true],
   ['library', '/?fixtures=1#/library', false],
   ['settings', '/?fixtures=1#/settings', false],
 ];
