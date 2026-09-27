@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: 'e2e',
+  // The deployed-app check talks to GitHub Pages, so it is not part of the normal run.
+  // `npm run e2e:deployed` runs it after a deploy.
+  testIgnore: process.env.E2E_DEPLOYED ? [] : ['**/deployed.spec.ts'],
   timeout: 30_000,
   retries: 0,
   reporter: [['list']],

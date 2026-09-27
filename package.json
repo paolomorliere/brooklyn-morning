@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "e2e": "playwright test",
+    "e2e:deployed": "E2E_DEPLOYED=1 playwright test e2e/deployed.spec.ts --project=iphone-14",
     "build:catalog": "node scripts/build-catalog.mjs",
     "build:edition": "node scripts/build-edition.mjs",
     "icons": "node scripts/make-icons.mjs",

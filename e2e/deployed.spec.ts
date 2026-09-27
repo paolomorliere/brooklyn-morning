@@ -1,3 +1,9 @@
+/**
+ * Checks the app that is actually deployed, not the one in this working tree.
+ *
+ * Kept out of the normal run because it talks to GitHub Pages: `npm run e2e:deployed` after a
+ * deploy. Every assertion here is about a problem that was reported against the live app.
+ */
 import { test, expect } from '@playwright/test';
 
 const SITE = 'https://paolomorliere.github.io/brooklyn-morning/';
@@ -36,7 +42,8 @@ test('the deployed app offers the Sunday quiz and a readable Library', async ({ 
       };
     });
   });
-  await page.goto(`${SITE}#/quiz/2026-09-21`);
+  // A full load, not a hash change: the stores read the profile once, at boot.
+  await page.goto(`${SITE}?r=1#/quiz/2026-09-21`);
   await expect(page.getByRole('heading', { name: 'Weekly quiz' })).toBeVisible({ timeout: 40_000 });
   await expect(page.getByRole('radio')).toHaveCount(4);
   await expect(page.locator('.screen').getByText('1 / 20')).toBeVisible();

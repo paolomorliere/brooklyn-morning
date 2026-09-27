@@ -86,6 +86,16 @@ Seven reported problems, each traced to a cause and fixed there rather than pape
 ### Tests
 265 Vitest (was 242) · 279 Playwright across 320/390/430 (was 183). New: `tests/lessons-week.test.ts`, `tests/library-repair.test.ts`, `tests/polo-identity.test.ts`, `tests/polo-fixtures.test.ts`, `e2e/lessons.spec.ts`, `e2e/library.spec.ts`, `e2e/fixtures.spec.ts`.
 
+### Verified on the deployed app (2026-09-27)
+`npm run e2e:deployed` runs `e2e/deployed.spec.ts` against GitHub Pages; four checks, all passing:
+the Concordia/Harvard game is one row named "Concordia Irvine"; **This weekend** and
+**Refresh scores & fixtures** are on the Water Polo screen; a team page switches to Schedule with
+real start times; the CWPA Top 20 shows Week 4's 25 rows with every crest. Sunday's lesson card
+ends with **Take this week's quiz — 20 questions**. Deploy run 36337109181.
+
+The round-2 poll pipeline is now confirmed in production too: `poll.yml` ran on Wednesday 23
+September and saved **Week 4** by itself.
+
 ### Known limits
 - Four junior-college opponents of opponents have no crest and show initials.
 - The published feed is 540 KB and the precache 974 KB. Both are fetched once and cached; the feed re-downloads only when its build changes.
