@@ -303,6 +303,8 @@ const ALIASES = new Map(
     'california state university fullerton': 'cal-state-fullerton',
     'california state university, fullerton': 'cal-state-fullerton',
     'california state university at fullerton': 'cal-state-fullerton',
+    'california state university-fullerton': 'cal-state-fullerton',
+    'cal state university fullerton': 'cal-state-fullerton',
     'concordia irvine': 'concordia-irvine',
     'concordia university irvine': 'concordia-irvine',
     cui: 'concordia-irvine',

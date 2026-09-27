@@ -67,7 +67,9 @@ jobs:
       - name: Read the newest poll
         id: poll
         if: steps.due.outputs.action == 'run'
-        run: node scripts/build-poll.mjs
+        # The guard above only lets this run when a newer poll is due, so a week that turns out
+        # not to exist yet is worth saying so on screen.
+        run: node scripts/build-poll.mjs --expect-new
 
       # Any team ranked for the first time needs its crest saved once.
       - name: Fetch new logos

@@ -27,6 +27,13 @@ const ATTEMPTS = 3;
 const args = process.argv.slice(2);
 const DRY_RUN = args.includes('--dry-run');
 const FORCE_URL = (args.find((a) => a.startsWith('--url=')) ?? '').split('=').slice(1).join('=') || null;
+/**
+ * Set by the workflow, which only runs when a new poll is actually due.
+ *
+ * Without it, any re-check that found the same week would flag the screen as "awaiting this week's
+ * poll" — which on a Sunday, with Wednesday's poll correctly on screen, would be untrue.
+ */
+const EXPECT_NEW = args.includes('--expect-new');
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -170,18 +177,21 @@ async function keepPrevious(previous, attemptedAt, why) {
   // away rather than waiting a week. Ranks, previous ranks and points are untouched — and `rows`,
   // which holds the CWPA's own wording, is not rewritten at all.
   const logoUrls = await readJSON(LOGO_PATH, {});
-  const published = new Map((previous.rows ?? []).map((r) => [r.team, r.name]));
-  const teams = Object.fromEntries(
-    Object.entries(previous.teams ?? {}).map(([slug, t]) => [
-      slug,
-      {
-        ...t,
-        name: displayName(slug, published.get(slug) ?? t.name),
-        logo: logoUrls[slug] ? `logos/${slug}.webp` : t.logo,
-      },
-    ]),
-  );
-  await writeAtomic(POLL_PATH, JSON.stringify({ ...previous, teams, lastAttemptAt: attemptedAt, awaiting: true, note: why }));
+  // Which team a published name refers to, and what that team is called, are both derived — from
+  // the alias table and the registry. Re-deriving them here means an alias added since the poll was
+  // published takes effect straight away, instead of leaving a team without its crest for a week.
+  // The CWPA's own wording, the ranks and the points are not touched.
+  const rows = (previous.rows ?? []).map((r) => ({ ...r, team: teamSlug(r.name) }));
+  const teams = {};
+  for (const r of rows) {
+    if (teams[r.team]) continue;
+    teams[r.team] = {
+      name: displayName(r.team, r.name),
+      watched: WATCHED_IDS.has(r.team),
+      logo: logoUrls[r.team] ? `logos/${r.team}.webp` : (previous.teams?.[r.team]?.logo ?? null),
+    };
+  }
+  await writeAtomic(POLL_PATH, JSON.stringify({ ...previous, rows, teams, lastAttemptAt: attemptedAt, awaiting: EXPECT_NEW, note: why }));
   const still = Object.entries(teams).filter(([, t]) => !t.logo).map(([s]) => s);
   console.log(`Kept the published week ${previous.week}; recorded the attempt (${why}).` + (still.length ? ` Still no logo for ${still.join(', ')}.` : ''));
 }

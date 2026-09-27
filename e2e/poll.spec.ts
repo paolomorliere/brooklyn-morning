@@ -5,6 +5,25 @@ const openPoll = async (page: Page) => {
   await expect(page.locator('.polo-poll-table tbody tr').first()).toBeVisible({ timeout: 15_000 });
 };
 
+/**
+ * The published poll, read the same way the screen reads it.
+ *
+ * The CWPA publishes a new one every Wednesday and the number of rows changes with it — 22 in
+ * Week 3, 25 in Week 4 — so the tests check the screen against the file rather than against a
+ * week that has since been superseded.
+ */
+async function publishedPoll(page: Page) {
+  return page.evaluate(async () => {
+    const r = await fetch('data/poll.json');
+    return (await r.json()) as {
+      week: number;
+      publishedAt: string;
+      previous: { label: string } | null;
+      rows: { rank: string; team: string; previous: string | null; points: number | null; pointsText: string | null }[];
+    };
+  });
+}
+
 test('reached from the results screen and back again', async ({ page }) => {
   await page.goto('/?fixtures=1&seed=none#/waterpolo');
   await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 15_000 });
@@ -18,46 +37,57 @@ test('reached from the results screen and back again', async ({ page }) => {
 
 test('shows every published row, with the week and the date it was published', async ({ page }) => {
   await openPoll(page);
-  await expect(page.locator('.polo-poll-title')).toContainText('Top 20 · Week 3');
-  await expect(page.locator('.polo-poll-sub')).toContainText('September 16, 2026');
+  const poll = await publishedPoll(page);
+  await expect(page.locator('.polo-poll-title')).toContainText(`Top 20 · Week ${poll.week}`);
+  await expect(page.locator('.polo-poll-sub')).toContainText('2026');
 
   const rows = page.locator('.polo-poll-table tbody tr');
-  await expect(rows).toHaveCount(22); // 20 ranked, including two ties, plus two receiving votes
+  // Every published row, including ties and the receiving-votes entries below the twenty.
+  await expect(rows).toHaveCount(poll.rows.length);
+  expect(poll.rows.length).toBeGreaterThanOrEqual(20);
 
   const ranks = await rows.locator('.polo-pos').allInnerTexts();
-  expect(ranks.slice(0, 5)).toEqual(['1', '2', '3', '4', '5']);
-  expect(ranks.filter((r) => r === '6 (T)')).toHaveLength(2);
-  expect(ranks.filter((r) => r === '11 (T)')).toHaveLength(2);
-  expect(ranks.filter((r) => r === 'RV')).toHaveLength(2);
+  expect(ranks).toEqual(poll.rows.map((r) => r.rank));
+  expect(ranks.filter((r) => r === 'RV').length).toBeGreaterThan(0);
+  // Ties are kept as the CWPA wrote them, never resolved into an order it did not publish.
+  for (const rank of ranks.filter((r) => r.includes('(T)'))) {
+    expect(ranks.filter((r) => r === rank).length).toBeGreaterThan(1);
+  }
 });
 
 test('the points are the CWPA’s, not a calculation', async ({ page }) => {
   await openPoll(page);
-  const points = (await page.locator('.polo-poll-table tbody .polo-pts').allInnerTexts()).map(Number);
-  expect(points).toEqual([97, 96, 90, 85, 84, 72, 72, 64, 61, 52, 50, 50, 41, 34, 27, 24, 20, 15, 12, 5, 3, 1]);
+  const poll = await publishedPoll(page);
+  const shown = await page.locator('.polo-poll-table tbody .polo-pts').allInnerTexts();
+  // Character for character what the article published — nothing is recomputed on the way in.
+  expect(shown).toEqual(poll.rows.map((r) => r.pointsText ?? '—'));
   // Tied teams carry identical points, which is the only reason they are tied.
-  expect(points[5]).toBe(points[6]);
+  for (const rank of new Set(poll.rows.map((r) => r.rank).filter((r) => r.includes('(T)')))) {
+    const tied = poll.rows.filter((r) => r.rank === rank);
+    expect(new Set(tied.map((r) => r.points)).size).toBe(1);
+  }
   await expect(page.locator('.polo-table-note')).toContainText('copied from the CWPA');
 });
 
 test('keeps the previous week’s column exactly as published', async ({ page }) => {
   await openPoll(page);
-  await expect(page.locator('.polo-poll-table thead')).toContainText('Week 2');
-  const brown = page.locator('.polo-poll-table tbody tr', { hasText: 'Brown' });
-  await expect(brown.locator('.polo-prev')).toHaveText('18 (T)');
-  const navy = page.locator('.polo-poll-table tbody tr', { hasText: 'Navy' });
-  await expect(navy.locator('.polo-prev')).toHaveText('RV');
+  const poll = await publishedPoll(page);
+  await expect(page.locator('.polo-poll-table thead')).toContainText(poll.previous?.label ?? 'Prev');
+  const shown = await page.locator('.polo-poll-table tbody .polo-prev').allInnerTexts();
+  // "RV" and "18 (T)" survive verbatim rather than being turned into numbers.
+  expect(shown).toEqual(poll.rows.map((r) => r.previous ?? '—'));
 });
 
 test('every row has a crest, and a broken image falls back to initials', async ({ page }) => {
   await openPoll(page);
-  await expect(page.locator('.polo-poll-table tbody .polo-crest')).toHaveCount(22);
+  const poll = await publishedPoll(page);
+  await expect(page.locator('.polo-poll-table tbody .polo-crest')).toHaveCount(poll.rows.length);
   await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(0);
 
   await page.route('**/logos/*.webp', (route) => route.abort());
   await page.reload();
   await expect(page.locator('.polo-poll-table tbody tr').first()).toBeVisible({ timeout: 15_000 });
-  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(22);
+  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(poll.rows.length);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
@@ -67,9 +97,10 @@ test('says when it is waiting for this week’s poll, and still shows the real o
     await route.fulfill({ json: { ...poll, awaiting: true } });
   });
   await openPoll(page);
+  const poll = await publishedPoll(page);
   await expect(page.locator('.polo-partial')).toContainText('Awaiting this week’s poll');
-  await expect(page.locator('.polo-partial')).toContainText('Week 3');
-  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(22);
+  await expect(page.locator('.polo-partial')).toContainText(`Week ${poll.week}`);
+  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(poll.rows.length);
   // The manual retry has to open the POLL workflow. The results workflow does not fetch polls.
   await expect(page.locator('.polo-partial').getByRole('link', { name: 'Check now' })).toHaveAttribute(
     'href',
@@ -79,7 +110,8 @@ test('says when it is waiting for this week’s poll, and still shows the real o
 
 test('a published poll is never replaced by an older week', async ({ page }) => {
   await openPoll(page);
-  await expect(page.locator('.polo-poll-title')).toContainText('Week 3');
+  const poll = await publishedPoll(page);
+  await expect(page.locator('.polo-poll-title')).toContainText(`Week ${poll.week}`);
   // Serve an older poll, as a stale job would.
   await page.route('**/data/poll.json', async (route) => {
     const poll = await (await route.fetch()).json();
@@ -87,24 +119,27 @@ test('a published poll is never replaced by an older week', async ({ page }) => 
   });
   await page.getByRole('button', { name: 'Check for a new poll' }).click();
   await page.waitForTimeout(800);
-  await expect(page.locator('.polo-poll-title')).toContainText('Week 3');
-  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(22);
+  await expect(page.locator('.polo-poll-title')).toContainText(`Week ${poll.week}`);
+  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(poll.rows.length);
 });
 
 test('a malformed poll file is refused and the saved one kept', async ({ page }) => {
   await openPoll(page);
+  // Read the real file before the malformed one is served in its place.
+  const poll = await publishedPoll(page);
   await page.route('**/data/poll.json', (route) => route.fulfill({ json: { schemaVersion: 1, rows: [] } }));
   await page.getByRole('button', { name: 'Check for a new poll' }).click();
   await page.waitForTimeout(800);
-  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(22);
+  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(poll.rows.length);
 });
 
 test('keeps working offline from the saved copy', async ({ page, context }) => {
   await openPoll(page);
+  const rows = (await publishedPoll(page)).rows.length;
   await context.setOffline(true);
   await page.evaluate(() => { location.hash = '#/waterpolo'; });
   await page.evaluate(() => { location.hash = '#/poll'; });
-  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(22);
+  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(rows);
   await context.setOffline(false);
 });
 

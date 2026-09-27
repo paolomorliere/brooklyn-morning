@@ -168,7 +168,8 @@ test('a past edition shows its own lesson, not today’s', async ({ page }) => {
   const todayTitle = await page.locator('section.lesson h2').first().innerText();
 
   await page.getByRole('button', { name: 'Past editions' }).click();
-  await page.locator('.sheet li button').first().click();
+  // Pick the seeded edition by its own date: today's edition is in the list too.
+  await page.locator('.sheet li button', { hasText: 'September 23' }).click();
 
   const archived = page.locator('section[aria-label="Lesson for this edition"]');
   await expect(archived).toBeVisible();
@@ -184,21 +185,27 @@ test('a past edition shows its own lesson, not today’s', async ({ page }) => {
 });
 
 test('an archived Sunday links to that week’s quiz and its seven lessons', async ({ page }) => {
+  // Week 2's Sunday, read on the following Tuesday. Deliberately not the date the live edition
+  // file carries, so it is a genuine archive entry rather than "back to latest".
   const sundayEdition = {
     schemaVersion: 1,
-    date: '2026-09-27',
-    preparedAt: '2026-09-27T09:52:00.000Z',
+    date: '2026-10-04',
+    preparedAt: '2026-10-04T09:52:00.000Z',
     stories: [],
     sources: [],
     lessonRef: null,
   };
-  await openMorning(page, SUNDAY, { 'edition:2026-09-27': sundayEdition, 'edition:dates': ['2026-09-27'] });
+  await openMorning(page, '2026-10-06T15:00:00Z', {
+    'edition:2026-10-04': sundayEdition,
+    'edition:dates': ['2026-10-04'],
+  });
   await page.getByRole('button', { name: 'Past editions' }).click();
-  await page.locator('.sheet li button').first().click();
+  await page.locator('.sheet li button', { hasText: 'October 4' }).first().click();
 
   const archived = page.locator('section[aria-label="Lesson for this edition"]');
   await expect(archived.locator('.eyebrow')).toContainText('Day 7 of 7');
   await archived.getByRole('button', { name: /Take this week.s quiz/ }).click();
-  await expect(page).toHaveURL(new RegExp(`#/quiz/${WEEK_START}`));
+  // Week 2 runs from Monday 28 September, so that is the quiz it leads to — not this week's.
+  await expect(page).toHaveURL(/#\/quiz\/2026-09-28/);
   await expect(page.locator('.screen').getByText('1 / 20')).toBeVisible();
 });
