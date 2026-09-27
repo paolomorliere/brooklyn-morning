@@ -129,3 +129,14 @@ describe('running the guard as the workflow does', () => {
     }
   });
 });
+
+describe('the guard can be imported, not only run', () => {
+  it('does not depend on how it was loaded', () => {
+    const out = execFileSync(
+      process.execPath,
+      ['-e', "import('./scripts/poll-due.mjs').then((m) => console.log(m.PRIMARY.weekday, m.BACKUP.weekday))"],
+      { cwd: resolve('.'), encoding: 'utf8' },
+    );
+    expect(out.trim()).toBe('Wed Thu');
+  });
+});

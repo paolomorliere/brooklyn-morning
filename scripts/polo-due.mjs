@@ -160,7 +160,11 @@ export async function claim(key, at) {
 // `file://${process.argv[1]}` is not a valid comparison: a path containing a space (or any character
 // that needs escaping) percent-encodes in `import.meta.url` but not in the raw path, so the check
 // silently fails and the script does nothing. pathToFileURL encodes both sides the same way.
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// `process.argv[1]` is undefined when this module is imported rather than run — from `node -e`,
+// or from a tool that loads it directly — and `pathToFileURL(undefined)` throws, taking the import
+// down with it. Guarding it keeps the module importable from anywhere.
+const invokedDirectly = process.argv[1] ? import.meta.url === pathToFileURL(process.argv[1]).href : false;
+if (invokedDirectly) {
   const mode = process.argv[2];
   if (mode === '--claim') {
     const key = process.argv[3];

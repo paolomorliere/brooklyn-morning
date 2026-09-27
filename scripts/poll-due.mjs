@@ -114,7 +114,11 @@ export async function claim(key, week, at) {
   await writeFile(RUNS_PATH, JSON.stringify(Object.fromEntries(keep), null, 2));
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1]).href) {
+// `process.argv[1]` is undefined when this module is imported rather than run — from `node -e`,
+// or from a tool that loads it directly — and `pathToFileURL(undefined)` throws, taking the import
+// down with it. Guarding it keeps the module importable from anywhere.
+const invokedDirectly = process.argv[1] ? import.meta.url === pathToFileURL(process.argv[1]).href : false;
+if (invokedDirectly) {
   const mode = process.argv[2];
   if (mode === '--claim') {
     const [, , , key, week] = process.argv;

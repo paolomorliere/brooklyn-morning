@@ -197,3 +197,16 @@ describe('running the guard as the workflow does', () => {
     expect(output).toMatch(/^slot=/m);
   });
 });
+
+describe('the guard can be imported, not only run', () => {
+  // `pathToFileURL(undefined)` throws, so an unguarded entry-point check takes the whole import
+  // down when `process.argv[1]` is absent — `node -e`, or any tool that loads the module directly.
+  it('does not depend on how it was loaded', () => {
+    const out = execFileSync(
+      process.execPath,
+      ['-e', "import('./scripts/polo-due.mjs').then((m) => console.log(Object.keys(m.SLOTS_BY_DAY).join(',')))"],
+      { cwd: resolve('.'), encoding: 'utf8' },
+    );
+    expect(out.trim()).toBe('Sat,Sun,Mon');
+  });
+});
