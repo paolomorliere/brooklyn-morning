@@ -426,9 +426,8 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
           <>
             <b>The run finished without reading anything</b>
             <p class="small" style="margin:4px 0 0">
-              It published no new file, so the schools were not re-read and nothing above has changed. Your saved
-              results and fixtures are untouched. Tap <b>Retry</b> — and if it happens again, open the run on GitHub and
-              look at whether the <i>Collect results</i> step was skipped. {formatNyStamp(refresh.endedAt)}
+              It published no new file, so the schools were not re-read. Your saved results and fixtures are
+              untouched. {formatNyStamp(refresh.endedAt)}
             </p>
           </>
         );

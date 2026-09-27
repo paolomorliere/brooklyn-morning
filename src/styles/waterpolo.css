@@ -579,6 +579,15 @@
   margin-top: 10px;
   align-items: flex-start;
   gap: 8px;
+  /* Retry plus two icon buttons used to sit in a column beside the message, squeezing it to about
+     half the screen. The actions now wrap onto their own row so the text keeps the full width. */
+  flex-wrap: wrap;
+}
+/* `.grow` carries no styles of its own, so with a wrapping container the message would size to its
+   content and drop below the icon. Make it the row's flexible child instead. */
+.polo-watch .grow {
+  flex: 1 1 0;
+  min-width: 0;
 }
 .polo-watch svg {
   flex: none;
@@ -606,6 +615,13 @@
   gap: 2px;
   flex: none;
   margin: -6px -6px 0 0;
+}
+/* Once the message is more than a line or two, put the buttons under it rather than alongside. */
+/* Icon and message share the first row; a full-width basis wraps the buttons onto the second. */
+.polo-watch:has(.polo-retry) .polo-watch-actions {
+  flex-basis: 100%;
+  justify-content: flex-end;
+  margin: 6px 0 0;
 }
 .polo-retry {
   min-height: 34px;

@@ -65,10 +65,17 @@ export function formatDateChip(date: string): string {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-/** "2:14 PM" in the reader's own timezone, from an ISO timestamp. */
+/**
+ * "2:14 PM ET" from an ISO timestamp.
+ *
+ * Always New York, never the reader's own clock: every other time on this screen is stated in ET
+ * because that is where the season lives, and an unlabelled local time next to a labelled Eastern
+ * one is exactly the kind of quiet disagreement that made this screen confusing.
+ */
 export function formatClock(iso: string): string {
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? '' : d.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' })} ET`;
 }
 
 /** Initials for a team with no logo: "Mount St. Mary's" → "MS", "LIU" → "LI". */
