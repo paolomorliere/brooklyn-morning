@@ -407,6 +407,8 @@ const TEAM_NAMES = {
   pacific: 'Pacific',
   pepperdine: 'Pepperdine',
   'santa-clara': 'Santa Clara',
+  // Its own site writes "Concordia University Irvine"; Harvard writes just "Concordia".
+  'concordia-irvine': 'Concordia Irvine',
   'california-baptist': 'Cal Baptist',
   'uc-santa-barbara': 'UC Santa Barbara',
   'saint-marys-ca': "Saint Mary's (Cal.)",

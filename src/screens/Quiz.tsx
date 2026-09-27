@@ -73,6 +73,22 @@ export function Quiz() {
 
   if (!ls.ready) return <main class="screen" />;
 
+  // A week before the sequence began has no pack by design, which is a different thing from a
+  // pack that has not downloaded — saying "not downloaded yet" there would send Paolo looking for
+  // a fix that does not exist.
+  if (target.startsOn) {
+    return (
+      <main class="screen">
+        <Header weekStart={weekStart} />
+        <div class="empty">
+          <h3>No quiz for that week</h3>
+          <p>Your lessons start on {formatDateLong(dateFromYMD(target.startsOn))}, so there is no week to be quizzed on yet.</p>
+          <button class="btn btn--ghost" style="margin-top:16px" onClick={() => navigate('home')}>Back to Morning</button>
+        </div>
+      </main>
+    );
+  }
+
   if (!pack || quiz.length === 0) {
     return (
       <main class="screen">
