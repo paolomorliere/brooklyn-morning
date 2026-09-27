@@ -1,7 +1,7 @@
 import type { PoloFeed } from '@/types';
 import { createStore } from './store';
 import { kvGet, kvSet } from '@/db/personal';
-import { isFinal, isUpcoming, validFeed } from '@/lib/polo';
+import { isFinal, isUpcoming, refreshOutcome, validFeed } from '@/lib/polo';
 
 /**
  * Where a manual check actually happens.
@@ -35,6 +35,13 @@ export type RefreshPhase =
   | 'success'
   /** Same as success, except nothing on the schools' pages had changed. */
   | 'unchanged'
+  /**
+   * The run finished, but no new file was published — so nothing was actually read.
+   *
+   * This is not a success and never sets the "schools last read" time. It is what a manual refresh
+   * looked like while the dispatch was still routed through the cron's once-per-slot guard.
+   */
+  | 'nothing'
   /** Saved, but some schools could not be read. */
   | 'partial'
   /** The job failed, or the file would not validate. Saved data is untouched. */
@@ -61,6 +68,20 @@ export interface RefreshState {
   error: string | null;
   /** `builtAt` of the feed when the attempt began, so "changed" means changed since then. */
   baselineBuiltAt: string | null;
+  /**
+   * Whether GitHub has reported a run belonging to this attempt yet.
+   *
+   * False for more than a minute means the most likely explanation is that the green **Run
+   * workflow** button was never tapped, and the screen says so instead of spinning silently.
+   */
+  sawRun: boolean;
+  /**
+   * Whether the banner has been closed.
+   *
+   * Closing it hides the message, not the fact: the one-line summary under the button survives, so
+   * the outcome of the last attempt stays readable instead of being replaced by an unrelated time.
+   */
+  dismissed: boolean;
 }
 
 const IDLE: RefreshState = {
@@ -76,13 +97,18 @@ const IDLE: RefreshState = {
   failed: [],
   error: null,
   baselineBuiltAt: null,
+  sawRun: false,
+  dismissed: false,
 };
 
 interface WaterPoloState {
   feed: PoloFeed | null;
   /** The last time the app asked for the published file, successfully or not. */
   lastFetchAt: string | null;
-  /** The last time a check actually completed and the saved data was up to date. */
+  /**
+   * The last time a **newly built** feed was saved — that is, the last time the schools were
+   * genuinely re-read on Paolo's behalf. Re-downloading the same published file does not move it.
+   */
   lastSuccessAt: string | null;
   lastError: string | null;
   refreshing: boolean;
@@ -146,15 +172,26 @@ interface RunInfo {
   status: 'queued' | 'in_progress' | 'completed' | string;
   conclusion: string | null;
   createdAt: string;
+  /** When GitHub last touched the run — its finish time once it is completed. */
+  updatedAt: string;
 }
+
+/**
+ * How long after a run finishes the app keeps waiting for the new file to be served.
+ *
+ * The workflow commits, then Pages publishes, and Pages is a moment behind the run's own green
+ * tick. Without this grace a successful run would be reported as having published nothing purely
+ * because the CDN had not caught up.
+ */
+const PAGES_GRACE_MS = 90_000;
 
 /** The newest run GitHub reports, or null when the API cannot be read. */
 async function latestRun(): Promise<RunInfo[] | null> {
   try {
     const r = await fetch(RUNS_API, { headers: { accept: 'application/vnd.github+json' }, signal: AbortSignal.timeout(10_000) });
     if (!r.ok) return null; // rate limited or offline: fall back to watching the file
-    const body = (await r.json()) as { workflow_runs?: { id: number; html_url: string; status: string; conclusion: string | null; created_at: string }[] };
-    return (body.workflow_runs ?? []).map((x) => ({ id: x.id, url: x.html_url, status: x.status, conclusion: x.conclusion, createdAt: x.created_at }));
+    const body = (await r.json()) as { workflow_runs?: { id: number; html_url: string; status: string; conclusion: string | null; created_at: string; updated_at: string }[] };
+    return (body.workflow_runs ?? []).map((x) => ({ id: x.id, url: x.html_url, status: x.status, conclusion: x.conclusion, createdAt: x.created_at, updatedAt: x.updated_at }));
   } catch {
     return null;
   }
@@ -185,8 +222,9 @@ async function adopt(next: PoloFeed): Promise<RefreshState> {
 
   const failed = next.sources.filter((s) => !s.ok);
   const okCount = next.sources.length - failed.length;
-  // "All thirteen schools" is only ever said when all thirteen were actually read.
-  const phase: RefreshPhase = failed.length > 0 ? 'partial' : added + fixturesChanged > 0 ? 'success' : 'unchanged';
+  // "All thirteen schools" is only ever said when all thirteen were actually read. `rebuilt` is
+  // true by construction here: adopt() is only reached once a newer `builtAt` has arrived.
+  const phase = refreshOutcome({ rebuilt: true, added, fixturesChanged, failedSources: failed.length });
   return {
     ...waterPoloStore.get().refresh,
     phase,
@@ -211,15 +249,16 @@ async function tick(baselineRunId: number | null, deadline: number): Promise<voi
     const mine = runs.find((r) => baselineRunId === null || r.id > baselineRunId) ?? null;
     if (mine) {
       if (mine.status === 'queued') {
-        await setRefresh({ phase: 'queued', runId: mine.id, runUrl: mine.url });
+        await setRefresh({ phase: 'queued', runId: mine.id, runUrl: mine.url, sawRun: true });
       } else if (mine.status === 'in_progress') {
-        await setRefresh({ phase: 'running', runId: mine.id, runUrl: mine.url });
+        await setRefresh({ phase: 'running', runId: mine.id, runUrl: mine.url, sawRun: true });
       } else if (mine.status === 'completed' && mine.conclusion && mine.conclusion !== 'success') {
         stop();
         await setRefresh({
           phase: 'failed',
           runId: mine.id,
           runUrl: mine.url,
+          sawRun: true,
           endedAt: new Date().toISOString(),
           error: `The run on GitHub ${mine.conclusion === 'cancelled' ? 'was cancelled' : `finished as ${mine.conclusion}`}. Your saved results are untouched.`,
         });
@@ -237,23 +276,22 @@ async function tick(baselineRunId: number | null, deadline: number): Promise<voi
     return;
   }
 
-  // The run finished successfully but the file did not move: it found nothing to commit.
+  // The run finished successfully and yet no new file appeared. That is not "no changes found":
+  // every real run rewrites `builtAt`, so an unmoved file means the collection step never ran.
+  // `lastSuccessAt` is deliberately left alone — nothing was read, so nothing was refreshed.
   const done = runs?.find((r) => (baselineRunId === null || r.id > baselineRunId) && r.status === 'completed' && r.conclusion === 'success');
-  if (done && next) {
+  // Pages publishes a moment after the run goes green, so give it that moment before concluding
+  // that the run published nothing.
+  if (done && Date.now() - Date.parse(done.updatedAt) > PAGES_GRACE_MS) {
     stop();
     const at = new Date().toISOString();
     await kvSet('waterpolo:lastFetchAt', at);
-    await kvSet('waterpolo:lastSuccessAt', at);
-    const failed = next.sources.filter((s) => !s.ok);
-    patch({ lastFetchAt: at, lastSuccessAt: at });
+    patch({ lastFetchAt: at });
     await setRefresh({
-      phase: failed.length > 0 ? 'partial' : 'unchanged',
+      phase: 'nothing',
       endedAt: at,
       added: 0,
       fixturesChanged: 0,
-      okCount: next.sources.length - failed.length,
-      total: next.sources.length,
-      failed: failed.map((s) => s.display),
       runUrl: done.url,
       runId: done.id,
       error: null,
@@ -332,10 +370,10 @@ export const waterPoloRefresh = {
     await waterPoloRefresh.checkNow();
   },
 
-  /** Dismiss the banner. Stops the watch if it is still running. */
+  /** Close the banner. Stops the watch if it is still running, and keeps the outcome on record. */
   async dismiss(): Promise<void> {
     stop();
-    await setRefresh({ ...IDLE });
+    await setRefresh({ dismissed: true });
   },
 };
 
@@ -358,14 +396,18 @@ export const waterPoloActions = {
       const data = await downloadFeed(manual);
       if (!data) throw new Error('Results file could not be read');
       const current = waterPoloStore.get().feed;
-      if (!current || current.builtAt !== data.builtAt) {
+      // Only a genuinely newer build means the schools were read again. Re-downloading the same
+      // published file is worth recording as a fetch, but calling it a successful refresh is how
+      // "last successful refresh 4:28 PM" came to sit above results that were hours old.
+      const rebuilt = !current || current.builtAt !== data.builtAt;
+      if (rebuilt) {
         await kvSet('waterpolo:feed', data);
         patch({ feed: data });
       }
       const at = new Date().toISOString();
       await kvSet('waterpolo:lastFetchAt', at);
-      await kvSet('waterpolo:lastSuccessAt', at);
-      patch({ lastFetchAt: at, lastSuccessAt: at, lastError: null });
+      if (rebuilt) await kvSet('waterpolo:lastSuccessAt', at);
+      patch({ lastFetchAt: at, lastError: null, ...(rebuilt ? { lastSuccessAt: at } : {}) });
     } catch (e) {
       patch({
         lastError:

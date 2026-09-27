@@ -24,6 +24,12 @@ test('a tap on a team name opens that team and never the game sheet', async ({ p
 test('a tap anywhere else on the row opens the game sheet, unchanged', async ({ page }) => {
   await open(page);
   const row = page.locator(RESULT_ROW).first();
+  // The score column has `pointer-events: none` so the tap reaches the full-row details button
+  // beneath it, which is what `force` is testing here. Force also skips scrolling, so on a short
+  // viewport the coordinates could otherwise land on the tab bar instead of the row.
+  // Centre it: the tab bar is fixed to the bottom, so a row merely scrolled "into view" can still
+  // sit underneath it and take the tap to another tab.
+  await row.evaluate((el) => el.scrollIntoView({ block: 'center' }));
   await row.locator('.polo-score').click({ force: true });
   await expect(page.locator('.sheet')).toBeVisible();
   await expect(page.locator('.polo-sheet-score')).toBeVisible();

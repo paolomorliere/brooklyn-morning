@@ -10,6 +10,13 @@
 # Sunday evening games finish after the 16:30 check and some schools post a weekend result only on
 # Monday morning.
 #
+# A run started by hand always collects. `scripts/polo-due.mjs` exists to stop the *cron* firing
+# twice for one slot, and it used to gate manual runs too: the dispatch input defaulted to `auto`,
+# so tapping Run workflow on a slot that had already run finished "successfully" in ten seconds
+# having read nothing at all, and the app could only report that no new file had been published.
+# A manual refresh now bypasses the guard entirely and claims no slot, so the automatic schedule
+# below is unaffected by it.
+#
 # GitHub cron is UTC-only, so this asks for every one of those times under both daylight-saving
 # offsets and `scripts/polo-due.mjs` turns them into exactly one real check per slot by reading the
 # actual New York wall clock. That also absorbs GitHub's scheduling delay (3.5-6 h observed on this
@@ -30,13 +37,9 @@ on:
     - cron: '30 15,16,20,21 * * 6,0'
     # Sunday 22:00 New York (02:00/03:00 UTC Monday) and Monday 09:00 New York (13:00/14:00 UTC)
     - cron: '0 2,3,13,14 * * 1'
+  # No inputs on purpose: there is nothing to choose, and a wrong choice used to mean a refresh
+  # that silently did nothing.
   workflow_dispatch:
-    inputs:
-      mode:
-        description: What to do
-        type: choice
-        default: auto
-        options: [auto, force]
 
 permissions:
   contents: write
@@ -59,10 +62,11 @@ jobs:
       - name: Is a check due?
         id: due
         run: |
-          if [ "${{ inputs.mode }}" = "force" ]; then
+          # Anything that is not the cron — a manual refresh from the app — always collects.
+          if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "action=run" >> "$GITHUB_OUTPUT"
             echo "slot=" >> "$GITHUB_OUTPUT"
-            echo "run: manual"
+            echo "run: started by hand, reading every source now"
             exit 0
           fi
           node scripts/polo-due.mjs

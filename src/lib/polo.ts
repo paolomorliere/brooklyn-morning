@@ -413,3 +413,32 @@ export function groupUpcoming(games: PoloGame[]): PoloDay[] {
     .sort((a, b) => a[0].localeCompare(b[0]))
     .map(([date, list]) => ({ date, games: [...list].sort(byEarliestFirst) }));
 }
+
+/**
+ * What a finished refresh attempt actually achieved.
+ *
+ * Pure, so the one question that matters — may this be called a success? — is decided in one place
+ * and unit-tested. The rule is deliberately strict: a refresh is only a success when the workflow
+ * published a **newly built** file. A run that finishes without publishing anything has not read
+ * the schools, whatever its green tick on GitHub says, and gets its own outcome rather than being
+ * dressed up as "no changes found".
+ *
+ * This case was not hypothetical. The manual dispatch used to be routed through the cron's
+ * once-per-slot guard, so a manual refresh on a slot that had already run exited successfully in
+ * ten seconds having fetched nothing, and the app announced "all 13 schools were read and nothing
+ * has changed" over data that was hours old.
+ */
+export function refreshOutcome(input: {
+  /** Did the published file's `builtAt` move past the value held when the attempt began? */
+  rebuilt: boolean;
+  /** Results that are final now and were not before. */
+  added: number;
+  /** Fixtures that are new, or whose date or time moved. */
+  fixturesChanged: number;
+  /** Sources the build itself reports as unread. */
+  failedSources: number;
+}): 'success' | 'unchanged' | 'partial' | 'nothing' {
+  if (!input.rebuilt) return 'nothing';
+  if (input.failedSources > 0) return 'partial';
+  return input.added + input.fixturesChanged > 0 ? 'success' : 'unchanged';
+}

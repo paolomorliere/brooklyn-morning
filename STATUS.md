@@ -154,3 +154,23 @@ Fifth tab: NCAA men's water polo results, 2026 season only, 13 watched teams.
 - Pinned to 2026. It will not roll forward to 2027 on its own — `SEASON`, `SEASON_START`, `SEASON_END` and the 13 URLs in `scripts/waterpolo.config.mjs` are a deliberate edit.
 - Bug found after the first real workflow run: `polo-due.mjs`'s entry-point check compared `import.meta.url` with an unencoded `file://${process.argv[1]}`, so on a path containing a space (this project's own path) the script ran and printed nothing. It worked on the GitHub runner by luck. Fixed with `pathToFileURL`; a subprocess test now covers it.
 - Verified on GitHub 2026-09-23: manual `workflow_dispatch` (force) ran the whole path on a clean checkout — 13/13 sources read, 112 games, 0 added, logos already present, committed, and `deploy.yml` published it. Run 35817169785.
+
+## Manual refresh fix (2026-09-27, evening)
+
+**Reported.** A manual refresh said *"Refresh complete — no changes found. All 13 scores were read and nothing has changed since the last check. 4:28 PM"* while Air Force's and Wagner's own pages already showed the result of their 27 September game. Three timestamps on the screen disagreed: *Checked 3:10 PM*, *Last successful refresh 4:28 PM*, and the banner's 4:28 PM.
+
+**Cause — one, in the workflow.** `waterpolo.yml`'s `workflow_dispatch` had an input `mode` defaulting to **`auto`**, and `auto` fell through to `scripts/polo-due.mjs`, the guard whose only job is to stop the *cron* firing twice for one slot. Tapping **Run workflow** with the default therefore checked out the repo, found the 16:30 slot already claimed, and exited **successfully in ten seconds having read nothing**. GitHub's public run list confirms it: runs `36343961020`, `36347325276` and `36348119882` each lasted 9–13 s, against ~1 m 45 s for a real scheduled run. Reaching the collection step required changing a dropdown from `auto` to `force` — an undocumented click. The earlier verification (2026-09-23, run `35817169785`) had exercised `force`, never the default, which is how this shipped.
+
+**Consequences in the app, each fixed at its own cause.**
+- A completed run whose published file had not moved was reported as `unchanged` — *"all 13 schools were read"* — using the **previous** build's source list. It is now its own phase, `nothing`: *"The run finished without reading anything."* Not a success, no timestamp advanced, Retry offered.
+- `lastSuccessAt` was written by any successful **download**, including the quiet one on resume. That is what put *"Last successful refresh 4:28 PM"* above data read at 3:10. It now moves only when `builtAt` actually advances.
+- The two timestamps were both unlabelled as to what they timed. Above the button: *Scores read from the schools* (the data's age). Below it: *Your last refresh* (the attempt and its outcome). No third time.
+- Closing the banner used to reset the refresh state, so the outcome vanished. `dismissed` now hides the message and keeps the one-line summary.
+- `queued` with no run seen after a minute says so explicitly and names both taps, instead of spinning.
+- A finished run is given a 90 s grace before it can be called "published nothing", so Pages lagging the green tick is not mistaken for a skipped job.
+
+**Also fixed.** `poll.yml` had the identical `mode: auto` trap. A hand-started poll check now always reads the CWPA and, since no new week is expected of it, does not pass `--expect-new` and so cannot raise a false *"awaiting this week's poll"*.
+
+**Not a bug.** The parser and merge were correct throughout: on the first real rebuild, Air Force 16–15 Wagner arrived as `final` under the game's existing id `376ab5ded00e`, moving it out of Upcoming and into Results once, with no duplicate. 318 → 324 results.
+
+**Schedules untouched.** Both crons are byte-identical; a hand-started run claims no slot, so it cannot consume an automatic check. `tests/polo-refresh.test.ts` asserts all of this against the YAML, plus the absence of the `mode` input, so the trap cannot return.

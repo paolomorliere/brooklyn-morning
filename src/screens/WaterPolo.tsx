@@ -69,7 +69,7 @@ function readPlacement(): Placement | null {
 }
 
 export function WaterPolo() {
-  const { feed, ready, refreshing, lastError, refresh, lastSuccessAt } = waterPoloStore.use();
+  const { feed, ready, refreshing, lastError, refresh } = waterPoloStore.use();
   const restored = useMemo(readPlacement, []);
   const [day, setDay] = useState<string | null>(restored?.day ?? null);
   const [team, setTeam] = useState<string | null>(restored?.team ?? null);
@@ -159,7 +159,7 @@ export function WaterPolo() {
       <FreshnessLine fresh={fresh} ready={ready} refreshing={refreshing} />
       {lastError && <p class="small muted" style="margin-top:6px">{lastError}</p>}
 
-      <RefreshPanel refresh={refresh} lastSuccessAt={lastSuccessAt} />
+      <RefreshPanel refresh={refresh} />
 
       {watched.length > 0 && (
         <Filters
@@ -300,7 +300,7 @@ export function WaterPolo() {
  * job that reported success without committing anything, is not success. The run's own queued /
  * running / failed status comes from GitHub's public API; the published file decides the rest.
  */
-function RefreshPanel({ refresh, lastSuccessAt }: { refresh: RefreshState; lastSuccessAt: string | null }) {
+function RefreshPanel({ refresh }: { refresh: RefreshState }) {
   const busy = refresh.phase === 'queued' || refresh.phase === 'running';
 
   return (
@@ -321,13 +321,15 @@ function RefreshPanel({ refresh, lastSuccessAt }: { refresh: RefreshState; lastS
         </button>
       </div>
 
-      {/* The last completed check stays visible whatever the banner is doing. */}
-      <p class="small faint polo-last">
-        {lastSuccessAt ? `Last successful refresh ${formatNyStamp(lastSuccessAt)}` : 'No successful refresh yet'}
-        {refresh.startedAt && refresh.endedAt === null && busy ? ` · attempt started ${formatNyStamp(refresh.startedAt)}` : ''}
-      </p>
+      {/*
+        One sentence about Paolo's own last refresh, which is a different fact from the freshness
+        line above it. Two timestamps labelled "checked" and "last successful refresh" sitting a
+        centimetre apart, one of which could advance without anything being read, was the confusing
+        part; each line now names what its time is the time of.
+      */}
+      <p class="small faint polo-last">{lastRefreshLine(refresh)}</p>
 
-      {refresh.phase !== 'idle' && <RefreshBanner refresh={refresh} />}
+      {refresh.phase !== 'idle' && !refresh.dismissed && <RefreshBanner refresh={refresh} />}
     </div>
   );
 }
@@ -338,7 +340,7 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
       ? 'ok'
       : refresh.phase === 'failed'
         ? 'bad'
-        : refresh.phase === 'partial' || refresh.phase === 'timeout'
+        : refresh.phase === 'partial' || refresh.phase === 'timeout' || refresh.phase === 'nothing'
           ? 'warn'
           : 'busy';
 
@@ -346,16 +348,32 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
 
   const body = () => {
     switch (refresh.phase) {
-      case 'queued':
+      case 'queued': {
+        // GitHub not having seen a run after a minute almost always means the green confirm button
+        // was never tapped. Saying so beats a spinner that never resolves.
+        const waited = refresh.startedAt ? Date.now() - Date.parse(refresh.startedAt) : 0;
+        if (!refresh.sawRun && waited > 60_000) {
+          return (
+            <>
+              <b>No run has started yet</b>
+              <p class="small" style="margin:4px 0 0">
+                GitHub has not received a run. On the page that opened, tap <b>Run workflow</b> to open the little
+                panel, then tap the green <b>Run workflow</b> button inside it. Both taps are needed.
+              </p>
+            </>
+          );
+        }
         return (
           <>
-            <b>Waiting to start</b>
+            <b>Waiting for the run to start</b>
             <p class="small" style="margin:4px 0 0">
-              Tap <b>Run workflow</b> on the GitHub page that just opened{refresh.runUrl ? ', or watch it there' : ''}.
-              This screen checks every 30 seconds for up to 12 minutes. You can keep using the app.
+              On the GitHub page that just opened, tap <b>Run workflow</b>, then the green <b>Run workflow</b> button in
+              the panel that appears. This screen checks every 30 seconds for up to 12 minutes, and you can keep using
+              the app meanwhile.
             </p>
           </>
         );
+      }
       case 'running':
         return (
           <>
@@ -384,7 +402,8 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
           <>
             <b>Refresh complete &mdash; no changes found</b>
             <p class="small" style="margin:4px 0 0">
-              All {refresh.total} schools were read and nothing has changed since the last check. {formatNyStamp(refresh.endedAt)}
+              All {refresh.total} schools were read again just now and none of them had posted anything new.{' '}
+              {formatNyStamp(refresh.endedAt)}
             </p>
           </>
         );
@@ -399,6 +418,17 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
                 ? `${refresh.added} new ${refresh.added === 1 ? 'result' : 'results'}, ${refresh.fixturesChanged} fixture change${refresh.fixturesChanged === 1 ? '' : 's'}.`
                 : 'Nothing changed in what was read.'}{' '}
               {formatNyStamp(refresh.endedAt)}
+            </p>
+          </>
+        );
+      case 'nothing':
+        return (
+          <>
+            <b>The run finished without reading anything</b>
+            <p class="small" style="margin:4px 0 0">
+              It published no new file, so the schools were not re-read and nothing above has changed. Your saved
+              results and fixtures are untouched. Tap <b>Retry</b> — and if it happens again, open the run on GitHub and
+              look at whether the <i>Collect results</i> step was skipped. {formatNyStamp(refresh.endedAt)}
             </p>
           </>
         );
@@ -431,7 +461,7 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
       <Icon size={18} strokeWidth={1.9} class={tone === 'busy' ? 'spin' : undefined} aria-hidden="true" />
       <div class="grow">{body()}</div>
       <div class="polo-watch-actions">
-        {(refresh.phase === 'failed' || refresh.phase === 'timeout') && (
+        {(refresh.phase === 'failed' || refresh.phase === 'timeout' || refresh.phase === 'nothing') && (
           <button class="btn btn--ghost polo-retry" onClick={() => void waterPoloRefresh.retry()}>Retry</button>
         )}
         {refresh.runUrl && (
@@ -445,6 +475,37 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
       </div>
     </div>
   );
+}
+
+/**
+ * The line under the button: what Paolo's own last refresh did, in one sentence.
+ *
+ * It deliberately never says "successful" about an attempt that published nothing, and it keeps the
+ * last genuine read visible once the banner has been dismissed.
+ */
+function lastRefreshLine(refresh: RefreshState): string {
+  if (refresh.phase === 'queued' || refresh.phase === 'running') {
+    return `Your refresh started ${formatNyStamp(refresh.startedAt)} — still going`;
+  }
+  const at = refresh.endedAt ? formatNyStamp(refresh.endedAt) : null;
+  if (at) {
+    const outcome =
+      refresh.phase === 'success'
+        ? 'new results or changes saved'
+        : refresh.phase === 'unchanged'
+          ? 'everything read, nothing new'
+          : refresh.phase === 'partial'
+            ? `${refresh.okCount} of ${refresh.total} schools read`
+            : refresh.phase === 'nothing'
+              ? 'nothing was published'
+              : refresh.phase === 'failed'
+                ? 'it failed'
+                : 'still unknown';
+    return `Your last refresh ${at} — ${outcome}`;
+  }
+  // Deliberately no timestamp here. The line above the button already says when the schools were
+  // last read, and a second time under a different name is what made this panel confusing.
+  return 'You have not run a manual refresh yet';
 }
 
 /** "12:41 PM ET · Sun 27 Sep" — a completion time stated in New York, where the season lives. */
@@ -501,7 +562,9 @@ function Filters({
 function FreshnessLine({ fresh, ready, refreshing }: { fresh: ReturnType<typeof freshnessOf>; ready: boolean; refreshing: boolean }) {
   if (refreshing) return <p class="small faint polo-fresh">Checking…</p>;
   if (!ready || fresh.total === 0) return <p class="small faint polo-fresh">&nbsp;</p>;
-  const when = fresh.checkedAt ? `Checked ${formatClock(fresh.checkedAt)}` : 'Not checked yet';
+  // "Checked" was ambiguous: this is when the schools' own pages were last read by the workflow,
+  // which is a different thing from when Paolo last tapped refresh.
+  const when = fresh.checkedAt ? `Scores read from the schools ${formatClock(fresh.checkedAt)}` : 'Not read yet';
   if (fresh.complete) {
     return <p class="small faint polo-fresh">{when} · all {fresh.total} schools</p>;
   }

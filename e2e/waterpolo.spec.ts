@@ -13,14 +13,32 @@ const open = async (page: Page) => {
  * run does not exist yet. Every call after it also returns the run Paolo just started, which is
  * exactly the sequence the real API produces.
  */
-async function mockRuns(page: Page, run: () => { status: string; conclusion: string | null }) {
+async function mockRuns(page: Page, run: () => { status: string; conclusion: string | null }, opts: { finishedLongAgo?: boolean } = {}) {
   let calls = 0;
-  const OLD = { id: 1, html_url: 'https://github.com/x/y/actions/runs/1', status: 'completed', conclusion: 'success', created_at: '2026-09-01T00:00:00Z' };
+  const OLD = { id: 1, html_url: 'https://github.com/x/y/actions/runs/1', status: 'completed', conclusion: 'success', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:02:00Z' };
   await page.route('**/api.github.com/**', (route) => {
     calls += 1;
     const r = run();
-    const mine = { id: 900, html_url: 'https://github.com/x/y/actions/runs/900', status: r.status, conclusion: r.conclusion, created_at: '2026-09-27T12:00:00Z' };
+    // The app waits for Pages to catch up before it will say a finished run published nothing, so
+    // a test about that state has to present a run that finished more than that grace ago.
+    const updated = opts.finishedLongAgo ? new Date(Date.now() - 10 * 60_000).toISOString() : new Date().toISOString();
+    const mine = { id: 900, html_url: 'https://github.com/x/y/actions/runs/900', status: r.status, conclusion: r.conclusion, created_at: '2026-09-27T12:00:00Z', updated_at: updated };
     route.fulfill({ json: { workflow_runs: calls === 1 ? [OLD] : [mine, OLD] } });
+  });
+}
+
+/**
+ * Serve a rebuilt results file: the same games, a newer `builtAt`.
+ *
+ * That is what a real refresh produces when the schools have posted nothing new, and it is the only
+ * thing the app will accept as a completed refresh.
+ */
+async function serveRebuiltFeed(page: Page) {
+  await page.route('**/data/waterpolo.json*', async (route) => {
+    const res = await route.fetch();
+    const feed = await res.json();
+    feed.builtAt = new Date().toISOString();
+    await route.fulfill({ json: feed });
   });
 }
 
@@ -358,7 +376,7 @@ test('the manual refresh opens GitHub, then reports what it actually knows', asy
   });
   // GitHub has no newer run yet: Paolo has not tapped Run workflow.
   await page.route('**/api.github.com/**', (route) =>
-    route.fulfill({ json: { workflow_runs: [{ id: 1, html_url: 'https://github.com/x/y/actions/runs/1', status: 'completed', conclusion: 'success', created_at: '2026-09-01T00:00:00Z' }] } }),
+    route.fulfill({ json: { workflow_runs: [{ id: 1, html_url: 'https://github.com/x/y/actions/runs/1', status: 'completed', conclusion: 'success', created_at: '2026-09-01T00:00:00Z', updated_at: '2026-09-01T00:02:00Z' }] } }),
   );
   await open(page);
 
@@ -369,7 +387,7 @@ test('the manual refresh opens GitHub, then reports what it actually knows', asy
   await tab.close();
 
   // It says it is waiting, not that it succeeded.
-  await expect(page.locator('.polo-watch')).toContainText('Waiting to start');
+  await expect(page.locator('.polo-watch')).toContainText('Waiting for the run to start');
   await expect(page.locator('.polo-watch')).toContainText('Run workflow');
   await expect(page.getByRole('button', { name: /Refresh scores and fixtures/ })).toBeDisabled();
   await expect(page.locator('.polo-watch--ok')).toHaveCount(0);
@@ -399,16 +417,40 @@ test('a running job says it is running, and a failed one offers Retry', async ({
   await expect(page.locator(RESULT_ROW).first()).toBeVisible();
 });
 
-test('a completed run that changed nothing still confirms it worked', async ({ page }) => {
+test('a rebuilt file with no new games is reported as a completed refresh', async ({ page }) => {
+  await serveRebuiltFeed(page);
   await mockRuns(page, () => ({ status: 'completed', conclusion: 'success' }));
   await open(page);
   await page.getByRole('button', { name: /Refresh scores and fixtures/ }).click();
   await expect(page.locator('.polo-watch')).toContainText('no changes found', { timeout: 20_000 });
+  await expect(page.locator('.polo-watch')).toContainText('read again just now');
   await expect(page.locator('.polo-watch--ok')).toBeVisible();
-  // And the completed time is kept once the banner is dismissed.
+  // And the outcome stays readable once the banner is dismissed.
   await page.locator('.polo-watch').getByRole('button', { name: 'Dismiss' }).click();
-  await expect(page.locator('.polo-last')).toContainText('Last successful refresh');
+  await expect(page.locator('.polo-last')).toContainText('Your last refresh');
+  await expect(page.locator('.polo-last')).toContainText('nothing new');
   await expect(page.locator('.polo-last')).toContainText('ET');
+});
+
+test('a run that finishes without publishing anything is not called a success', async ({ page }) => {
+  // Exactly what a manual refresh used to do: the dispatch was routed through the cron's
+  // once-per-slot guard, so the job went green in ten seconds having read nothing at all.
+  await mockRuns(page, () => ({ status: 'completed', conclusion: 'success' }), { finishedLongAgo: true });
+  await open(page);
+  await page.getByRole('button', { name: /Refresh scores and fixtures/ }).click();
+  await expect(page.locator('.polo-watch')).toContainText('finished without reading anything', { timeout: 20_000 });
+  await expect(page.locator('.polo-watch--ok')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
+  // It must not claim a successful refresh, and the saved results are still there.
+  await page.locator('.polo-watch').getByRole('button', { name: 'Dismiss' }).click();
+  await expect(page.locator('.polo-last')).not.toContainText('everything read');
+  await expect(page.locator('.polo-last')).toContainText('nothing was published');
+  await expect(page.locator(RESULT_ROW).first()).toBeVisible();
+});
+
+test('the freshness line says the time is when the schools were read', async ({ page }) => {
+  await open(page);
+  await expect(page.locator('.polo-fresh')).toContainText('Scores read from the schools');
 });
 
 test('a refresh that is still running is recovered on return', async ({ page }) => {

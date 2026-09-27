@@ -110,19 +110,23 @@ The workflow asks for every one of those times under both daylight-saving offset
 GitHub runs scheduled workflows on a best-effort basis and has started this repository's runs 3.5–6 hours late, so a check will often happen later in the day than the time above. The guard has an eight-hour look-back for exactly that reason: the Sunday 10 p.m. check is asked for by a Monday 02:00 UTC cron, and a run that starts after midnight in New York still does the Sunday job instead of being thrown away. Nothing is lost either way — every run re-reads all thirteen complete 2026 schedules, every opponent's season and both conference schedules, so weekday games, late postings and corrections are all picked up by the next check and filed under **the date they were played**.
 
 ### Refreshing by hand
-**Refresh scores & fixtures**, at the top of the Water Polo screen, opens the workflow's page on GitHub where one tap on **Run workflow** starts the real job. The screen then reports what it actually knows:
+**Refresh scores & fixtures**, at the top of the Water Polo screen, opens the workflow's page on GitHub. Two taps there start the real job: **Run workflow** to open the panel, then the green **Run workflow** inside it. A run started this way always reads every source — it is never subject to the once-per-slot guard above, and it never consumes one of the automatic checks.
+
+The screen then reports what it actually knows:
 
 | What you see | What it means |
 |---|---|
-| Waiting to start | Asked for; GitHub has not begun it yet |
+| Waiting for the run to start | Asked for; GitHub has not begun it yet |
+| No run has started yet | A minute has passed and GitHub has seen nothing — the green confirm button was probably not tapped |
 | Checking official schedules… | The job is running |
-| Refresh complete — new results or schedule changes found | Downloaded, validated, saved and on screen |
-| Refresh complete — no changes found | Same, and nothing had changed |
+| Refresh complete — new results or schedule changes found | A newly built file was downloaded, validated, saved and put on screen |
+| Refresh complete — no changes found | Same, and none of the schools had posted anything new |
 | Refresh complete — some sources could not be read | Saved, and it names the schools it could not reach |
+| The run finished without reading anything | It went green but published no new file, so nothing was read; saved data untouched, with a Retry |
 | Refresh failed | The run failed; your saved data is untouched, with a Retry |
 | Still waiting after 12 minutes | The run may still be going; nothing is lost |
 
-The last successful completion time stays on screen in New York time after the banner is dismissed, and is kept separate from the last attempt. Leaving the screen and coming back recovers the real state. A second tap re-opens the page but never starts a second job.
+Two timestamps appear, and they mean different things. **Above** the button, *Scores read from the schools* is when the workflow last read the official pages — the age of the data itself. **Below** the button, *Your last refresh* is your own last attempt and what it achieved. Closing the banner hides the message but keeps that one-line summary. Success requires a newly built file: re-downloading the same published file is a fetch, not a refresh, and never advances either line. Leaving the screen and coming back recovers the real state. A second tap re-opens the page but never starts a second job.
 
 It takes one tap on GitHub's page because a true one-tap refresh would need a server holding a token, which the zero-cost rule rules out. **No credential of any kind is in the app.** The screen reads two things and nothing else: its own published results file, and GitHub's public run status (unauthenticated, 60 requests an hour, no key, no account). It never contacts a school or the CWPA.
 

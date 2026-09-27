@@ -18,13 +18,9 @@ on:
     - cron: '0 22,23 * * 3'
     # Thursday 06:00 New York — EDT and EST
     - cron: '0 10,11 * * 4'
+  # No inputs on purpose: a manual poll check always reads the CWPA now. The guard below exists
+  # only to stop the Thursday cron repeating a Wednesday that already succeeded.
   workflow_dispatch:
-    inputs:
-      mode:
-        description: What to do
-        type: choice
-        default: auto
-        options: [auto, force]
 
 permissions:
   contents: write
@@ -46,12 +42,16 @@ jobs:
       - name: Is a poll check due?
         id: due
         run: |
-          if [ "${{ inputs.mode }}" = "force" ]; then
+          # Started by hand: read the CWPA now, claim no slot, and do not treat an unchanged week as
+          # an awaited poll — asking again on a day when nothing new is expected is a fair thing to do.
+          if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "action=run" >> "$GITHUB_OUTPUT"
             echo "slot=" >> "$GITHUB_OUTPUT"
-            echo "run: manual"
+            echo "expect=false" >> "$GITHUB_OUTPUT"
+            echo "run: started by hand, reading the CWPA now"
             exit 0
           fi
+          echo "expect=true" >> "$GITHUB_OUTPUT"
           node scripts/poll-due.mjs
 
       - uses: actions/setup-node@v4
@@ -67,9 +67,10 @@ jobs:
       - name: Read the newest poll
         id: poll
         if: steps.due.outputs.action == 'run'
-        # The guard above only lets this run when a newer poll is due, so a week that turns out
-        # not to exist yet is worth saying so on screen.
-        run: node scripts/build-poll.mjs --expect-new
+        # On the cron the guard only lets this run when a newer poll is due, so a week that turns
+        # out not to exist yet is worth saying so on screen. A manual check carries no such
+        # expectation, so it must not raise the "awaiting this week's poll" flag.
+        run: node scripts/build-poll.mjs ${{ steps.due.outputs.expect == 'true' && '--expect-new' || '' }}
 
       # Any team ranked for the first time needs its crest saved once.
       - name: Fetch new logos
