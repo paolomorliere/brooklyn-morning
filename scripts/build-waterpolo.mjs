@@ -38,8 +38,9 @@ import {
 } from './waterpolo.config.mjs';
 import { parseSchedule } from './lib/polo-parse.mjs';
 import { classifyGame, indexFixtures, parseConferenceSchedule } from './lib/polo-conference.mjs';
+import { buildIdentity, canonicalize } from './lib/polo-identity.mjs';
 import { validateFeed, validateSource } from './lib/polo-validate.mjs';
-import { buildTeams, fromFeedGames, involvesWatched, mergeGames, teamPair, toCandidates, toFeedGames } from './lib/polo-merge.mjs';
+import { buildTeams, fromFeedGames, involvesWatched, mergeGames, repairIdentities, toCandidates, toFeedGames } from './lib/polo-merge.mjs';
 
 const FEED_PATH = 'public/data/waterpolo.json';
 const ETAG_PATH = 'state/waterpolo-etags.json';
@@ -273,9 +274,9 @@ async function main() {
 
   // --- 2. reconcile -----------------------------------------------------------------------------
   const siteHints = new Map();
-  const absorb = (rows) => {
+  const absorb = (rows, canonicalMap) => {
     for (const row of rows) {
-      const slug = teamSlug(row.opponentRaw);
+      const slug = canonicalMap ? canonicalize(teamSlug(row.opponentRaw), canonicalMap) : teamSlug(row.opponentRaw);
       names.set(slug, row.opponentRaw);
       if (row.opponentLogo && !logoUrls.has(slug)) logoUrls.set(slug, row.opponentLogo);
       if (row.opponentSite) {
@@ -286,16 +287,47 @@ async function main() {
     }
   };
 
+  // --- 2a. one school, one identity -------------------------------------------------------------
+  // Settled before anything is matched or merged, from evidence on the pages themselves: two names
+  // that link to the same athletics host and agree with each other are one school. Harvard prints
+  // "Concordia" where everyone else prints "Concordia Irvine", and without this the same game
+  // arrived twice.
+  const identityRows = results
+    .filter((r) => r.ok)
+    .flatMap((r) => r.rows.map((row) => ({ ...row, selfSlug: r.cfg.id, selfSite: r.cfg.site ?? r.cfg.url })));
+  let { canonical, merges } = buildIdentity(identityRows);
+
+  // The alias table is evidence too. A published team whose own printed name now resolves to a
+  // different slug was split by a gap that has since been closed — "Pomona-Pitzer Colleges" used to
+  // become its own team because only the singular "College" was trimmed. Re-running the name
+  // through the current rules renames it; nothing is merged that the name does not already say.
+  for (const [slug, team] of Object.entries(previous?.teams ?? {})) {
+    const now = teamSlug(team.name);
+    // The target has to be a team the feed already knows. Several teams are published under a
+    // deliberately short display name ("CS Fullerton", "Long Beach St.") that does not round-trip
+    // through the alias table, and without this guard those would be renamed to slugs that mean
+    // nothing. Requiring an existing target keeps this to genuine, already-resolved duplicates.
+    if (now && now !== slug && previous?.teams?.[now] && !canonical.has(slug)) {
+      canonical.set(slug, now);
+      merges.push({ host: null, slugs: [slug, now], merged: true, winner: now, why: `"${team.name}" now resolves to ${now}` });
+    }
+  }
+
+  const rename = (raw) => canonicalize(teamSlug(raw), canonical);
+
   const candidates = [];
   for (const r of results) {
     if (!r.ok || r.rows.length === 0) continue;
-    absorb(r.rows);
-    candidates.push(...toCandidates(r.rows, r.cfg, r.checkedAt, SEASON));
+    absorb(r.rows, canonical);
+    candidates.push(...toCandidates(r.rows, r.cfg, r.checkedAt, SEASON, rename));
   }
   // Deterministic order in, deterministic feed out.
   candidates.sort((a, b) => a.date.localeCompare(b.date) || a.source.id.localeCompare(b.source.id) || a.slot - b.slot);
 
-  let { games, stats } = mergeGames(archive, candidates);
+  // Rewrite what is already published onto the same identities, so duplicates already on the phone
+  // are repaired rather than only prevented from happening again.
+  const repair = repairIdentities(archive, canonical, SEASON);
+  let { games, stats } = mergeGames(repair.games, candidates);
 
   // --- 2b. every opponent's own season ----------------------------------------------------------
   // Team screens show a team's whole 2026, including the games it played against schools that are
@@ -346,8 +378,8 @@ async function main() {
     const oppCandidates = [];
     for (const r of opp) {
       if (!r.ok || r.rows.length === 0) continue;
-      absorb(r.rows);
-      oppCandidates.push(...toCandidates(r.rows, r.cfg, r.checkedAt, SEASON));
+      absorb(r.rows, canonical);
+      oppCandidates.push(...toCandidates(r.rows, r.cfg, r.checkedAt, SEASON, rename));
     }
     oppCandidates.sort((a, b) => a.date.localeCompare(b.date) || a.source.id.localeCompare(b.source.id) || a.slot - b.slot);
     if (oppCandidates.length) {
@@ -497,9 +529,13 @@ async function main() {
   const okCount = feed.sources.filter((s) => s.ok).length;
 
   // --- 4. report --------------------------------------------------------------------------------
-  const dates = kept.map((g) => g.date).sort();
+  const played = kept.filter((g) => g.status === 'final');
+  const upcoming = kept.filter((g) => g.status === 'scheduled');
+  const dates = played.map((g) => g.date).sort();
   console.log(
-    `${SPORT_LABEL} ${SEASON}: ${kept.length} games, ${dates[0] ?? '—'} … ${dates[dates.length - 1] ?? '—'}`,
+    `${SPORT_LABEL} ${SEASON}: ${played.length} results, ${dates[0] ?? '—'} … ${dates[dates.length - 1] ?? '—'}` +
+      ` · ${upcoming.length} fixtures still to play` +
+      (kept.length - played.length - upcoming.length ? ` · ${kept.length - played.length - upcoming.length} postponed or cancelled` : ''),
   );
   console.log(
     `sources ${okCount}/${feed.sources.length} ok · added ${stats.added} · corrected ${stats.corrected} · conflicts ${stats.conflicts} (${stats.resolved} settled by an official recap)` +
@@ -526,7 +562,7 @@ async function main() {
     );
   }
   if (conference.sources.some((c) => c.ok)) {
-    const marked = kept.filter((g) => g.conference);
+    const marked = kept.filter((g) => g.conference && g.status === 'final');
     console.log(`conference games classified: ${marked.length} (${CONFERENCE_COUNT(marked)})`);
     // A school that printed a conference badge on a game the CWPA does not list is worth seeing:
     // it is either a schedule the CWPA has not published yet or a mislabelled row. It stays
@@ -537,6 +573,17 @@ async function main() {
       }
     }
     for (const key of conference.dropped) console.log(`  AMBIGUOUS conference fixture ${key} — left unclassified`);
+  }
+
+  for (const m of merges) {
+    console.log(
+      m.merged
+        ? `  IDENTITY ${m.slugs.join(' = ')} \u2192 ${m.winner} (${m.why})`
+        : `  IDENTITY kept apart: ${m.slugs.join(' , ')} (${m.why})`,
+    );
+  }
+  if (repair.rewritten) {
+    console.log(`  repaired ${repair.rewritten} published game(s) onto canonical identities` + (repair.collapsed ? `, collapsing ${repair.collapsed} duplicate row(s)` : ''));
   }
 
   const missingLogos = Object.entries(feed.teams).filter(([, t]) => !t.logo).map(([slug]) => slug);

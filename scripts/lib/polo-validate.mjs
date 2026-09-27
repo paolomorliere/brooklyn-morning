@@ -125,9 +125,13 @@ export function validateFeed(feed) {
     else if (g.date < SEASON_START || g.date > SEASON_END) problems.push(`${g.id} (${where}) is outside the season window`);
     if (!g.home?.team || !g.away?.team) problems.push(`${g.id} is missing a team`);
     if (g.home?.team === g.away?.team) problems.push(`${g.id} has the same team on both sides`);
-    // A withheld game (sources disagree, never verified) legitimately has no scores.
+    // Two kinds of game legitimately have no scores: one that has not been played yet, and one
+    // whose sources disagree and was never verified.
+    const notFinal = (g.status ?? 'final') !== 'final';
     const withheld = g.conflict && g.home?.score == null && g.away?.score == null;
-    if (!withheld) {
+    if (notFinal) {
+      if (g.home?.score != null || g.away?.score != null) problems.push(`${g.id} (${where}) is ${g.status} but carries a score`);
+    } else if (!withheld) {
       for (const side of ['home', 'away']) {
         const v = g[side]?.score;
         if (!Number.isInteger(v) || v < 0 || v > 99) problems.push(`${g.id} (${where}) has a bad ${side} score: ${v}`);

@@ -2,12 +2,15 @@ import { test, expect, type Page } from '@playwright/test';
 
 const open = async (page: Page) => {
   await page.goto('/?fixtures=1&seed=none#/waterpolo');
-  await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.locator(RESULT_ROW).first()).toBeVisible({ timeout: 15_000 });
 };
+
+/** Completed results only; the screen also lists this weekend's fixtures. */
+const RESULT_ROW = '.polo-row:not(.polo-row--fixture)';
 
 test('a tap on a team name opens that team and never the game sheet', async ({ page }) => {
   await open(page);
-  const row = page.locator('.polo-row').first();
+  const row = page.locator(RESULT_ROW).first();
   const name = await row.locator('.polo-name').first().innerText();
   await row.locator('.polo-name').first().click();
 
@@ -20,7 +23,7 @@ test('a tap on a team name opens that team and never the game sheet', async ({ p
 
 test('a tap anywhere else on the row opens the game sheet, unchanged', async ({ page }) => {
   await open(page);
-  const row = page.locator('.polo-row').first();
+  const row = page.locator(RESULT_ROW).first();
   await row.locator('.polo-score').click({ force: true });
   await expect(page.locator('.sheet')).toBeVisible();
   await expect(page.locator('.polo-sheet-score')).toBeVisible();
@@ -31,11 +34,11 @@ test('a tap anywhere else on the row opens the game sheet, unchanged', async ({ 
 test('both names work, including an opponent that is not on the watchlist', async ({ page }) => {
   await open(page);
   // Mercyhurst is a real 2026 opponent and is deliberately not on the watchlist.
-  const row = page.locator('.polo-row', { hasText: 'Mercyhurst' }).first();
+  const row = page.locator(RESULT_ROW, { hasText: 'Mercyhurst' }).first();
   await row.locator('.polo-name', { hasText: 'Mercyhurst' }).click();
   await expect(page).toHaveURL(/#\/team\/mercyhurst/);
   await expect(page.locator('.polo-team-name')).toHaveText('Mercyhurst');
-  await expect(page.locator('.polo-row').first()).toBeVisible();
+  await expect(page.locator(RESULT_ROW).first()).toBeVisible();
 });
 
 test('the team screen shows a record, a roster link and the whole season', async ({ page }) => {
@@ -55,7 +58,7 @@ test('the team screen shows a record, a roster link and the whole season', async
   // The record matches the rows on the screen.
   const record = await page.locator('.polo-record b').innerText();
   const [w, l] = record.split('–').map(Number);
-  const games = await page.locator('.polo-row').count();
+  const games = await page.locator(RESULT_ROW).count();
   expect(w + l).toBeLessThanOrEqual(games);
   expect(w + l).toBeGreaterThan(0);
 });
@@ -65,7 +68,7 @@ test('an opponent whose own page could not be read says so', async ({ page }) =>
   await page.goto('/?fixtures=1&seed=none#/team/ucla');
   await expect(page.locator('.polo-team-name')).toHaveText('UCLA', { timeout: 15_000 });
   await expect(page.locator('.polo-partial')).toContainText('results collected so far');
-  await expect(page.locator('.polo-row').first()).toBeVisible();
+  await expect(page.locator(RESULT_ROW).first()).toBeVisible();
 });
 
 test('back from a team screen restores the filters and the scroll position', async ({ page }) => {
@@ -80,7 +83,7 @@ test('back from a team screen restores the filters and the scroll position', asy
   const before = await page.evaluate(() => Math.round(scrollY));
   expect(before).toBeGreaterThan(100);
 
-  await page.locator('.polo-row .polo-name').first().click();
+  await page.locator(`${RESULT_ROW} .polo-name`).first().click();
   await expect(page).toHaveURL(/#\/team\//);
   await page.goBack();
 
@@ -94,7 +97,7 @@ test('a team screen starts at the top, not where the last screen was scrolled to
   await open(page);
   await page.evaluate(() => scrollTo({ top: 900 }));
   await page.waitForTimeout(150);
-  await page.locator('.polo-row').last().locator('.polo-name').first().click();
+  await page.locator(RESULT_ROW).last().locator('.polo-name').first().click();
   await expect(page).toHaveURL(/#\/team\//);
   await expect.poll(() => page.evaluate(() => Math.round(scrollY)), { timeout: 5000 }).toBeLessThan(40);
 });
@@ -103,7 +106,7 @@ test('a team with no 2026 game in the feed says so instead of looking broken', a
   await page.goto('/?fixtures=1&seed=none#/team/not-a-real-team');
   await expect(page.getByRole('heading', { name: /Not in this season/ })).toBeVisible({ timeout: 15_000 });
   await page.getByRole('button', { name: 'Back to results' }).click();
-  await expect(page.locator('.polo-row').first()).toBeVisible();
+  await expect(page.locator(RESULT_ROW).first()).toBeVisible();
 });
 
 test('nothing on a team screen reaches a school’s website', async ({ page }) => {

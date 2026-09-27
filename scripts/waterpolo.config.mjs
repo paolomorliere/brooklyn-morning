@@ -159,14 +159,30 @@ const DECORATIONS = [
 const STATE_QUALIFIER =
   /\s*\((?:ala|alaska|ariz|ark|calif|colo|conn|del|fla|ga|hawaii|idaho|ill|ind|iowa|kan|ky|la|maine|md|mass|mich|minn|miss|mo|mont|neb|nev|n\.h|n\.j|n\.m|n\.y|n\.c|n\.d|ohio|okla|ore|pa|r\.i|s\.c|s\.d|tenn|texas|utah|vt|va|wash|w\.va|wis|wyo)\.?\)\s*$/i;
 
-/** Rows that are page furniture, not games. */
+/**
+ * Rows that are page furniture, not games.
+ *
+ * These mattered less while only completed games were read, because a placeholder has no score.
+ * Once fixtures are read too, every "MAWPC Championships" and "NCAA Opening Round" row on a future
+ * schedule would otherwise become a team.
+ */
 export const NON_TEAM_PATTERNS = [
-  /tournament$/i,
+  /\btournament\b/i,
+  /\bchampionships?\b/i,
+  /\binvitational\b/i,
+  /\bconference\b/i,
+  /\bregional(s)?\b/i,
+  /\bplay-?in\b/i,
   /^tba$/i,
+  /^tbd$/i,
   /^opponent$/i,
-  /championship$/i,
-  /invitational$/i,
   /^bye$/i,
+  /^open$/i,
+  // Bracket placeholders: "NCAA Opening Round", "First Round", "Semifinals", "Quarterfinals".
+  /\b(opening|first|second|third)\s+round\b/i,
+  /\b(semi|quarter)-?finals?\b/i,
+  /^ncaa\b/i,
+  /^(mawpc|nwpc|cwpa|wwpa|sciac|mpsf|wcc|big west|west coast)\b/i,
 ];
 
 /**
@@ -291,6 +307,7 @@ const ALIASES = new Map(
     'concordia university irvine': 'concordia-irvine',
     cui: 'concordia-irvine',
     pomona: 'pomona-pitzer',
+    'pomona-pitzer': 'pomona-pitzer',
     'pomona pitzer': 'pomona-pitzer',
     'university of redlands': 'redlands',
     'washington and jefferson': 'washington-jefferson',
@@ -414,10 +431,16 @@ function* aliasForms(clean) {
   const uc = base.replace(/^university of california\s*[-,]?\s*/, 'uc ').trim();
   if (uc !== base) yield uc;
   // A trailing institutional word, but only where the shorter form is itself a known team.
-  const trimmed = base.replace(/\s+(university|college|academy)$/, '');
+  // The plural forms matter: Cal Lutheran prints "Pomona-Pitzer Colleges" where everyone else
+  // prints "Pomona-Pitzer", and without this that one page created a second identity.
+  const trimmed = base.replace(/\s+(universities|university|colleges|college|academy)$/, '');
   if (trimmed !== base) yield trimmed;
   const noThe = base.replace(/^the\s+/, '');
   if (noThe !== base) yield noThe;
+  // "University of La Verne" -> "la verne". A leading institutional phrase, only accepted when the
+  // remainder is itself a known team.
+  const noLeading = base.replace(/^(?:the\s+)?university of\s+/, '');
+  if (noLeading !== base) yield noLeading;
 }
 
 /**
@@ -554,3 +577,66 @@ export const ATHLETICS_SITES = {
   pepperdine: 'https://pepperdinewaves.com',
   'connecticut-college': 'https://camelathletics.com',
 };
+
+/**
+ * US state (as the schedule pages abbreviate it) to its IANA timezone.
+ *
+ * Only states that sit wholly in one zone are listed. A game in a split state — Indiana, Kentucky,
+ * Tennessee, Florida, Texas, Kansas, Nebraska, North Dakota, South Dakota, Oregon, Idaho, Michigan,
+ * Alaska — resolves to nothing, and its start time is shown as the venue's local time rather than
+ * being converted to Eastern on a guess.
+ */
+const STATE_ZONES = {
+  'America/New_York': ['ct', 'conn', 'de', 'del', 'dc', 'ga', 'ga.', 'me', 'maine', 'md', 'ma', 'mass', 'nh', 'n.h', 'nj', 'n.j', 'ny', 'n.y', 'nc', 'n.c', 'oh', 'ohio', 'pa', 'ri', 'r.i', 'sc', 's.c', 'vt', 'va', 'wv', 'w.va', 'vt.'],
+  'America/Chicago': ['al', 'ala', 'ar', 'ark', 'ia', 'iowa', 'il', 'ill', 'la', 'mn', 'minn', 'ms', 'miss', 'mo', 'ok', 'okla', 'wi', 'wis'],
+  'America/Denver': ['co', 'colo', 'mt', 'mont', 'nm', 'n.m', 'ut', 'wy', 'wyo'],
+  'America/Phoenix': ['az', 'ariz'],
+  'America/Los_Angeles': ['ca', 'calif', 'nv', 'nev', 'wa', 'wash'],
+  'Pacific/Honolulu': ['hi', 'hawaii'],
+};
+
+const ZONE_BY_STATE = new Map();
+for (const [zone, states] of Object.entries(STATE_ZONES)) {
+  for (const st of states) ZONE_BY_STATE.set(st, zone);
+}
+
+/**
+ * The timezone a venue string implies, or null.
+ *
+ * Schedule pages write the place as "Providence, R.I." or "Annapolis, MD". Only the state decides,
+ * and only when that state has a single zone. Anything else returns null, which the app renders as
+ * the venue's local time rather than claiming a conversion it cannot make.
+ */
+export function zoneForVenue(venue) {
+  if (!venue) return null;
+  const parts = String(venue).split(/[·,]/).map((p) => p.trim()).filter(Boolean);
+  for (const part of parts.reverse()) {
+    const key = part.toLowerCase().replace(/\.$/, '').replace(/\s+/g, ' ');
+    const hit = ZONE_BY_STATE.get(key) ?? ZONE_BY_STATE.get(key.replace(/\./g, ''));
+    if (hit) return hit;
+  }
+  return null;
+}
+
+/** The timezone a watched school plays its home games in. */
+export const SCHOOL_ZONES = {
+  liu: 'America/New_York',
+  harvard: 'America/New_York',
+  princeton: 'America/New_York',
+  mit: 'America/New_York',
+  brown: 'America/New_York',
+  iona: 'America/New_York',
+  wagner: 'America/New_York',
+  fordham: 'America/New_York',
+  bucknell: 'America/New_York',
+  navy: 'America/New_York',
+  'mount-st-marys': 'America/New_York',
+  'george-washington': 'America/New_York',
+  // Colorado Springs: Mountain time, not Eastern.
+  'air-force': 'America/Denver',
+  mercyhurst: 'America/New_York',
+};
+
+export function zoneForSchool(slug) {
+  return SCHOOL_ZONES[slug] ?? null;
+}

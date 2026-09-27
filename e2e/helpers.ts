@@ -1,66 +1,23 @@
 import { expect, type Page } from '@playwright/test';
 
 /**
- * Put the personal database into a known state, then reload so the app boots from it.
+ * Put the personal database into a known state before the app boots.
  *
- * The app owns the database schema, so this lets it create the stores first and only then writes
- * into `kv` — where lesson progress, lesson packs and archived editions live. Creating the
- * database from the test instead would leave it at the right version with the wrong stores.
+ * The values are handed to the app's own dev-fixtures path (`?fixtures=1`, localhost only), which
+ * writes them through the app's connection before any store reads. Writing from the test's own
+ * IndexedDB connection instead raced the app's first writes and could hang behind them.
  */
 export async function seedKv(page: Page, url: string, values: Record<string, unknown>): Promise<void> {
+  await page.addInitScript((vals) => {
+    try {
+      // Only on the first load. The script runs again on every navigation, and re-seeding would
+      // undo whatever the test has done since.
+      if (!sessionStorage.getItem('fixtures:kv:done')) sessionStorage.setItem('fixtures:kv', JSON.stringify(vals));
+    } catch {
+      /* storage disabled: the test will simply see a default profile */
+    }
+  }, values);
   await page.goto(url);
-  // Wait until the stores have finished their own first write. The lesson store creates a progress
-  // record on first run, and seeding before that lands would be overwritten a moment later.
-  await page.waitForFunction(
-    () =>
-      new Promise<boolean>((resolve) => {
-        const r = indexedDB.open('brooklyn-personal');
-        r.onerror = () => resolve(false);
-        r.onsuccess = () => {
-          const db = r.result;
-          if (!db.objectStoreNames.contains('kv')) { db.close(); return resolve(false); }
-          const g = db.transaction('kv').objectStore('kv').get('lessonProgress');
-          g.onsuccess = () => { db.close(); resolve(!!g.result); };
-          g.onerror = () => { db.close(); resolve(false); };
-        };
-      }),
-    null,
-    { timeout: 20_000 },
-  );
-  const write = async () =>
-    page.evaluate(async (vals) => {
-      await new Promise<void>((resolve, reject) => {
-        const open = indexedDB.open('brooklyn-personal');
-        open.onerror = () => reject(open.error);
-        open.onsuccess = () => {
-          const db = open.result;
-          const tx = db.transaction('kv', 'readwrite');
-          for (const [key, value] of Object.entries(vals as Record<string, unknown>)) {
-            tx.objectStore('kv').put({ key, value });
-          }
-          tx.oncomplete = () => { db.close(); resolve(); };
-          tx.onerror = () => reject(tx.error);
-        };
-      });
-      return new Promise<string>((resolve) => {
-        const open = indexedDB.open('brooklyn-personal');
-        open.onsuccess = () => {
-          const db = open.result;
-          const g = db.transaction('kv').objectStore('kv').get('lessonProgress');
-          g.onsuccess = () => { db.close(); resolve(JSON.stringify(g.result?.value ?? null)); };
-        };
-      });
-    }, values);
-
-  await write();
-  await page.reload();
-  // The app writes a fresh lesson-progress record on a first run, and that write can land after the
-  // seed. Writing again after the reload settles it, so the profile is the one the test asked for.
-  if ('lessonProgress' in values) {
-    await page.waitForTimeout(250);
-    await write();
-    await page.reload();
-  }
 }
 
 /** A profile whose lesson sequence started on the epoch Monday, like Paolo's. */

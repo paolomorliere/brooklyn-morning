@@ -12,6 +12,9 @@ const openMorning = async (page: Page, at = SUNDAY, extra: Record<string, unknow
   await page.clock.setFixedTime(new Date(at));
   await seedKv(page, '/?fixtures=1&seed=none#/home', { ...STARTED_WEEK_1, ...extra });
   await lessonsReady(page);
+  // The card renders before the lesson packs arrive, so wait for a real day rather than the
+  // "not downloaded yet" placeholder.
+  await expect(page.locator('section.lesson').first().locator('.eyebrow').first()).toContainText(/Day \d of 7/, { timeout: 20_000 });
 };
 
 test('Sunday shows day 7 and leads straight to the 20-question quiz', async ({ page }) => {
@@ -78,9 +81,28 @@ test('answers survive leaving the screen and reloading the app', async ({ page }
   await seedKv(page, `/?fixtures=1&seed=none#/quiz/${WEEK_START}`, STARTED_WEEK_1);
   await expect(page.getByRole('heading', { name: 'Weekly quiz' })).toBeVisible({ timeout: 20_000 });
   await page.getByRole('radio').nth(2).click();
+  await expect(page.getByRole('radio').nth(2)).toHaveAttribute('aria-checked', 'true');
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByRole('radio').nth(1).click();
-  await page.waitForTimeout(300);
+  await expect(page.getByRole('radio').nth(1)).toHaveAttribute('aria-checked', 'true');
+  // Wait for the draft to reach storage rather than guessing at how long that takes.
+  await page.waitForFunction(
+    () =>
+      new Promise<boolean>((resolve) => {
+        const r = indexedDB.open('brooklyn-personal');
+        r.onsuccess = () => {
+          const db = r.result;
+          const g = db.transaction('kv').objectStore('kv').get('lessonProgress');
+          g.onsuccess = () => {
+            db.close();
+            const drafts = (g.result?.value as { quizDrafts?: { answers: (number | null)[] }[] })?.quizDrafts ?? [];
+            resolve(drafts.some((d) => d.answers.filter((a) => a !== null).length === 2));
+          };
+        };
+      }),
+    null,
+    { timeout: 10_000 },
+  );
 
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Weekly quiz' })).toBeVisible({ timeout: 20_000 });

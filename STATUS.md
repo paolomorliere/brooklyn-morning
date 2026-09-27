@@ -61,6 +61,36 @@ Continuation file. Read this first when resuming. Spec: `SPEC.md`. Rules: `CLAUD
 - Actions cron can be delayed; scheduled workflows pause after 60 days of repo inactivity (daily commits should count; re-enable note in install guide).
 - No background refresh on iPhone; edition fetched on open.
 
+## Fixes round (2026-09-27)
+Seven reported problems, each traced to a cause and fixed there rather than papered over.
+
+### The three that hid existing content
+- **No Sunday quiz.** The eight lesson packs were first published on 19 September *without* quizzes; the quizzes were added on the 20th. `lessonActions.sync()` skipped any week it already held, so the phone kept the quiz-less copy for good and no amount of syncing could fix it. Packs now carry a content `version` (sha1 of the pack), the index carries it too, and a changed version re-downloads. `build-lessons.mjs` now **fails** if a week has no quiz, and a quiz must be exactly 20 questions. A Sunday whose stored pack has no quiz says so and offers "Check for it now" instead of silently omitting it. Lesson text itself never changed, so nothing was lost.
+- **Past editions had no lesson.** The lesson section was rendered only when `viewingDate` was null — archived editions simply omitted it, and `Edition.lessonRef` existed in the type but was never written. An archived date now resolves through the fixed date→week/day mapping, and the resolved `{lessonId, packVersion}` is pinned into the stored edition the first time it is read, so a later content edit cannot rewrite what an old edition contained. A Sunday archive links to that week's quiz and to all seven lessons.
+- **Library opened the editor.** `LibraryEntry` held only metadata and the row tap called `setEditing`. Entries now carry a `ref` (and a `snapshot` for stories); tapping reads at `#/read/:id` and Edit is its own action. A one-time additive repair resolves existing entries — lessons by title, falling back to the "Week N · Day D" note; stories by URL against the stored editions — and marks what it cannot recover with the reason and the original link. Nothing is deleted, renamed or recreated.
+
+### Water polo
+- **Concordia duplicate.** Harvard prints "Concordia" where every other school prints "Concordia Irvine"; no alias covered the bare form, so one game arrived as two. Both names link to **cuigoldeneagles.com**, which is what settles it. New `scripts/lib/polo-identity.mjs` merges two identities only when they share a verified athletics hostname **and** one printed name is the start of the other — so the real mislinks in this data (`uc-santa-barbara` → gostanford.com, `uc-san-diego` → usdtoreros.com) are correctly left alone. Applied before any game is bucketed, matched or de-duplicated, and `repairIdentities()` rewrites what was already published, collapsing duplicates only inside buckets the rewrite touched. `pomona-pitzer-colleges` was the same class of bug (a trailing plural "Colleges" was not trimmed) and is fixed in the alias table. The Concordia/Harvard game is a regression test.
+- **Manual refresh.** The old watcher lived in memory, so leaving the screen lost it, and it had no success, failure or timestamp. The state now lives in `kv` and survives navigation and restarts. Queued / running / failed come from GitHub's **public, unauthenticated, CORS-enabled** runs API (60 requests an hour, no key, no account, cannot bill); success comes only from the published file being downloaded, validated, saved and displayed. Distinguishes "new results or schedule changes found" from "no changes found", never reports all 13 schools when only some were read, keeps the last successful completion time in New York on screen, offers Retry, and cannot start a second overlapping watch. Cache-busted reads are `NetworkOnly` in the service worker so a refresh can never show a stale copy.
+- **Fixtures.** The parser dropped every row without a score. It now emits `scheduled` / `postponed` / `cancelled` rows too, and a game is one event that changes `status` — the same id before and after it is played, so a final moves it out of Upcoming and into Results without duplication. "This weekend" is Friday–Sunday of the current Mon–Sun New York week and rolls over by itself. An elapsed start time reads "Awaiting result" and is never treated as a result. Team pages gained a Results / Schedule switch.
+- **Time zones.** A start time is converted to ET only where a source makes the zone certain — the host school's own zone for a home game, or the venue's state where that state has a single zone. Otherwise the printed time is labelled "local", and no time at all reads "Time TBD". Air Force is Mountain, not Eastern.
+- **Bracket placeholders.** Reading fixtures surfaced "MAWPC Championships", "NCAA Opening Round" and the like as teams; `NON_TEAM_PATTERNS` now covers championships, tournaments, conferences, rounds and semifinals.
+- **Feed size.** 752 games would have been 689 KB. Null/false/zero fields and a source reading that merely repeats the result are left out, taking it to 540 KB; `conflict` and `hosted` stay explicit because their null is a statement.
+
+### Found while fixing
+- `lessonForDate` used the device's local date, so opening the app abroad could move Sunday. Week boundaries are now decided in America/New_York throughout.
+- The quiz screen reset its answers whenever the derived week changed, which on first render happens once — an answer tapped in that window was discarded. It now loads a week exactly once.
+- Lesson packs were fetched one after another with no retry; they are now fetched together with one retry each, which also made the first open markedly faster.
+- Editing a Library entry before its packs had downloaded left it with no content reference; `update()` now retries the resolution.
+
+### Tests
+265 Vitest (was 242) · 279 Playwright across 320/390/430 (was 183). New: `tests/lessons-week.test.ts`, `tests/library-repair.test.ts`, `tests/polo-identity.test.ts`, `tests/polo-fixtures.test.ts`, `e2e/lessons.spec.ts`, `e2e/library.spec.ts`, `e2e/fixtures.spec.ts`.
+
+### Known limits
+- Four junior-college opponents of opponents have no crest and show initials.
+- The published feed is 540 KB and the precache 974 KB. Both are fetched once and cached; the feed re-downloads only when its build changes.
+- GitHub's unauthenticated API allows 60 requests an hour. A manual watch uses about 24. If it is ever rate-limited the watcher falls back to watching the published file, which is what decides success anyway.
+
 ## Water polo round 2 (2026-09-23)
 Team screens, conference tables, the CWPA national poll, a manual check, and a wider schedule. The round-1 screen below is unchanged in what it claims; everything here is added on top of it.
 

@@ -109,9 +109,31 @@ The workflow asks for every one of those times under both daylight-saving offset
 
 GitHub runs scheduled workflows on a best-effort basis and has started this repository's runs 3.5–6 hours late, so a check will often happen later in the day than the time above. The guard has an eight-hour look-back for exactly that reason: the Sunday 10 p.m. check is asked for by a Monday 02:00 UTC cron, and a run that starts after midnight in New York still does the Sunday job instead of being thrown away. Nothing is lost either way — every run re-reads all thirteen complete 2026 schedules, every opponent's season and both conference schedules, so weekday games, late postings and corrections are all picked up by the next check and filed under **the date they were played**.
 
-**Check sources now** opens the workflow's page on GitHub, where one tap on **Run workflow** starts the real job; the screen then watches the published file every 20 seconds for up to 12 minutes and says what it finds — new results, nothing new, partial coverage, or that the run may still be going. It takes one tap on GitHub's page because a true one-tap refresh would need a server holding a token, which the zero-cost rule rules out. **No credential of any kind is in the app**, and nothing on the screen ever contacts a school or the CWPA.
+### Refreshing by hand
+**Refresh scores & fixtures**, at the top of the Water Polo screen, opens the workflow's page on GitHub where one tap on **Run workflow** starts the real job. The screen then reports what it actually knows:
+
+| What you see | What it means |
+|---|---|
+| Waiting to start | Asked for; GitHub has not begun it yet |
+| Checking official schedules… | The job is running |
+| Refresh complete — new results or schedule changes found | Downloaded, validated, saved and on screen |
+| Refresh complete — no changes found | Same, and nothing had changed |
+| Refresh complete — some sources could not be read | Saved, and it names the schools it could not reach |
+| Refresh failed | The run failed; your saved data is untouched, with a Retry |
+| Still waiting after 12 minutes | The run may still be going; nothing is lost |
+
+The last successful completion time stays on screen in New York time after the banner is dismissed, and is kept separate from the last attempt. Leaving the screen and coming back recovers the real state. A second tap re-opens the page but never starts a second job.
+
+It takes one tap on GitHub's page because a true one-tap refresh would need a server holding a token, which the zero-cost rule rules out. **No credential of any kind is in the app.** The screen reads two things and nothing else: its own published results file, and GitHub's public run status (unauthenticated, 60 requests an hour, no key, no account). It never contacts a school or the CWPA.
 
 The small **refresh icon** in the header re-downloads the published results file only.
+
+### This weekend, and team schedules
+The main screen has a **This weekend** section: Friday to Sunday of the current Monday–Sunday week in New York, so on Monday it is the weekend still to come and it rolls over by itself the following Monday. Team pages have a **Results / Schedule** switch; Schedule lists every remaining 2026 game, weekdays included, earliest first.
+
+A scheduled game and the result it becomes are **one event**. When a final is published it leaves Upcoming and appears once in Results. A fixture is never removed because its start time has passed — until a score is published it reads **Awaiting result**.
+
+Start times are shown in Eastern **only where a source makes the zone certain** — a home game on the host's own page, or a venue whose state has a single timezone. Otherwise the printed time is labelled *local*, and a game with no published time says **Time TBD**. Nothing is converted on a guess.
 
 Maintenance: if a school redesigns its site, `node scripts/build-waterpolo.mjs --dry-run` will report that source as failed while the other twelve keep working. The registry of URLs and team aliases is `scripts/waterpolo.config.mjs`.
 

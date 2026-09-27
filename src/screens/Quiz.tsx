@@ -43,29 +43,33 @@ export function Quiz() {
   const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [i, setI] = useState(0);
   const [phase, setPhase] = useState<'answering' | 'review' | 'done'>('answering');
-  const [loaded, setLoaded] = useState(false);
+  /** The week the answers on screen belong to. Null until the first load has happened. */
+  const [loadedWeek, setLoadedWeek] = useState<string | null>(null);
 
-  // Restore whatever was saved for this week: a submitted result opens on the result, an
-  // unsubmitted draft reopens where it was left.
+  /**
+   * Load a week once, and only once.
+   *
+   * The week is derived from the stored progress, so on the first render it is still the fallback
+   * and changes a moment later. Resetting on every change of that value threw away an answer tapped
+   * in the meantime; keying on the week actually loaded makes the reset happen exactly when the
+   * quiz on screen is a different one.
+   */
   useEffect(() => {
-    if (!ls.ready || loaded) return;
+    if (!ls.ready || loadedWeek === weekStart) return;
+    setI(0);
     if (stored) {
       setAnswers(stored.answers);
       setPhase('done');
     } else if (draft) {
       setAnswers(draft.answers);
+      setPhase('answering');
       setI(Math.max(0, draft.answers.findIndex((a) => a === null)));
+    } else {
+      setAnswers([]);
+      setPhase('answering');
     }
-    setLoaded(true);
-  }, [ls.ready, loaded, stored, draft]);
-
-  // Reset when the URL points at a different week.
-  useEffect(() => {
-    setLoaded(false);
-    setI(0);
-    setPhase('answering');
-    setAnswers([]);
-  }, [weekStart]);
+    setLoadedWeek(weekStart);
+  }, [ls.ready, weekStart, loadedWeek, stored, draft]);
 
   if (!ls.ready) return <main class="screen" />;
 
@@ -123,6 +127,7 @@ export function Quiz() {
     setAnswers([]);
     setI(0);
     setPhase('answering');
+    setLoadedWeek(weekStart); // already loaded; do not let the loader put the old result back
     void lessonActions.clearQuizDraft(weekStart);
   };
 

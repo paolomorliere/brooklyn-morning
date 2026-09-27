@@ -11,3 +11,4 @@ export function toFeedGames(games: InternalGame[]): import('../../src/types').Po
 export function fromFeedGames(feedGames: import('../../src/types').PoloGame[]): InternalGame[];
 export function buildTeams(games: import('../../src/types').PoloGame[], names: Map<string, string>, logos: Map<string, string>): Record<string, import('../../src/types').PoloTeam>;
 export function involvesWatched(game: { home: { team: string }; away: { team: string } }): boolean;
+export function repairIdentities(games: InternalGame[], canonical: Map<string, string>, season?: number): { games: InternalGame[]; rewritten: number; collapsed: number };

@@ -4,8 +4,13 @@ import type { PoloGame } from '@/types';
 import { navigate, useRouteParam } from '@/ui/router';
 import { onResume } from '@/state/store';
 import { waterPoloActions, waterPoloStore } from '@/state/waterpolo';
-import { formatDayHeading, formatRecord, groupByDate, recordOf } from '@/lib/polo';
-import { GameRow, GameSheet, TeamCrest } from './WaterPolo';
+import { formatDayHeading, formatRecord, groupByDate, groupUpcoming, isFinal, recordOf, scheduleFor } from '@/lib/polo';
+import { FixtureRow, GameRow, GameSheet, TeamCrest } from './WaterPolo';
+import { nyDate } from '@/lib/lessons';
+
+/** Which half of a team's season is on screen. Kept per team so Back returns to the same view. */
+type TeamView = 'results' | 'schedule';
+const VIEW_KEY = 'team:view';
 
 /**
  * One team's 2026 season: its record, its official pages, and every completed game it played.
@@ -17,8 +22,12 @@ export function TeamDetail() {
   const slug = useRouteParam();
   const { feed, ready, refreshing } = waterPoloStore.use();
   const [open, setOpen] = useState<PoloGame | null>(null);
+  const [view, setView] = useState<TeamView>(() => (sessionStorage.getItem(VIEW_KEY) === 'schedule' ? 'schedule' : 'results'));
 
   useEffect(() => onResume(() => void waterPoloActions.refresh(false), 60 * 60_000), []);
+  useEffect(() => {
+    try { sessionStorage.setItem(VIEW_KEY, view); } catch { /* storage disabled; the view just does not persist */ }
+  }, [view]);
   useEffect(() => {
     setOpen(null);
     // A hash change does not reset the scroll position, so without this a team opened from halfway
@@ -32,9 +41,15 @@ export function TeamDetail() {
     [feed, slug],
   );
   // The record is computed from this team's own completed games and from nothing else — no filter
-  // on any other screen can change it.
+  // on any other screen can change it, and a fixture never counts toward it.
   const record = useMemo(() => (slug ? recordOf(games, slug) : null), [games, slug]);
-  const days = useMemo(() => groupByDate(games), [games]);
+  const days = useMemo(() => groupByDate(games.filter(isFinal)), [games]);
+  // Everything still to play, from today onward in New York, earliest first.
+  const fixtures = useMemo(
+    () => (slug ? groupUpcoming(scheduleFor(feed?.games ?? [], slug, nyDate())) : []),
+    [feed, slug],
+  );
+  const fixtureCount = fixtures.reduce((n, d) => n + d.games.length, 0);
 
   const partial = team?.coverage === 'partial';
   const name = team?.name ?? slug ?? 'Team';
@@ -142,32 +157,82 @@ export function TeamDetail() {
             )}
           </ul>
 
-          {days.length === 0 && (
+          <div class="chip-row polo-chip-row polo-views" role="group" aria-label="Results or schedule">
+            <button class="chip" aria-pressed={view === 'results'} onClick={() => setView('results')}>
+              Results{record ? ` · ${record.played}` : ''}
+            </button>
+            <button class="chip" aria-pressed={view === 'schedule'} onClick={() => setView('schedule')}>
+              Schedule{fixtureCount ? ` · ${fixtureCount}` : ''}
+            </button>
+          </div>
+
+          {view === 'results' && days.length === 0 && (
             <div class="empty">
               <h3>No completed games yet</h3>
               <p>Results will appear here as they are played.</p>
             </div>
           )}
 
-          {days.map((d) => (
-            <section key={d.date} aria-labelledby={`t-${d.date}`}>
-              <div class="section-title">
-                <h2 id={`t-${d.date}`}>{formatDayHeading(d.date)}</h2>
-                <span class="count">{d.games.length}</span>
-              </div>
-              <ul class="polo-list">
-                {d.games.map((g) => (
-                  <GameRow
-                    key={g.id}
-                    game={g}
-                    teams={feed?.teams ?? {}}
-                    onOpen={() => setOpen(g)}
-                    onTeam={(s) => s !== slug && navigate('team', s)}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))}
+          {view === 'results' &&
+            days.map((d) => (
+              <section key={d.date} aria-labelledby={`t-${d.date}`}>
+                <div class="section-title">
+                  <h2 id={`t-${d.date}`}>{formatDayHeading(d.date)}</h2>
+                  <span class="count">{d.games.length}</span>
+                </div>
+                <ul class="polo-list">
+                  {d.games.map((g) => (
+                    <GameRow
+                      key={g.id}
+                      game={g}
+                      teams={feed?.teams ?? {}}
+                      onOpen={() => setOpen(g)}
+                      onTeam={(s) => s !== slug && navigate('team', s)}
+                    />
+                  ))}
+                </ul>
+              </section>
+            ))}
+
+          {view === 'schedule' && (
+            <>
+              <p class="small faint polo-team-note">
+                Every remaining {feed?.season ?? 2026} game, weekdays included, earliest first. A start time is shown in
+                New York only where a source states the zone; otherwise it is the venue&rsquo;s local time, and a game
+                with no published time says so.
+              </p>
+              {fixtureCount === 0 ? (
+                <div class="empty">
+                  <h3>Nothing left on the schedule</h3>
+                  <p>
+                    {partial
+                      ? 'This school’s own page could not be read, so its remaining fixtures are not known.'
+                      : 'No further 2026 game is listed for this team.'}
+                  </p>
+                </div>
+              ) : (
+                fixtures.map((d) => (
+                  <section key={d.date} aria-labelledby={`s-${d.date}`}>
+                    <div class="section-title">
+                      <h2 id={`s-${d.date}`}>{formatDayHeading(d.date)}</h2>
+                      <span class="count">{d.games.length}</span>
+                    </div>
+                    <ul class="polo-list">
+                      {d.games.map((g) => (
+                        <FixtureRow
+                          key={g.id}
+                          game={g}
+                          teams={feed?.teams ?? {}}
+                          onOpen={() => setOpen(g)}
+                          onTeam={(s) => s !== slug && navigate('team', s)}
+                        />
+                      ))}
+                    </ul>
+                  </section>
+                ))
+              )}
+            </>
+          )}
         </>
       )}
 

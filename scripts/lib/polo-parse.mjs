@@ -20,6 +20,16 @@ const RESULT_RE = /\b([WLT])\s*,?\s*(\d{1,3})\s*[-–]\s*(\d{1,3})\s*(\(?\s*\d?\
 
 /** Words that mean "this is not a final score", checked before we trust any number on the row. */
 const NOT_FINAL = /\b(postponed|cancell?ed|ppd|suspended|forfeit|in progress|live|halftime)\b/i;
+const POSTPONED = /\b(postponed|ppd|suspended)\b/i;
+const CANCELLED = /\b(cancell?ed|forfeit)\b/i;
+
+/** What the page says has happened to this game. A score is the only thing that makes it final. */
+function statusOf(blob, result) {
+  if (result) return 'final';
+  if (POSTPONED.test(blob)) return 'postponed';
+  if (CANCELLED.test(blob)) return 'cancelled';
+  return 'scheduled';
+}
 
 const clean = (s) => String(s ?? '').replace(/\u00a0/g, ' ').replace(/\s+/g, ' ').trim();
 /**
@@ -228,8 +238,10 @@ export function parseClassic(html, ctx) {
     if (gameId && seenGameIds.has(gameId)) continue; // duplicate markup for the same game
     if (gameId) seenGameIds.add(gameId);
 
-    const result = parseResult(text(li.querySelector('.sidearm-schedule-game-result')));
-    if (!result) continue;
+    const resultText = text(li.querySelector('.sidearm-schedule-game-result'));
+    const statusText = text(li.querySelector('.sidearm-schedule-game-status'));
+    const result = parseResult(resultText);
+    const status = statusOf(`${resultText} ${statusText}`, result);
 
     const oppRaw =
       text(li.querySelector('.sidearm-schedule-game-opponent-name a')) ||
@@ -251,10 +263,11 @@ export function parseClassic(html, ctx) {
       date: when.date,
       time: when.time,
       opponentRaw: normalizeTeamName(oppRaw),
-      us: result.us,
-      them: result.them,
-      outcome: result.outcome,
-      ot: result.ot,
+      status,
+      us: result?.us ?? null,
+      them: result?.them ?? null,
+      outcome: result?.outcome ?? null,
+      ot: result?.ot ?? null,
       neutral,
       away,
       exhibition: isExhibition(li),
@@ -281,8 +294,10 @@ export function parseNextgen(html, ctx) {
   const rows = [];
 
   for (const card of document.querySelectorAll(NG('root'))) {
-    const result = parseResult(text(card.querySelector(NG('header-game-team-score'))));
-    if (!result) continue;
+    const scoreText = text(card.querySelector(NG('header-game-team-score')));
+    const statusText = text(card.querySelector(NG('header-game-status'))) || text(card.querySelector('.s-game-card__header__status'));
+    const result = parseResult(scoreText);
+    const status = statusOf(`${scoreText} ${statusText}`, result);
 
     const oppRaw = text(card.querySelector(NG('header-team-opponent-link')));
     if (!oppRaw || isNonTeam(oppRaw)) continue;
@@ -305,10 +320,11 @@ export function parseNextgen(html, ctx) {
       date: when.date,
       time,
       opponentRaw: normalizeTeamName(oppRaw),
-      us: result.us,
-      them: result.them,
-      outcome: result.outcome,
-      ot: result.ot,
+      status,
+      us: result?.us ?? null,
+      them: result?.them ?? null,
+      outcome: result?.outcome ?? null,
+      ot: result?.ot ?? null,
       // This markup distinguishes home from away but not neutral sites; the merge fills that in
       // when a classic source for the same game knows better.
       neutral: null,

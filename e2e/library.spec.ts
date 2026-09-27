@@ -100,6 +100,11 @@ test('a story whose edition has expired says so and still links out', async ({ p
 test('Edit is a separate action and does not break the content link', async ({ page }) => {
   await openLibrary(page);
   const row = page.locator('li.task', { hasText: 'What a share actually is' });
+  // Read it first, so the repair that gives it a content reference has demonstrably happened.
+  await row.locator('.task-body').click();
+  await expect(page.locator('.lesson-body')).toContainText('Explanation');
+  await page.getByRole('button', { name: 'Back' }).click();
+  await expect(page.locator('li.task').first()).toBeVisible();
   await row.getByRole('button', { name: /^Edit/ }).click();
 
   const sheet = page.locator('.sheet');

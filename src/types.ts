@@ -283,9 +283,9 @@ export interface PoloSource {
   url: string;
   verifiedAt: string;
   /** Official recap or box score for this game, when the school links one. */
-  detailUrl: string | null;
-  /** What this page said, verbatim, keyed by team slug. */
-  reading: Record<string, number> | null;
+  detailUrl?: string | null;
+  /** What this page said, verbatim, keyed by team slug. Absent when it matched the result shown. */
+  reading?: Record<string, number> | null;
 }
 
 export interface PoloConflict {
@@ -298,33 +298,49 @@ export interface PoloConflict {
   resolved?: { evidence: string; note: string };
 }
 
+/**
+ * What the sources say has happened to a game.
+ * `final` is reached only by a published score — never because the start time has passed.
+ */
+export type PoloStatus = 'final' | 'scheduled' | 'postponed' | 'cancelled';
+
 export interface PoloGame {
   id: string;
-  /** Date the game was played, not the date it was discovered. */
+  /** Date the game was played or is due, not the date it was discovered. */
   date: string; // YYYY-MM-DD
-  time: string | null; // HH:MM, 24-hour, New York
+  /** Start time as the source printed it, 24-hour. Read together with `timeZone`. */
+  time: string | null;
+  /**
+   * The timezone `time` is printed in, when a source makes it certain — the host school's own zone
+   * for a home game, or the venue's state. Null means no source stated one, and the app shows the
+   * time as the venue's local time rather than calling it Eastern.
+   */
+  timeZone?: string | null;
+  status: PoloStatus;
   home: { team: string; score: number | null };
   away: { team: string; score: number | null };
   /** True when nobody hosted; the two sides are then ordered by slug, not by hosting. */
-  neutral: boolean;
+  neutral?: boolean;
   /** Slug of the school that hosted, or null at a neutral site. */
   hosted: string | null;
-  ot: string | null; // "OT" | "2OT"
-  exhibition: boolean;
-  tournament: string | null;
-  venue: string | null;
+  ot?: string | null; // "OT" | "2OT"
+  exhibition?: boolean;
+  tournament?: string | null;
+  venue?: string | null;
+  /** Which meeting of this pair on this date. Absent means the first. */
+  slot?: number;
   /**
    * Set only when this exact fixture appears on the CWPA's published conference schedule.
    * Two teams sharing a conference is never enough, so an unlisted game stays null.
    */
-  conference: 'MAWPC' | 'NWPC' | null;
+  conference?: 'MAWPC' | 'NWPC' | null;
   /** The CWPA page that lists this fixture. */
-  conferenceSource: string | null;
+  conferenceSource?: string | null;
   /** What the school itself printed on the row ("CWPA", "MAWPC"). Corroboration, not proof. */
-  conferenceMarker: string | null;
+  conferenceMarker?: string | null;
   sources: PoloSource[];
   conflict: PoloConflict | null;
-  firstSeenAt: string | null;
+  firstSeenAt?: string | null;
 }
 
 export interface PoloSourceStatus {

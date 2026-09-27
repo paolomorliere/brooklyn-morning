@@ -564,3 +564,118 @@
     height: 36px;
   }
 }
+
+/* ---------- manual refresh ---------- */
+.polo-refresh {
+  margin-top: 12px;
+}
+.polo-refresh .polo-actions {
+  margin-top: 0;
+}
+.polo-last {
+  margin-top: 6px;
+}
+.polo-watch {
+  margin-top: 10px;
+  align-items: flex-start;
+  gap: 8px;
+}
+.polo-watch svg {
+  flex: none;
+  margin-top: 1px;
+}
+.polo-watch--ok svg {
+  color: var(--sage-deep);
+}
+.polo-watch--ok {
+  border-color: color-mix(in srgb, var(--sage-deep) 40%, var(--line));
+  background: color-mix(in srgb, var(--sage-soft) 45%, var(--paper));
+}
+.polo-watch--warn svg {
+  color: var(--terracotta);
+}
+.polo-watch--bad svg {
+  color: var(--danger);
+}
+.polo-watch--busy svg {
+  color: var(--ink-muted);
+}
+.polo-watch-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  flex: none;
+  margin: -6px -6px 0 0;
+}
+.polo-retry {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: var(--fs-14);
+}
+
+/* ---------- this weekend ---------- */
+.polo-weekend {
+  margin-top: 20px;
+}
+.polo-weekend-range {
+  margin: -4px 0 10px;
+}
+.polo-weekend-empty {
+  margin: 4px 0 0;
+}
+.polo-weekend-day {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 14px 0 6px;
+}
+.polo-row--fixture {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+}
+.polo-when {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  line-height: 1.15;
+  pointer-events: none;
+}
+.polo-when b {
+  font-variant-numeric: tabular-nums;
+  font-size: var(--fs-14);
+  font-weight: 600;
+  color: var(--espresso);
+  white-space: nowrap;
+}
+.polo-when em {
+  font-style: normal;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--ink-faint);
+  text-transform: uppercase;
+}
+.polo-when--tbd b {
+  color: var(--ink-muted);
+}
+.polo-when--local em {
+  color: var(--terracotta);
+}
+.polo-status {
+  grid-column: 1 / -1;
+  justify-self: center;
+  margin-top: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+  pointer-events: none;
+}
+
+.polo-views {
+  margin-top: 14px;
+}

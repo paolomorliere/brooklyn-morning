@@ -31,6 +31,8 @@ test('renders the edition with honest labels and a lesson', async ({ page }) => 
 });
 
 test('before the first Monday the lesson card says when it starts; Sunday shows the quiz and scores it', async ({ page }) => {
+  // Twenty answered questions, each waiting for its own save, needs more than the default budget.
+  test.setTimeout(90_000);
   await page.clock.setFixedTime(new Date(2026, 8, 20, 8, 0, 0)); // Sunday before the epoch
   await fresh(page);
   await expect(page.locator('section.lesson').getByText('Starts Monday')).toBeVisible({ timeout: 15_000 });
@@ -38,12 +40,20 @@ test('before the first Monday the lesson card says when it starts; Sunday shows 
   await page.reload();
   const lesson = page.locator('section.lesson');
   await expect(lesson.getByText(/Day 7 of 7/)).toBeVisible({ timeout: 15_000 });
-  await lesson.getByRole('button', { name: 'Start the quiz' }).click();
-  await expect(page).toHaveURL(/#\/quiz/);
+  // The quiz ships inside the week's pack, so wait for the pack to have arrived before tapping.
+  const start = lesson.getByRole('button', { name: /Take this week's quiz — 20 questions/ });
+  await expect(start).toBeVisible({ timeout: 20_000 });
+  await start.click();
+  await expect(page).toHaveURL(/#\/quiz/, { timeout: 15_000 });
+  await expect(page.getByRole('radio').first()).toBeVisible({ timeout: 20_000 });
   for (let i = 0; i < 20; i++) {
     await page.getByRole('radio').first().click();
-    await page.getByRole('button', { name: i === 19 ? 'See my score' : 'Next' }).click();
+    await expect(page.getByRole('radio').first()).toHaveAttribute('aria-checked', 'true');
+    await page.getByRole('button', { name: i === 19 ? 'Review answers' : 'Next' }).click();
   }
+  // Nothing is marked until it is submitted, and every answer can still be changed here.
+  await expect(page.getByRole('heading', { name: 'Check your answers' })).toBeVisible();
+  await page.getByRole('button', { name: /^Submit/ }).click();
   await expect(page.getByRole('heading', { name: /\d+ \/ 20/ })).toBeVisible();
   await expect(page.locator('li.card')).toHaveCount(20);
   await page.getByRole('button', { name: 'Back to Morning', exact: true }).click();

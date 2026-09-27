@@ -1,7 +1,7 @@
 import type { LessonProgress, QuizDraft, QuizResult } from '@/types';
 import { createStore } from './store';
 import { getLessonProgress, kvGet, kvSet, setLessonProgress } from '@/db/personal';
-import { LESSONS_EPOCH, lessonForDate, startMondayFor, validatePack, type LessonIndex, type LessonPack, type TodayLesson } from '@/lib/lessons';
+import { LESSONS_EPOCH, lessonForDate, startMondayFor, validatePack, type LessonIndex, type LessonIndexEntry, type LessonPack, type TodayLesson } from '@/lib/lessons';
 
 interface LessonState {
   packs: LessonPack[];
@@ -49,28 +49,45 @@ export const lessonActions = {
       const have = new Map(lessonStore.get().packs.map((p) => [p.week, p]));
       const packs = [...lessonStore.get().packs];
       const stale: number[] = [];
-      for (const entry of idx.weeks) {
-        const mine = have.get(entry.week);
-        // An index entry with no version is an older publication: keep what we have rather than
-        // re-downloading the same bytes on every sync.
-        const upToDate = mine && (!entry.version || mine.version === entry.version);
-        if (upToDate) continue;
-        try {
-          const pr = await fetch(`${base()}data/lessons/${entry.file}?v=${entry.version ?? ''}`, { signal: AbortSignal.timeout(15_000) });
-          if (!pr.ok) throw new Error(`HTTP ${pr.status}`);
-          const pack: unknown = await pr.json();
-          const problems = validatePack(pack);
-          if (problems.length) throw new Error(problems[0]);
-          await kvSet(`lessons:week-${entry.week}`, pack);
-          const at = packs.findIndex((p) => p.week === entry.week);
-          if (at >= 0) packs[at] = pack as LessonPack;
-          else packs.push(pack as LessonPack);
-        } catch (e) {
-          // Keep the copy we have; say which week is behind rather than pretending it is current.
-          console.warn('Lesson pack', entry.file, 'could not be updated:', (e as Error).message);
-          if (mine) stale.push(entry.week);
+      // An index entry with no version is an older publication: keep what we have rather than
+      // re-downloading the same bytes on every sync.
+      const wanted = idx.weeks.filter((e) => {
+        const mine = have.get(e.week);
+        return !(mine && (!e.version || mine.version === e.version));
+      });
+
+      /** One pack, with a single retry: a fetch that fails once should not leave a week stale. */
+      const fetchPack = async (entry: LessonIndexEntry): Promise<LessonPack | null> => {
+        for (let attempt = 0; attempt < 2; attempt++) {
+          try {
+            const pr = await fetch(`${base()}data/lessons/${entry.file}?v=${entry.version ?? ''}`, { signal: AbortSignal.timeout(20_000) });
+            if (!pr.ok) throw new Error(`HTTP ${pr.status}`);
+            const pack: unknown = await pr.json();
+            const problems = validatePack(pack);
+            if (problems.length) throw new Error(problems[0]);
+            return pack as LessonPack;
+          } catch (e) {
+            if (attempt === 1) console.warn('Lesson pack', entry.file, 'could not be updated:', (e as Error).message);
+          }
         }
-      }
+        return null;
+      };
+
+      // Fetched together rather than one after another: eight small files in sequence made the
+      // first open slow, and one slow file delayed every week behind it.
+      const fetched = await Promise.all(wanted.map(fetchPack));
+      wanted.forEach((entry, i) => {
+        const pack = fetched[i];
+        if (!pack) {
+          // Keep the copy we have; say which week is behind rather than pretending it is current.
+          if (have.has(entry.week)) stale.push(entry.week);
+          return;
+        }
+        const at = packs.findIndex((p) => p.week === entry.week);
+        if (at >= 0) packs[at] = pack;
+        else packs.push(pack);
+      });
+      for (const pack of fetched) if (pack) await kvSet(`lessons:week-${pack.week}`, pack);
       packs.sort((a, b) => a.week - b.week);
       await kvSet('lessons:weeks', packs.map((p) => p.week));
       patch({ packs, totalWeeksAvailable: packs.length, lastError: null, staleWeeks: stale });

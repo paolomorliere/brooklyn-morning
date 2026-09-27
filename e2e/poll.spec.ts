@@ -8,7 +8,7 @@ const openPoll = async (page: Page) => {
 test('reached from the results screen and back again', async ({ page }) => {
   await page.goto('/?fixtures=1&seed=none#/waterpolo');
   await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 15_000 });
-  await page.getByRole('button', { name: 'CWPA Top 20' }).click();
+  await page.getByRole('button', { name: 'Top 20', exact: true }).click();
   await expect(page.getByRole('heading', { name: 'CWPA Top 20' })).toBeVisible();
   // A secondary screen: Back, no tab bar.
   await expect(page.locator('.tabbar')).toHaveCount(0);

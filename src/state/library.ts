@@ -49,6 +49,9 @@ export const libraryActions = {
   async update(entry: LibraryEntry) {
     await repo.putEntry(entry);
     await reload();
+    // An entry edited before the lesson packs had finished downloading would keep no content
+    // reference at all. Trying again after the edit costs nothing and keeps it readable.
+    if (!entry.ref && !entry.contentMissing) await libraryActions.repair();
   },
   async remove(id: string) {
     await repo.deleteEntry(id);

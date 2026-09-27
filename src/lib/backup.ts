@@ -60,7 +60,16 @@ export function validateBackup(data: unknown): string[] {
 }
 
 export function summarizeBackup(b: Backup): string {
-  return `${b.tasks.length} tasks · ${b.categories.length} categories · ${b.list.length} list items · ${b.history.length} history events · ${(b.favorites ?? []).length} favorites · ${b.library.length} library entries`;
+  const quizzes = b.lessonProgress?.quizResults?.length ?? 0;
+  const drafts = b.lessonProgress?.quizDrafts?.length ?? 0;
+  return (
+    `${b.tasks.length} tasks · ${b.categories.length} categories · ${b.list.length} list items · ` +
+    `${b.history.length} history events · ${(b.favorites ?? []).length} favorites · ${b.library.length} library entries` +
+    // Saved items carry the reference that makes them readable, and lesson progress carries quiz
+    // results and any unsubmitted answers, so a restore brings all of it back.
+    (quizzes ? ` · ${quizzes} quiz ${quizzes === 1 ? 'result' : 'results'}` : '') +
+    (drafts ? ` · ${drafts} quiz in progress` : '')
+  );
 }
 
 export function backupFilename(date = new Date()): string {

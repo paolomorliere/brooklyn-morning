@@ -7,6 +7,7 @@ const game = (over: Partial<PoloGame> = {}): PoloGame => ({
   id: `g${++n}`,
   date: '2026-09-19',
   time: '14:00',
+  status: 'final',
   home: { team: 'fordham', score: 21 },
   away: { team: 'bucknell', score: 11 },
   neutral: false,

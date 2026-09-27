@@ -14,6 +14,7 @@
     "icons": "node scripts/make-icons.mjs",
     "build:waterpolo": "node scripts/build-waterpolo.mjs",
     "build:poll": "node scripts/build-poll.mjs",
+    "build:lessons": "node scripts/build-lessons.mjs",
     "logos": "node scripts/fetch-logos.mjs"
   },
   "dependencies": {

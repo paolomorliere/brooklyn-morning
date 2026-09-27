@@ -1,4 +1,5 @@
 import type { Poll, PoloFeed, PoloGame, PoloTeam, PoloSourceStatus } from '@/types';
+import { NY_TZ, mondayOfYMD, nyDate, shiftYMD } from '@/lib/lessons';
 
 /** Games that happened on one date, newest date first. */
 export interface PoloDay {
@@ -134,7 +135,7 @@ export function validFeed(value: unknown): value is PoloFeed {
  * A withheld score is not a result, so it counts for nobody.
  */
 export function counts(game: PoloGame): boolean {
-  return !game.exhibition && game.home.score !== null && game.away.score !== null;
+  return game.status === 'final' && !game.exhibition && game.home.score !== null && game.away.score !== null;
 }
 
 export interface TeamRecord {
@@ -264,4 +265,151 @@ export function validPoll(value: unknown): value is Poll {
 export function formatLongDate(date: string): string {
   const d = new Date(`${date}T12:00:00`);
   return Number.isNaN(d.getTime()) ? date : d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Fixtures
+// ---------------------------------------------------------------------------------------------
+
+/** A published result. Nothing else counts toward a record or a standings table. */
+export const isFinal = (g: PoloGame): boolean => g.status === 'final';
+
+/** Still to be played, as far as the schools say. A start time in the past does not change this. */
+export const isUpcoming = (g: PoloGame): boolean => g.status === 'scheduled';
+
+/**
+ * Has this fixture's start time passed without a result being published?
+ *
+ * Shown as "Awaiting result", never as a result. Schools post scores hours after a game, and a
+ * fixture is not removed from the list merely because the clock has gone past it.
+ */
+export function awaitingResult(g: PoloGame, now: Date = new Date()): boolean {
+  if (g.status !== 'scheduled') return false;
+  const today = nyDate(now);
+  if (g.date < today) return true;
+  if (g.date > today) return false;
+  if (!g.time) return false; // no start time to have passed
+  const nowTime = new Intl.DateTimeFormat('en-GB', { timeZone: NY_TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(now);
+  return etTimeOf(g) !== null && etTimeOf(g)! <= nowTime;
+}
+
+/**
+ * The start time expressed in New York, or null when it cannot be worked out honestly.
+ *
+ * A time is only converted when a source made its zone certain. An away game whose venue names no
+ * state keeps the time the page printed, and the screen labels it as the venue's local time rather
+ * than claiming it is Eastern.
+ */
+export function etTimeOf(g: PoloGame): string | null {
+  if (!g.time) return null;
+  const zone = g.timeZone ?? null;
+  if (!zone) return null;
+  if (zone === NY_TZ) return g.time;
+  // Build the instant that wall-clock time represents in the source zone, then read it in New York.
+  const utc = zonedTimeToUtc(g.date, g.time, zone);
+  if (!utc) return null;
+  return new Intl.DateTimeFormat('en-GB', { timeZone: NY_TZ, hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(utc);
+}
+
+/** The UTC instant of a wall-clock date and time in a named zone. */
+function zonedTimeToUtc(date: string, time: string, zone: string): Date | null {
+  const guess = new Date(`${date}T${time}:00Z`);
+  if (Number.isNaN(guess.getTime())) return null;
+  // One correction pass is enough: read the guess back in the target zone and shift by the error.
+  const seen = new Intl.DateTimeFormat('en-CA', {
+    timeZone: zone, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+  }).formatToParts(guess);
+  const get = (t: string) => seen.find((p) => p.type === t)?.value ?? '00';
+  const asSeen = Date.parse(`${get('year')}-${get('month')}-${get('day')}T${get('hour')}:${get('minute')}:00Z`);
+  return new Date(guess.getTime() + (guess.getTime() - asSeen));
+}
+
+export interface FixtureTime {
+  /** "7:00 PM", or null when no time was published. */
+  text: string | null;
+  /** 'et' when converted to New York, 'local' when the zone is unknown, 'tbd' when there is none. */
+  kind: 'et' | 'local' | 'tbd';
+  label: string;
+}
+
+/** How to show a fixture's start time without overstating what is known about it. */
+export function fixtureTime(g: PoloGame): FixtureTime {
+  if (!g.time) return { text: null, kind: 'tbd', label: 'Time TBD' };
+  const et = etTimeOf(g);
+  if (et) return { text: clockLabel(et), kind: 'et', label: `${clockLabel(et)} ET` };
+  return { text: clockLabel(g.time), kind: 'local', label: `${clockLabel(g.time)} local` };
+}
+
+/** "19:00" → "7:00 PM". */
+export function clockLabel(hhmm: string): string {
+  const [h, m] = hhmm.split(':').map(Number);
+  if (!Number.isFinite(h) || !Number.isFinite(m)) return hhmm;
+  const suffix = h >= 12 ? 'PM' : 'AM';
+  const hour = h % 12 === 0 ? 12 : h % 12;
+  return `${hour}:${String(m).padStart(2, '0')} ${suffix}`;
+}
+
+export interface Weekend {
+  /** Friday of the Monday–Sunday week containing `now`, in New York. */
+  from: string;
+  /** Sunday of that same week. */
+  to: string;
+  label: string;
+}
+
+/**
+ * The weekend of the current Monday–Sunday week in New York.
+ *
+ * On Monday that is the Friday, Saturday and Sunday still to come; during the weekend it is the
+ * same three days, so a Saturday morning still shows Saturday and Sunday. It rolls over by itself
+ * on the next Monday, because the week it is derived from does.
+ */
+export function weekendOf(now: Date | string = new Date()): Weekend {
+  const today = typeof now === 'string' ? now : nyDate(now);
+  const monday = mondayOfYMD(today);
+  const from = shiftYMD(monday, 4);
+  const to = shiftYMD(monday, 6);
+  return { from, to, label: `${formatDateChip(from)} – ${formatDateChip(to)}` };
+}
+
+/** Fixtures inside a window, earliest first; a fixture with no time sorts after those that have one. */
+export function fixturesBetween(games: PoloGame[], from: string, to: string): PoloGame[] {
+  return games
+    .filter((g) => isUpcoming(g) && g.date >= from && g.date <= to)
+    .sort(byEarliestFirst);
+}
+
+/** Every remaining fixture for one team, earliest first. */
+export function scheduleFor(games: PoloGame[], slug: string, from?: string): PoloGame[] {
+  return games
+    .filter((g) => (g.home.team === slug || g.away.team === slug) && g.status !== 'final' && (!from || g.date >= from))
+    .sort(byEarliestFirst);
+}
+
+/**
+ * Upcoming order: earliest date first, then earliest start time.
+ * A fixture whose time has not been published sorts after the ones that have, never before.
+ */
+export function byEarliestFirst(x: PoloGame, y: PoloGame): number {
+  if (x.date !== y.date) return x.date.localeCompare(y.date);
+  const a = etTimeOf(x) ?? x.time;
+  const b = etTimeOf(y) ?? y.time;
+  if (!a && !b) return x.id.localeCompare(y.id);
+  if (!a) return 1;
+  if (!b) return -1;
+  return a.localeCompare(b) || x.id.localeCompare(y.id);
+}
+
+/** Group fixtures by date, earliest day first. */
+export function groupUpcoming(games: PoloGame[]): PoloDay[] {
+  const byDate = new Map<string, PoloGame[]>();
+  for (const g of games) {
+    const list = byDate.get(g.date);
+    if (list) list.push(g);
+    else byDate.set(g.date, [g]);
+  }
+  return [...byDate.entries()]
+    .sort((a, b) => a[0].localeCompare(b[0]))
+    .map(([date, list]) => ({ date, games: [...list].sort(byEarliestFirst) }));
 }

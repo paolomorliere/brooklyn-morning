@@ -1,14 +1,20 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { AlertTriangle, ChevronLeft, ChevronRight, ExternalLink, Info, RefreshCw, Trophy, X } from 'lucide-preact';
+import { AlertTriangle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Info, Loader2, RefreshCw, Trophy, X } from 'lucide-preact';
 import type { PoloFeed, PoloGame, PoloTeam } from '@/types';
 import { ScreenHeader } from '@/ui/ScreenHeader';
 import { Sheet } from '@/ui/Sheet';
 import { navigate } from '@/ui/router';
 import { onResume } from '@/state/store';
-import { waterPoloActions, waterPoloRefresh, waterPoloStore } from '@/state/waterpolo';
+import { waterPoloActions, waterPoloRefresh, waterPoloStore, type RefreshState } from '@/state/waterpolo';
 import {
   CONFERENCE_ORDER,
+  awaitingResult,
   datesWithResults,
+  fixtureTime,
+  fixturesBetween,
+  groupUpcoming,
+  isFinal,
+  weekendOf,
   formatClock,
   formatDateChip,
   formatDayHeading,
@@ -63,7 +69,7 @@ function readPlacement(): Placement | null {
 }
 
 export function WaterPolo() {
-  const { feed, ready, refreshing, lastError, watch, cooldownUntil } = waterPoloStore.use();
+  const { feed, ready, refreshing, lastError, refresh, lastSuccessAt } = waterPoloStore.use();
   const restored = useMemo(readPlacement, []);
   const [day, setDay] = useState<string | null>(restored?.day ?? null);
   const [team, setTeam] = useState<string | null>(restored?.team ?? null);
@@ -71,6 +77,8 @@ export function WaterPolo() {
   const [open, setOpen] = useState<PoloGame | null>(null);
 
   useEffect(() => onResume(() => void waterPoloActions.refresh(false), 60 * 60_000), []);
+  // Coming back to the app must show the real state of a refresh that was running when it was left.
+  useEffect(() => { void waterPoloRefresh.resume(); }, []);
 
   // Restore the scroll position once the rows that make the page that tall have rendered.
   useEffect(() => {
@@ -90,8 +98,18 @@ export function WaterPolo() {
     [allGames, teams],
   );
 
-  const shown = useMemo(() => {
+  // Results and fixtures are the same events in two states, so they are filtered the same way and
+  // only ever separated at the point of display.
+  const weekend = useMemo(() => weekendOf(), []);
+  const upcoming = useMemo(() => {
     let list = mine;
+    if (conference !== 'all') list = list.filter((g) => g.conference === conference);
+    if (team) list = list.filter((g) => g.home.team === team || g.away.team === team);
+    return groupUpcoming(fixturesBetween(list, weekend.from, weekend.to));
+  }, [mine, conference, team, weekend]);
+
+  const shown = useMemo(() => {
+    let list = mine.filter(isFinal);
     if (conference !== 'all') list = list.filter((g) => g.conference === conference);
     if (team) list = list.filter((g) => g.home.team === team || g.away.team === team);
     if (day) list = list.filter((g) => g.date === day);
@@ -101,7 +119,7 @@ export function WaterPolo() {
   // The date strip offers the dates that exist under the other two filters, so it can never offer
   // a day that would come back empty.
   const dates = useMemo(() => {
-    let list = mine;
+    let list = mine.filter(isFinal);
     if (conference !== 'all') list = list.filter((g) => g.conference === conference);
     if (team) list = list.filter((g) => g.home.team === team || g.away.team === team);
     return datesWithResults(list);
@@ -141,15 +159,7 @@ export function WaterPolo() {
       <FreshnessLine fresh={fresh} ready={ready} refreshing={refreshing} />
       {lastError && <p class="small muted" style="margin-top:6px">{lastError}</p>}
 
-      <div class="polo-actions">
-        <RefreshButton watch={watch} cooldownUntil={cooldownUntil} />
-        <button class="btn btn--ghost polo-poll-btn" onClick={() => navigate('poll')}>
-          <Trophy size={17} strokeWidth={1.9} aria-hidden="true" />
-          CWPA Top 20
-        </button>
-      </div>
-
-      {watch && <WatchBanner watch={watch} />}
+      <RefreshPanel refresh={refresh} lastSuccessAt={lastSuccessAt} />
 
       {watched.length > 0 && (
         <Filters
@@ -194,6 +204,33 @@ export function WaterPolo() {
 
       {conference !== 'all' && feed && (
         <Standings feed={feed} conference={conference} onTeam={goTeam} />
+      )}
+
+      {ready && feed && (
+        <section class="polo-weekend" aria-labelledby="polo-weekend-h">
+          <div class="section-title">
+            <h2 id="polo-weekend-h">This weekend</h2>
+            <span class="count">{upcoming.reduce((n, d) => n + d.games.length, 0)}</span>
+          </div>
+          <p class="small faint polo-weekend-range">{weekend.label} · times in New York where the source states a zone</p>
+          {upcoming.length === 0 ? (
+            <p class="small muted polo-weekend-empty">
+              No fixture for {team ? `${teams[team]?.name ?? team} ` : ''}
+              {conference !== 'all' ? `in ${conference} ` : ''}this Friday to Sunday.
+            </p>
+          ) : (
+            upcoming.map((d) => (
+              <div key={d.date}>
+                <h3 class="polo-weekend-day">{formatDayHeading(d.date)}</h3>
+                <ul class="polo-list">
+                  {d.games.map((g) => (
+                    <FixtureRow key={g.id} game={g} teams={teams} onOpen={() => setOpen(g)} onTeam={goTeam} />
+                  ))}
+                </ul>
+              </div>
+            ))
+          )}
+        </section>
       )}
 
       {ready && allGames.length === 0 && !refreshing && (
@@ -256,78 +293,131 @@ export function WaterPolo() {
 }
 
 /**
- * The only way to reach the real sources at zero cost: open the workflow's page, where one tap on
- * GitHub's own Run button starts the job, then watch the published file for the build it produces.
- * Putting a token in the app would make this one tap, and the brief rules that out.
+ * The manual refresh, start to finish.
+ *
+ * Every state here is something the app actually knows. "Complete" is only ever shown once the new
+ * file has been downloaded, validated, saved and put on screen — a run that merely started, or a
+ * job that reported success without committing anything, is not success. The run's own queued /
+ * running / failed status comes from GitHub's public API; the published file decides the rest.
  */
-function RefreshButton({ watch, cooldownUntil }: { watch: ReturnType<typeof waterPoloStore.get>['watch']; cooldownUntil: number }) {
-  const [now, setNow] = useState(Date.now());
-  useEffect(() => {
-    if (cooldownUntil <= Date.now()) return;
-    const id = setInterval(() => setNow(Date.now()), 500);
-    return () => clearInterval(id);
-  }, [cooldownUntil]);
+function RefreshPanel({ refresh, lastSuccessAt }: { refresh: RefreshState; lastSuccessAt: string | null }) {
+  const busy = refresh.phase === 'queued' || refresh.phase === 'running';
 
-  const left = Math.ceil((cooldownUntil - now) / 1000);
-  const cooling = left > 0;
   return (
-    <button
-      class="btn btn--primary polo-check-btn"
-      disabled={cooling}
-      onClick={() => waterPoloRefresh.checkNow()}
-      aria-label="Check the schools' websites now, on GitHub"
-    >
-      <RefreshCw size={17} strokeWidth={2} class={watch?.phase === 'waiting' ? 'spin' : undefined} aria-hidden="true" />
-      {cooling ? `Check sources now (${left}s)` : 'Check sources now'}
-    </button>
+    <div class="polo-refresh">
+      <div class="polo-actions">
+        <button
+          class="btn btn--primary polo-check-btn"
+          disabled={busy}
+          onClick={() => void waterPoloRefresh.checkNow()}
+          aria-label="Refresh scores and fixtures from the official schedules"
+        >
+          <RefreshCw size={17} strokeWidth={2} class={busy ? 'spin' : undefined} aria-hidden="true" />
+          {busy ? 'Refreshing…' : 'Refresh scores & fixtures'}
+        </button>
+        <button class="btn btn--ghost polo-poll-btn" onClick={() => navigate('poll')}>
+          <Trophy size={17} strokeWidth={1.9} aria-hidden="true" />
+          Top 20
+        </button>
+      </div>
+
+      {/* The last completed check stays visible whatever the banner is doing. */}
+      <p class="small faint polo-last">
+        {lastSuccessAt ? `Last successful refresh ${formatNyStamp(lastSuccessAt)}` : 'No successful refresh yet'}
+        {refresh.startedAt && refresh.endedAt === null && busy ? ` · attempt started ${formatNyStamp(refresh.startedAt)}` : ''}
+      </p>
+
+      {refresh.phase !== 'idle' && <RefreshBanner refresh={refresh} />}
+    </div>
   );
 }
 
-/** Says what the watcher actually knows, and never more than that. */
-function WatchBanner({ watch }: { watch: NonNullable<ReturnType<typeof waterPoloStore.get>['watch']> }) {
+function RefreshBanner({ refresh }: { refresh: RefreshState }) {
+  const tone =
+    refresh.phase === 'success' || refresh.phase === 'unchanged'
+      ? 'ok'
+      : refresh.phase === 'failed'
+        ? 'bad'
+        : refresh.phase === 'partial' || refresh.phase === 'timeout'
+          ? 'warn'
+          : 'busy';
+
+  const Icon = tone === 'ok' ? CheckCircle2 : tone === 'bad' ? AlertTriangle : tone === 'warn' ? Info : Loader2;
+
   const body = () => {
-    switch (watch.phase) {
-      case 'waiting':
+    switch (refresh.phase) {
+      case 'queued':
         return (
           <>
-            <b>Waiting for the run.</b>
+            <b>Waiting to start</b>
             <p class="small" style="margin:4px 0 0">
-              Tap <b>Run workflow</b> on the page that just opened. This screen checks for the new results every 20
-              seconds for up to 12 minutes. You can keep using the app.
+              Tap <b>Run workflow</b> on the GitHub page that just opened{refresh.runUrl ? ', or watch it there' : ''}.
+              This screen checks every 30 seconds for up to 12 minutes. You can keep using the app.
             </p>
           </>
         );
-      case 'updated':
+      case 'running':
         return (
           <>
-            <b>
-              Updated · {watch.added} new {watch.added === 1 ? 'result' : 'results'}
-            </b>
-            {watch.failed.length > 0 && (
-              <p class="small" style="margin:4px 0 0">
-                {watch.okCount} of {watch.total} schools were read. Couldn&rsquo;t reach {watch.failed.join(', ')}.
-              </p>
-            )}
+            <b>Checking official schedules…</b>
+            <p class="small" style="margin:4px 0 0">
+              Reading all 13 schools, every opponent&rsquo;s season and both conference schedules. This usually takes a
+              minute or two.
+            </p>
+          </>
+        );
+      case 'success':
+        return (
+          <>
+            <b>Refresh complete &mdash; new results or schedule changes found</b>
+            <p class="small" style="margin:4px 0 0">
+              {refresh.added > 0 && `${refresh.added} new ${refresh.added === 1 ? 'result' : 'results'}`}
+              {refresh.added > 0 && refresh.fixturesChanged > 0 && ' · '}
+              {refresh.fixturesChanged > 0 &&
+                `${refresh.fixturesChanged} ${refresh.fixturesChanged === 1 ? 'fixture' : 'fixtures'} added or moved`}
+              {` · all ${refresh.total} schools read · ${formatNyStamp(refresh.endedAt)}`}
+            </p>
           </>
         );
       case 'unchanged':
         return (
           <>
-            <b>Updated · nothing new</b>
+            <b>Refresh complete &mdash; no changes found</b>
             <p class="small" style="margin:4px 0 0">
-              The run finished and read {watch.okCount} of {watch.total} schools. No game has been added since the last
-              check.
-              {watch.failed.length > 0 && ` Couldn't reach ${watch.failed.join(', ')}.`}
+              All {refresh.total} schools were read and nothing has changed since the last check. {formatNyStamp(refresh.endedAt)}
+            </p>
+          </>
+        );
+      case 'partial':
+        return (
+          <>
+            <b>Refresh complete &mdash; some sources could not be read</b>
+            <p class="small" style="margin:4px 0 0">
+              {refresh.okCount} of {refresh.total} schools were read.{' '}
+              {refresh.failed.length > 0 && `Couldn't reach ${refresh.failed.join(', ')}. `}
+              {refresh.added + refresh.fixturesChanged > 0
+                ? `${refresh.added} new ${refresh.added === 1 ? 'result' : 'results'}, ${refresh.fixturesChanged} fixture change${refresh.fixturesChanged === 1 ? '' : 's'}.`
+                : 'Nothing changed in what was read.'}{' '}
+              {formatNyStamp(refresh.endedAt)}
+            </p>
+          </>
+        );
+      case 'failed':
+        return (
+          <>
+            <b>Refresh failed</b>
+            <p class="small" style="margin:4px 0 0">
+              {refresh.error ?? 'The run did not finish.'} Your saved results and fixtures are unchanged.
             </p>
           </>
         );
       case 'timeout':
         return (
           <>
-            <b>No new results yet</b>
+            <b>Still waiting after 12 minutes</b>
             <p class="small" style="margin:4px 0 0">
-              The run may still be going — GitHub often starts a job several hours after it is asked to. Nothing has
-              been lost; the results will appear the next time this screen refreshes.
+              The run may still be going — GitHub often starts a job later than it is asked to. Nothing has been lost;
+              new results will appear on the next check.
             </p>
           </>
         );
@@ -335,15 +425,36 @@ function WatchBanner({ watch }: { watch: NonNullable<ReturnType<typeof waterPolo
         return null;
     }
   };
+
   return (
-    <div class={`notice polo-watch polo-watch--${watch.phase}`}>
-      <Info size={18} strokeWidth={1.9} aria-hidden="true" />
+    <div class={`notice polo-watch polo-watch--${tone}`} role="status" aria-live="polite">
+      <Icon size={18} strokeWidth={1.9} class={tone === 'busy' ? 'spin' : undefined} aria-hidden="true" />
       <div class="grow">{body()}</div>
-      <button class="icon-btn" aria-label="Dismiss" onClick={() => waterPoloRefresh.clear()}>
-        <X size={18} />
-      </button>
+      <div class="polo-watch-actions">
+        {(refresh.phase === 'failed' || refresh.phase === 'timeout') && (
+          <button class="btn btn--ghost polo-retry" onClick={() => void waterPoloRefresh.retry()}>Retry</button>
+        )}
+        {refresh.runUrl && (
+          <a class="icon-btn" href={refresh.runUrl} target="_blank" rel="noopener noreferrer" aria-label="Open this run on GitHub">
+            <ExternalLink size={17} />
+          </a>
+        )}
+        <button class="icon-btn" aria-label="Dismiss" onClick={() => void waterPoloRefresh.dismiss()}>
+          <X size={18} />
+        </button>
+      </div>
     </div>
   );
+}
+
+/** "12:41 PM ET · Sun 27 Sep" — a completion time stated in New York, where the season lives. */
+function formatNyStamp(iso: string | null): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const time = d.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' });
+  const day = d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric' });
+  return `${time} ET · ${day}`;
 }
 
 function Filters({
@@ -668,5 +779,55 @@ function ConflictNote({
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * One upcoming fixture.
+ *
+ * Built from the same row as a result, with the same two team-name targets, so the event reads the
+ * same before and after it is played. The start time is only labelled ET when a source made its
+ * zone certain; otherwise it says "local", and with no published time it says "Time TBD" rather
+ * than inventing one. A fixture whose start has passed says "Awaiting result" — the clock never
+ * turns a fixture into a result.
+ */
+export function FixtureRow({
+  game,
+  teams,
+  onOpen,
+  onTeam,
+}: {
+  game: PoloGame;
+  teams: Record<string, PoloTeam>;
+  onOpen: () => void;
+  onTeam: (slug: string) => void;
+}) {
+  const homeName = teams[game.home.team]?.name ?? game.home.team;
+  const awayName = teams[game.away.team]?.name ?? game.away.team;
+  const when = fixtureTime(game);
+  const waiting = awaitingResult(game);
+  const status = game.status === 'postponed' ? 'Postponed' : game.status === 'cancelled' ? 'Cancelled' : waiting ? 'Awaiting result' : null;
+
+  return (
+    <li class="polo-row polo-row--fixture">
+      <TeamCrest team={teams[game.home.team]} name={homeName} />
+      <button class="polo-name polo-team" onClick={() => onTeam(game.home.team)} aria-label={`${homeName}, 2026 season`}>
+        {homeName}
+      </button>
+      <button class="polo-open" onClick={onOpen} aria-label={`${homeName} against ${awayName}, ${when.label}. Game details.`} />
+      <span class={`polo-when polo-when--${when.kind}`}>
+        <b>{when.text ?? 'TBD'}</b>
+        <em>{when.kind === 'et' ? 'ET' : when.kind === 'local' ? 'local' : 'no time yet'}</em>
+      </span>
+      <button
+        class="polo-name polo-name--right polo-team polo-team--right"
+        onClick={() => onTeam(game.away.team)}
+        aria-label={`${awayName}, 2026 season`}
+      >
+        {awayName}
+      </button>
+      <TeamCrest team={teams[game.away.team]} name={awayName} />
+      {status && <span class="polo-status">{status}</span>}
+    </li>
   );
 }

@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'preact/hooks';
 import { useRoute } from '@/ui/router';
 import { TabBar } from '@/ui/TabBar';
 import { ToastProvider } from '@/ui/Toast';
@@ -19,10 +20,15 @@ import { seedFixtures } from '../fixtures/seed';
 // ?fixtures=1 on localhost seeds the personal database with sample data for screenshots and tests.
 const params = new URLSearchParams(location.search);
 const fixtures = params.get('fixtures') === '1' && ['localhost', '127.0.0.1'].includes(location.hostname);
-if (fixtures) void seedFixtures(params.get('seed') ?? 'all');
+// The seed must finish before the stores read, or a seeded profile would be overwritten by the
+// defaults the app creates on a first run.
+const seeded = fixtures ? seedFixtures(params.get('seed') ?? 'all') : Promise.resolve();
 
 export function App() {
   const route = useRoute();
+  const [ready, setReady] = useState(!fixtures);
+  useEffect(() => { void seeded.then(() => setReady(true)); }, []);
+  if (!ready) return null;
   return (
     <ToastProvider>
       <div class="app">

@@ -38,6 +38,12 @@ export default defineConfig({
         navigateFallback: `${base}index.html`,
         runtimeCaching: [
           {
+            // A cache-busted read during a manual refresh. It must never be served from, or added
+            // to, a cache: the whole point of the request is to see what the server has now.
+            urlPattern: ({ url }) => url.pathname.includes('/data/') && url.searchParams.has('t'),
+            handler: 'NetworkOnly',
+          },
+          {
             // Daily edition + lessons: try network, fall back to cache when offline.
             urlPattern: ({ url }) => url.pathname.includes('/data/'),
             handler: 'NetworkFirst',
