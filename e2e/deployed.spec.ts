@@ -70,3 +70,30 @@ test('the deployed poll shows the published week', async ({ page }) => {
   await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(25);
   await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(0);
 });
+
+test('the deployed app shows the Air Force result once, and no longer as a fixture', async ({ page }) => {
+  // The reported case: Air Force v Wagner was still listed as a fixture with "no change found",
+  // because a manual refresh was being skipped by the cron's guard and so never read the schools.
+  await page.goto(`${SITE}#/waterpolo`);
+  await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 40_000 });
+
+  const pair = page.locator('.polo-row', { hasText: 'Air Force' }).filter({ hasText: 'Wagner' });
+  await expect(pair).toHaveCount(1);
+  // It is a result now, not a fixture, and it carries the real score.
+  await expect(pair).not.toHaveClass(/polo-row--fixture/);
+  await expect(pair).toContainText('16');
+  await expect(pair).toContainText('15');
+  // And it is gone from "This weekend".
+  const weekend = page.locator('section', { has: page.getByRole('heading', { name: 'This weekend' }) });
+  await expect(weekend.locator('.polo-row', { hasText: 'Wagner' })).toHaveCount(0);
+});
+
+test('the deployed refresh panel names each timestamp and offers no dropdown to get wrong', async ({ page }) => {
+  await page.goto(`${SITE}#/waterpolo`);
+  await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 40_000 });
+  // Two lines, two different facts: the age of the data, and Paolo's own last attempt.
+  await expect(page.locator('.polo-fresh')).toContainText('Scores read from the schools');
+  await expect(page.locator('.polo-last')).toContainText(/Your last refresh|have not run a manual refresh/);
+  // Never both wordings for one time.
+  await expect(page.locator('.polo-last')).not.toContainText('Last successful refresh');
+});
