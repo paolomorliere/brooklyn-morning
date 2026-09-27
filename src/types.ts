@@ -71,7 +71,12 @@ export interface Edition {
   stock?: StockBlock | null;
   stories: Story[];
   sources: SourceStatus[];
-  lessonRef: { week: number; day: number } | null;
+  /**
+   * Which lesson this edition carried. Written by the app the first time the edition is re-read,
+   * pinning the resolved lesson and the pack version it came from so a later content edit cannot
+   * silently change what an archived edition says it contained.
+   */
+  lessonRef?: { week: number; day: number; lessonId?: string; packVersion?: string | null } | null;
 }
 
 export interface Lesson {
@@ -157,6 +162,35 @@ export interface HistoryEvent {
   at: string;
 }
 
+/**
+ * What a saved item points at, so it can be read and not just listed.
+ *
+ * Kept separate from the editable fields above it: renaming a saved item or rewriting its note
+ * must never break the link to its content.
+ */
+export type LibraryRef =
+  | { kind: 'lesson'; lessonId: string; packWeek: number; day: number; packVersion: string | null }
+  | { kind: 'story'; storyId: string | null; editionDate: string | null; url: string };
+
+/**
+ * A copy of the content as the app had it when the item was saved.
+ *
+ * Editions are kept for 14 days, so a story saved five weeks ago has no edition left to resolve
+ * against. The snapshot is what keeps it readable. It is the app's own stored summary, never a
+ * copy of the publisher's full article.
+ */
+export interface LibrarySnapshot {
+  /** Publisher-supplied excerpt, as shown in the edition. */
+  excerpt?: string;
+  /** Build-time extracted opening paragraphs, as shown in the edition. */
+  lead?: string | null;
+  publishedAt?: string;
+  imageUrl?: string | null;
+  topic?: TopicId;
+  /** Which edition this was taken from, for the "from the edition of…" line. */
+  editionDate?: string | null;
+}
+
 export interface LibraryEntry {
   id: string;
   kind: 'story' | 'lesson' | 'own';
@@ -166,6 +200,12 @@ export interface LibraryEntry {
   publisher?: string;
   tags: string[];
   savedAt: string;
+  /** Where the readable content lives. Absent on entries saved before reading existed. */
+  ref?: LibraryRef;
+  /** The content itself, for items whose source may expire from the archive. */
+  snapshot?: LibrarySnapshot;
+  /** Set when a repair pass tried to resolve this entry's content and could not. */
+  contentMissing?: string;
 }
 
 export interface Prefs {
@@ -178,16 +218,34 @@ export interface Prefs {
 export interface QuizResult {
   week: number; // sequence week number
   packWeek: number;
+  /**
+   * Monday of the Mon–Sun week this quiz belongs to, in New York. The stable identifier: the
+   * sequence number shifts if the start date is ever repaired, a date does not.
+   */
+  weekStart?: string;
+  /** Content version of the pack the questions came from. */
+  packVersion?: string | null;
   score: number;
   total: number;
   answers: number[]; // chosen index per question
   takenAt: string;
 }
 
+/** A quiz started but not submitted. Kept so answers survive navigation and app restarts. */
+export interface QuizDraft {
+  weekStart: string;
+  packWeek: number;
+  packVersion: string | null;
+  answers: (number | null)[];
+  updatedAt: string;
+}
+
 export interface LessonProgress {
   startMonday: string; // YYYY-MM-DD
   readLessonIds: string[];
   quizResults?: QuizResult[];
+  /** In-progress quizzes, one per week, cleared when that week's quiz is submitted. */
+  quizDrafts?: QuizDraft[];
 }
 
 export const TOPIC_META: Record<TopicId, { label: string; blurb: string }> = {

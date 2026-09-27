@@ -10,8 +10,10 @@ export type Route =
   | 'library'
   | 'settings'
   | 'quiz'
+  | 'week'
+  | 'read'
   | 'product';
-const ROUTES: Route[] = ['home', 'todo', 'groceries', 'waterpolo', 'team', 'poll', 'library', 'settings', 'quiz', 'product'];
+const ROUTES: Route[] = ['home', 'todo', 'groceries', 'waterpolo', 'team', 'poll', 'library', 'settings', 'quiz', 'week', 'read', 'product'];
 
 function read(): Route {
   const h = location.hash.replace(/^#\/?/, '').split('/')[0] as Route;

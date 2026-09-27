@@ -1,64 +1,173 @@
-import { useMemo, useState } from 'preact/hooks';
-import { Check, ChevronLeft, X } from 'lucide-preact';
-import { navigate } from '@/ui/router';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { BookOpen, Check, ChevronLeft, X } from 'lucide-preact';
+import { navigate, useRouteParam } from '@/ui/router';
 import { lessonActions, lessonStore } from '@/state/lessons';
+import { formatDateLong } from '@/lib/format';
+import { dateFromYMD, shiftYMD } from '@/lib/lessons';
 
-/** Weekly quiz on its own screen: 20 multiple-choice questions, one at a time, then score and corrections. */
+/**
+ * The weekly quiz: 20 multiple-choice questions on the whole Mon–Sun week.
+ *
+ * Reached as `#/quiz` for the current week, or `#/quiz/<Monday>` for any past week, so a Sunday
+ * edition from three weeks ago still leads to its own quiz. The Monday is the stable key — the
+ * sequence number would shift if the start date were ever repaired.
+ *
+ * Answers are kept as a draft in the lesson progress record, so leaving the screen or closing the
+ * app does not lose them, and every answer can be changed on the review step before submitting.
+ */
 export function Quiz() {
+  const param = useRouteParam();
   const ls = lessonStore.use();
-  const today = useMemo(() => lessonActions.today(), [ls.packs, ls.progress]);
-  const pack = ls.packs.find((p) => p.week === today.packWeek);
+
+  // A quiz can be opened straight from an archived Sunday edition or a bookmark, without passing
+  // through Morning. Fetch the packs here too, so a deep link never lands on "not downloaded" when
+  // the pack is one request away.
+  useEffect(() => {
+    if (ls.ready && ls.packs.length === 0) void lessonActions.sync();
+  }, [ls.ready, ls.packs.length]);
+
+  // The week being taken: the one in the URL, or the week containing today.
+  const target = useMemo(() => {
+    const today = lessonActions.today();
+    if (param && /^\d{4}-\d{2}-\d{2}$/.test(param)) return lessonActions.today(param);
+    return today;
+  }, [param, ls.packs, ls.progress]);
+
+  const pack = ls.packs.find((p) => p.week === target.packWeek);
   const quiz = pack?.quiz ?? [];
-  const [answers, setAnswers] = useState<number[]>([]);
+  const weekStart = target.weekStart;
+
+  const stored = ls.progress?.quizResults?.find((r) => (r.weekStart ? r.weekStart === weekStart : r.week === target.weekNumber));
+  const draft = ls.progress?.quizDrafts?.find((d) => d.weekStart === weekStart);
+
+  const [answers, setAnswers] = useState<(number | null)[]>([]);
   const [i, setI] = useState(0);
-  const [done, setDone] = useState(false);
-  const previous = ls.progress?.quizResults?.find((r) => r.week === today.weekNumber);
+  const [phase, setPhase] = useState<'answering' | 'review' | 'done'>('answering');
+  const [loaded, setLoaded] = useState(false);
+
+  // Restore whatever was saved for this week: a submitted result opens on the result, an
+  // unsubmitted draft reopens where it was left.
+  useEffect(() => {
+    if (!ls.ready || loaded) return;
+    if (stored) {
+      setAnswers(stored.answers);
+      setPhase('done');
+    } else if (draft) {
+      setAnswers(draft.answers);
+      setI(Math.max(0, draft.answers.findIndex((a) => a === null)));
+    }
+    setLoaded(true);
+  }, [ls.ready, loaded, stored, draft]);
+
+  // Reset when the URL points at a different week.
+  useEffect(() => {
+    setLoaded(false);
+    setI(0);
+    setPhase('answering');
+    setAnswers([]);
+  }, [weekStart]);
 
   if (!ls.ready) return <main class="screen" />;
+
   if (!pack || quiz.length === 0) {
     return (
       <main class="screen">
-        <Header />
-        <div class="empty"><h3>No quiz available</h3><p>The quiz appears on Sundays once the week's lessons are downloaded.</p></div>
+        <Header weekStart={weekStart} />
+        <div class="empty">
+          <h3>This week&rsquo;s quiz isn&rsquo;t downloaded yet</h3>
+          <p>
+            The quiz ships inside the week&rsquo;s lesson pack. Open Morning while you&rsquo;re online and it will
+            download with the lessons.
+          </p>
+          <button class="btn btn--ghost" style="margin-top:16px" onClick={() => void lessonActions.sync()}>
+            Download now
+          </button>
+        </div>
       </main>
     );
   }
 
-  const score = answers.filter((a, k) => a === quiz[k].answer).length;
+  const answered = answers.filter((a) => a !== null).length;
+  const scoreOf = (a: (number | null)[]) => a.filter((v, k) => v === quiz[k]?.answer).length;
 
   const choose = (idx: number) => {
     const next = [...answers];
+    while (next.length < quiz.length) next.push(null);
     next[i] = idx;
     setAnswers(next);
-  };
-  const forward = async () => {
-    if (i < quiz.length - 1) setI(i + 1);
-    else {
-      setDone(true);
-      const finalScore = answers.filter((a, k) => a === quiz[k].answer).length;
-      await lessonActions.saveQuizResult({ week: today.weekNumber, packWeek: pack.week, score: finalScore, total: quiz.length, answers, takenAt: new Date().toISOString() });
-    }
+    void lessonActions.saveQuizDraft({
+      weekStart,
+      packWeek: pack.week,
+      packVersion: pack.version ?? null,
+      answers: next,
+      updatedAt: new Date().toISOString(),
+    });
   };
 
-  if (done) {
+  const submit = async () => {
+    const final = Array.from({ length: quiz.length }, (_, k) => answers[k] ?? null);
+    setPhase('done');
+    await lessonActions.saveQuizResult({
+      week: target.weekNumber,
+      packWeek: pack.week,
+      weekStart,
+      packVersion: pack.version ?? null,
+      score: scoreOf(final),
+      total: quiz.length,
+      answers: final.map((a) => (a === null ? -1 : a)),
+      takenAt: new Date().toISOString(),
+    });
+  };
+
+  const retake = () => {
+    setAnswers([]);
+    setI(0);
+    setPhase('answering');
+    void lessonActions.clearQuizDraft(weekStart);
+  };
+
+  // ---- result -------------------------------------------------------------------------------
+  if (phase === 'done') {
+    const score = scoreOf(answers);
+    const pct = Math.round((score / quiz.length) * 100);
     return (
       <main class="screen">
-        <Header />
+        <Header weekStart={weekStart} />
         <section class="lesson" style="margin-top:8px">
-          <div class="eyebrow">Week {today.weekNumber} · {pack.theme}</div>
-          <h2 style="margin-top:8px">{score} / {quiz.length}</h2>
-          <div class="lesson-theme">{score >= 18 ? 'Excellent.' : score >= 14 ? 'Solid. Review the ones below.' : score >= 10 ? 'Halfway there; worth a second read of the week.' : 'Tough week. Re-read the lessons and try again next Sunday.'} {previous && previous.takenAt !== undefined && previous.score !== score ? `Previous attempt: ${previous.score}/${previous.total}.` : ''}</div>
+          <div class="eyebrow">Week {target.weekNumber} · {pack.theme}</div>
+          <h2 style="margin-top:8px">{score} / {quiz.length} <span style="opacity:.75;font-size:.72em">({pct}%)</span></h2>
+          <div class="lesson-theme">
+            {score >= 18
+              ? 'Excellent.'
+              : score >= 14
+                ? 'Solid. Review the ones below.'
+                : score >= 10
+                  ? 'Halfway there; worth a second read of the week.'
+                  : 'Tough week. Re-read the lessons and try again.'}
+            {stored && ` Taken ${formatDateLong(stored.takenAt)}.`}
+          </div>
+          <button class="btn btn--quiet" style="margin-top:12px;padding:0;min-height:0;color:var(--terracotta-deep);display:inline-flex;gap:6px;align-items:center" onClick={() => navigate('week', weekStart)}>
+            <BookOpen size={16} strokeWidth={1.9} aria-hidden="true" /> Review this week&rsquo;s seven lessons
+          </button>
         </section>
+
         <ol style="margin-top:16px">
           {quiz.map((q, k) => {
-            const ok = answers[k] === q.answer;
+            const mine = answers[k];
+            const ok = mine === q.answer;
             return (
               <li key={k} class="card" style="padding:12px 14px;margin-bottom:8px">
                 <div style="display:flex;gap:8px;align-items:flex-start">
-                  <span style={`flex:none;margin-top:2px;color:${ok ? 'var(--sage-deep)' : 'var(--danger)'}`}>{ok ? <Check size={18} /> : <X size={18} />}</span>
+                  <span style={`flex:none;margin-top:2px;color:${ok ? 'var(--sage-deep)' : 'var(--danger)'}`}>
+                    {ok ? <Check size={18} /> : <X size={18} />}
+                  </span>
                   <div>
                     <div style="font-weight:500">{k + 1}. {q.q}</div>
-                    {!ok && <div class="small" style="margin-top:4px;color:var(--danger)">Your answer: {answers[k] != null ? q.choices[answers[k]] : '—'}</div>}
+                    {!ok && (
+                      <div class="small" style="margin-top:4px;color:var(--danger)">
+                        Your answer: {mine != null && mine >= 0 ? q.choices[mine] : 'not answered'}
+                      </div>
+                    )}
                     <div class="small" style="margin-top:2px;color:var(--sage-deep)">Correct: {q.choices[q.answer]}</div>
                     {q.why && <div class="small muted" style="margin-top:2px">{q.why}</div>}
                   </div>
@@ -68,45 +177,109 @@ export function Quiz() {
           })}
         </ol>
         <div style="display:flex;gap:8px;margin-top:16px">
-          <button class="btn btn--ghost" onClick={() => { setAnswers([]); setI(0); setDone(false); }}>Retake</button>
+          <button class="btn btn--ghost" onClick={retake}>Retake</button>
           <button class="btn" onClick={() => navigate('home')}>Back to Morning</button>
         </div>
       </main>
     );
   }
 
+  // ---- review before submitting -------------------------------------------------------------
+  if (phase === 'review') {
+    return (
+      <main class="screen">
+        <Header weekStart={weekStart} />
+        <section class="lesson" style="margin-top:8px">
+          <div class="eyebrow">Week {target.weekNumber} · {pack.theme}</div>
+          <h2 style="margin-top:8px">Check your answers</h2>
+          <div class="lesson-theme">
+            {answered} of {quiz.length} answered. Tap any question to change it. Nothing is marked until you submit.
+          </div>
+        </section>
+        <ol style="margin-top:16px">
+          {quiz.map((q, k) => (
+            <li key={k} style="margin-bottom:8px">
+              <button
+                class="card"
+                style="width:100%;text-align:left;padding:12px 14px"
+                onClick={() => { setI(k); setPhase('answering'); }}
+              >
+                <div style="font-weight:500">{k + 1}. {q.q}</div>
+                <div class="small" style={`margin-top:4px;color:${answers[k] != null ? 'var(--ink-muted)' : 'var(--danger)'}`}>
+                  {answers[k] != null ? q.choices[answers[k]!] : 'Not answered — tap to answer'}
+                </div>
+              </button>
+            </li>
+          ))}
+        </ol>
+        <div style="display:flex;gap:8px;margin-top:16px">
+          <button class="btn btn--ghost" onClick={() => setPhase('answering')}>Keep answering</button>
+          <button class="btn" style="flex:1" onClick={() => void submit()}>
+            Submit {answered < quiz.length ? `(${quiz.length - answered} blank)` : ''}
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // ---- answering ----------------------------------------------------------------------------
   const q = quiz[i];
   return (
     <main class="screen">
-      <Header />
+      <Header weekStart={weekStart} />
       <div class="small muted" style="display:flex;justify-content:space-between">
-        <span>Week {today.weekNumber} · {pack.theme}</span>
+        <span>Week {target.weekNumber} · {pack.theme}</span>
         <span>{i + 1} / {quiz.length}</span>
       </div>
       <div class="lesson-progress" style="margin-top:8px" aria-hidden="true">
-        {quiz.map((_, k) => <span key={k} class={k < i ? 'done' : k === i ? 'today' : ''} style={k > i ? 'background:var(--line)' : ''} />)}
+        {quiz.map((_, k) => (
+          <span key={k} class={answers[k] != null ? 'done' : k === i ? 'today' : ''} style={answers[k] == null && k !== i ? 'background:var(--line)' : ''} />
+        ))}
       </div>
       <h2 style="font-size:var(--fs-22);margin-top:20px;line-height:1.3">{q.q}</h2>
       <div style="display:grid;gap:8px;margin-top:16px" role="radiogroup" aria-label="Answer">
         {q.choices.map((c, idx) => (
-          <button key={idx} class="card" role="radio" aria-checked={answers[i] === idx} onClick={() => choose(idx)} style={`text-align:left;padding:14px 16px;font-size:var(--fs-16);line-height:1.35;border-width:2px;${answers[i] === idx ? 'border-color:var(--terracotta);background:var(--terracotta-soft)' : ''}`}>
-            <span class="faint" style="margin-right:8px;font-weight:600">{'ABCD'[idx]}</span>{c}
+          <button
+            key={idx}
+            class="card"
+            role="radio"
+            aria-checked={answers[i] === idx}
+            onClick={() => choose(idx)}
+            style={`text-align:left;padding:14px 16px;font-size:var(--fs-16);line-height:1.35;border-width:2px;${answers[i] === idx ? 'border-color:var(--terracotta);background:var(--terracotta-soft)' : ''}`}
+          >
+            <span class="faint" style="margin-right:8px;font-weight:600">{'ABCD'[idx]}</span>
+            {c}
           </button>
         ))}
       </div>
       <div style="display:flex;gap:8px;margin-top:20px">
         <button class="btn btn--ghost" disabled={i === 0} onClick={() => setI(i - 1)} style={i === 0 ? 'opacity:.4' : ''}>Back</button>
-        <button class="btn" style="flex:1" disabled={answers[i] == null} onClick={() => void forward()}>{i === quiz.length - 1 ? 'See my score' : 'Next'}</button>
+        {i < quiz.length - 1 ? (
+          <button class="btn" style="flex:1" disabled={answers[i] == null} onClick={() => setI(i + 1)}>Next</button>
+        ) : (
+          <button class="btn" style="flex:1" onClick={() => setPhase('review')}>Review answers</button>
+        )}
       </div>
+      <button class="btn btn--quiet" style="margin-top:10px;width:100%" onClick={() => setPhase('review')}>
+        Review all {quiz.length} answers
+      </button>
     </main>
   );
 }
 
-function Header() {
+function Header({ weekStart }: { weekStart: string }) {
+  const sunday = shiftYMD(weekStart, 6);
   return (
     <header class="screen-header" style="align-items:center">
-      <button class="icon-btn" aria-label="Back" onClick={() => navigate('home')} style="margin-left:-12px"><ChevronLeft size={24} /></button>
-      <h1 style="flex:1;font-size:var(--fs-22)">Sunday quiz</h1>
+      <button class="icon-btn" aria-label="Back" onClick={() => (history.length > 1 ? history.back() : navigate('home'))} style="margin-left:-12px">
+        <ChevronLeft size={24} />
+      </button>
+      <div style="flex:1">
+        <h1 style="font-size:var(--fs-22)">Weekly quiz</h1>
+        <div class="sub small muted">
+          {formatDateLong(dateFromYMD(weekStart))} – {formatDateLong(dateFromYMD(sunday))}
+        </div>
+      </div>
     </header>
   );
 }

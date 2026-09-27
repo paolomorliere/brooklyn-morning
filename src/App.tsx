@@ -11,6 +11,8 @@ import { Poll } from '@/screens/Poll';
 import { Library } from '@/screens/Library';
 import { Settings } from '@/screens/Settings';
 import { Quiz } from '@/screens/Quiz';
+import { WeekReview } from '@/screens/WeekReview';
+import { Reader } from '@/screens/Reader';
 import { ProductDetail } from '@/screens/ProductDetail';
 import { seedFixtures } from '../fixtures/seed';
 
@@ -34,8 +36,10 @@ export function App() {
         {route === 'library' && <Library />}
         {route === 'settings' && <Settings />}
         {route === 'quiz' && <Quiz />}
+        {route === 'week' && <WeekReview />}
+        {route === 'read' && <Reader />}
         {route === 'product' && <ProductDetail />}
-        {!['settings', 'quiz', 'product', 'team', 'poll'].includes(route) && <TabBar route={route} />}
+        {!['settings', 'quiz', 'week', 'read', 'product', 'team', 'poll'].includes(route) && <TabBar route={route} />}
       </div>
     </ToastProvider>
   );

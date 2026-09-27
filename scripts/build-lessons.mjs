@@ -1,6 +1,16 @@
 // Assemble lesson packs from scripts/lessons/week-*.mjs into public/data/lessons/*.json + lessons.index.json.
-// Validates: 7 lessons per week, required fields, unique ids. Read time estimated at ~200 wpm.
+// Validates: 7 lessons per week, required fields, unique ids, and a 20-question quiz per week.
+// Read time estimated at ~200 wpm.
+//
+// Every pack carries a `version`: a short hash of its own content. The index carries the same value,
+// which is how the app knows a pack it already holds has changed. Without it the app kept whatever
+// it downloaded first — which is how eight weeks of packs downloaded on 19 September stayed
+// quiz-less after the quizzes were added on the 20th, and why no Sunday quiz ever appeared.
+import { createHash } from 'node:crypto';
 import { mkdir, readdir, writeFile } from 'node:fs/promises';
+
+/** Short, stable content hash. Any change to a lesson, the theme or the quiz produces a new value. */
+const versionOf = (pack) => createHash('sha1').update(JSON.stringify(pack)).digest('hex').slice(0, 12);
 
 const dir = 'scripts/lessons';
 const files = (await readdir(dir)).filter((f) => /^week-\d+\.mjs$/.test(f)).sort();
@@ -32,10 +42,13 @@ for (const f of files) {
   } catch (e) {
     if (e.code === 'ERR_MODULE_NOT_FOUND') quiz = undefined; else throw new Error(`${f}: ${e.message}`);
   }
-  await writeFile(`public/data/lessons/${out}`, JSON.stringify({ schemaVersion: 1, week: w.week, theme: w.theme, lessons, ...(quiz ? { quiz } : {}) }, null, 1));
-  index.weeks.push({ week: w.week, theme: w.theme, file: out });
+  if (!quiz) throw new Error(`${f}: no quiz-${String(w.week).padStart(2, '0')}.mjs. Every week must ship its quiz before its Sunday.`);
+  const body = { schemaVersion: 1, week: w.week, theme: w.theme, lessons, quiz };
+  const pack = { ...body, version: versionOf(body) };
+  await writeFile(`public/data/lessons/${out}`, JSON.stringify(pack, null, 1));
+  index.weeks.push({ week: w.week, theme: w.theme, file: out, version: pack.version, quizQuestions: quiz.length });
   total += lessons.length;
-  console.log(`${out}: ${w.theme} (${lessons.map((l) => l.readMinutes).join('/')} min)${quiz ? ` + ${quiz.length}-question quiz` : ''}`);
+  console.log(`${out}: ${w.theme} (${lessons.map((l) => l.readMinutes).join('/')} min) + ${quiz.length}-question quiz · ${pack.version}`);
 }
 await writeFile('public/data/lessons/lessons.index.json', JSON.stringify(index, null, 1));
 console.log(`${index.weeks.length} weeks, ${total} lessons`);

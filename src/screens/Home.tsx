@@ -6,9 +6,12 @@ import { formatDateLong, formatTime, readMinutes, relativeTime, shortDate } from
 import { navigate } from '@/ui/router';
 import { useToast } from '@/ui/Toast';
 import { Sheet } from '@/ui/Sheet';
+import { LessonBody } from '@/ui/LessonBody';
+import { snapshotOfStory } from '@/lib/library-repair';
 import { onResume } from '@/state/store';
 import { editionActions, editionStore, type GlossaryTerm } from '@/state/edition';
 import { lessonActions, lessonStore } from '@/state/lessons';
+import { dateFromYMD, type TodayLesson } from '@/lib/lessons';
 import { libraryActions, libraryStore } from '@/state/library';
 import { prefsStore } from '@/state/prefs';
 import { groceryActions } from '@/state/grocery';
@@ -40,6 +43,25 @@ export function Home() {
 
   const edition = viewingDate ? archived : ed.edition;
   const today = lessonActions.today();
+  // The lesson that belonged to the date being read. The date → week/day mapping is fixed, so an
+  // archived edition resolves to the lesson it actually carried, never to today's.
+  const archivedLesson = useMemo(
+    () => (viewingDate ? lessonActions.today(viewingDate) : null),
+    [viewingDate, ls.packs, ls.progress],
+  );
+
+  // Pin the resolved lesson into the stored edition the first time it is read, so a later edit to
+  // a lesson pack cannot silently rewrite what an old edition says it contained.
+  useEffect(() => {
+    if (!viewingDate || !archived || !archivedLesson?.lesson) return;
+    if (archived.lessonRef?.lessonId === archivedLesson.lesson.id) return;
+    void editionActions.pinLesson(viewingDate, {
+      week: archivedLesson.packWeek ?? archivedLesson.lesson.week,
+      day: archivedLesson.lesson.day,
+      lessonId: archivedLesson.lesson.id,
+      packVersion: archivedLesson.packVersion,
+    });
+  }, [viewingDate, archived, archivedLesson?.lesson?.id]);
   const savedUrls = useMemo(() => new Set(lib.entries.map((e) => e.url).filter(Boolean)), [lib.entries]);
   const savedLessonTitles = useMemo(() => new Set(lib.entries.filter((e) => e.kind === 'lesson').map((e) => e.title)), [lib.entries]);
 
@@ -55,12 +77,30 @@ export function Home() {
   const isToday = edition?.date === nyToday();
   const glossaryById = useMemo(() => new Map(ed.glossary.map((g) => [g.id, g])), [ed.glossary]);
 
+  // Both save paths record where the content lives, so a saved item is readable from the moment it
+  // is saved rather than depending on a later repair pass.
   const saveStory = async (s: Story) => {
-    const { existed } = await libraryActions.save({ kind: 'story', title: s.title, url: s.url, note: '', publisher: s.publisher, tags: ['Read later'] });
+    const { existed } = await libraryActions.save({
+      kind: 'story',
+      title: s.title,
+      url: s.url,
+      note: '',
+      publisher: s.publisher,
+      tags: ['Read later'],
+      ref: { kind: 'story', storyId: s.id, editionDate: edition?.date ?? null, url: s.url },
+      snapshot: snapshotOfStory(s, edition?.date ?? null),
+    });
     toast({ message: existed ? 'Already in Library' : 'Saved to Library' }, 1800);
   };
-  const saveLesson = async (l: Lesson) => {
-    const { existed } = await libraryActions.save({ kind: 'lesson', title: l.title, url: null, note: `Week ${l.week} · Day ${l.day} · ${l.theme}`, tags: ['Learning'] });
+  const saveLesson = async (l: Lesson, packVersion: string | null) => {
+    const { existed } = await libraryActions.save({
+      kind: 'lesson',
+      title: l.title,
+      url: null,
+      note: `Week ${l.week} · Day ${l.day} · ${l.theme}`,
+      tags: ['Learning'],
+      ref: { kind: 'lesson', lessonId: l.id, packWeek: l.week, day: l.day, packVersion },
+    });
     toast({ message: existed ? 'Already in Library' : 'Lesson saved to Library' }, 1800);
   };
 
@@ -122,6 +162,10 @@ export function Home() {
           <TopicSection key={topic} topic={topic} edition={edition} limit={prefs.storiesPerSection} savedUrls={savedUrls} onSave={saveStory} onTerm={(id) => setTerm(glossaryById.get(id) ?? null)} glossaryById={glossaryById} />
         ))}
 
+      {viewingDate && ls.ready && archivedLesson && (
+        <ArchivedLesson view={archivedLesson} date={viewingDate} pinned={archived?.lessonRef ?? null} />
+      )}
+
       {!viewingDate && ls.ready && today.startsOn && (
         <section class="lesson" aria-label="Lessons">
           <div class="eyebrow">Daily lesson</div>
@@ -140,8 +184,20 @@ export function Home() {
             readIds={ls.progress?.readLessonIds ?? []}
             saved={savedLessonTitles.has(today.lesson.title)}
             onMarkRead={() => void lessonActions.markRead(today.lesson!.id).then(() => toast({ message: 'Marked as read' }, 1500))}
-            onSave={() => void saveLesson(today.lesson!)}
-            quiz={today.quiz ? { count: today.quiz.length, result: ls.progress?.quizResults?.find((r) => r.week === today.weekNumber) ?? null } : null}
+            onSave={() => void saveLesson(today.lesson!, today.packVersion)}
+            weekStart={today.weekStart}
+            quizMissing={!!today.quizMissing}
+            staleWeek={today.packWeek !== null && ls.staleWeeks.includes(today.packWeek)}
+            quiz={
+              today.quiz?.length
+                ? {
+                    count: today.quiz.length,
+                    result:
+                      ls.progress?.quizResults?.find((r) => (r.weekStart ? r.weekStart === today.weekStart : r.week === today.weekNumber)) ?? null,
+                    started: !!ls.progress?.quizDrafts?.find((d) => d.weekStart === today.weekStart)?.answers.some((a) => a !== null),
+                  }
+                : null
+            }
           />
         ) : (
           <section class="lesson" aria-label="Today's lesson">
@@ -285,10 +341,24 @@ function StoryCard({ story, saved, onSave, onTerm, glossaryById }: { story: Stor
   );
 }
 
-interface LessonProps { lesson: Lesson; dayIndex: number; isReview: boolean; weekNumber: number; readIds: string[]; saved: boolean; onMarkRead: () => void; onSave: () => void; quiz: { count: number; result: { score: number; total: number } | null } | null }
+interface LessonProps {
+  lesson: Lesson;
+  dayIndex: number;
+  isReview: boolean;
+  weekNumber: number;
+  weekStart: string;
+  readIds: string[];
+  saved: boolean;
+  onMarkRead: () => void;
+  onSave: () => void;
+  quiz: { count: number; result: { score: number; total: number } | null; started: boolean } | null;
+  /** Sunday, but the downloaded pack carries no quiz. Said plainly rather than hidden. */
+  quizMissing: boolean;
+  /** The published pack for this week is newer than the stored one and could not be fetched. */
+  staleWeek: boolean;
+}
 
-function LessonCard({ lesson, dayIndex, isReview, weekNumber, readIds, saved, onMarkRead, onSave, quiz }: LessonProps) {
-  const [reveal, setReveal] = useState(false);
+function LessonCard({ lesson, dayIndex, isReview, weekNumber, weekStart, readIds, saved, onMarkRead, onSave, quiz, quizMissing, staleWeek }: LessonProps) {
   const isRead = readIds.includes(lesson.id);
   const weekIds = Array.from({ length: 7 }, (_, i) => lesson.id.replace(/-d\d$/, `-d${i + 1}`));
   return (
@@ -302,26 +372,7 @@ function LessonCard({ lesson, dayIndex, isReview, weekNumber, readIds, saved, on
       <div class="lesson-progress" aria-label={`Day ${dayIndex + 1} of 7`}>
         {weekIds.map((id, i) => <span key={id} class={i === dayIndex ? 'today' : readIds.includes(id) ? 'done' : ''} />)}
       </div>
-      <div class="lesson-body">
-        <h4>Explanation</h4>
-        {lesson.explanation.map((p, i) => <p key={i}>{p}</p>)}
-        <h4>Example</h4>
-        <div class="lesson-example">
-          {lesson.example.map((p, i) => <p key={i}>{p}</p>)}
-        </div>
-        {lesson.exercise && (
-          <details class="lesson-exercise" style="margin-top:12px">
-            <summary>
-              <span>Exercise (optional)</span>
-              <ChevronDown size={18} />
-            </summary>
-            <p>{lesson.exercise.prompt}</p>
-            {reveal ? <div class="lesson-answer">{lesson.exercise.answer}</div> : (
-              <button class="btn btn--ghost" style="margin-top:12px" onClick={() => setReveal(true)}>Reveal answer</button>
-            )}
-          </details>
-        )}
-      </div>
+      <LessonBody lesson={lesson} />
       <div class="lesson-footer">
         <button class="btn" onClick={onMarkRead} disabled={isRead} style={isRead ? 'opacity:.7' : ''}>{isRead ? 'Read ✓' : 'Mark as read'}</button>
         <button class="btn btn--ghost" onClick={onSave} aria-pressed={saved}>
@@ -330,13 +381,29 @@ function LessonCard({ lesson, dayIndex, isReview, weekNumber, readIds, saved, on
       </div>
       {quiz && (
         <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.15)">
-          <div class="eyebrow">Sunday quiz · {quiz.count} questions on this week</div>
+          <div class="eyebrow">Weekly quiz · {quiz.count} questions on all seven days</div>
           {quiz.result ? (
             <p class="lesson-theme" style="margin-top:6px">Your score: {quiz.result.score} / {quiz.result.total}.</p>
+          ) : quiz.started ? (
+            <p class="lesson-theme" style="margin-top:6px">You have answers saved. Pick up where you left off.</p>
           ) : (
-            <p class="lesson-theme" style="margin-top:6px">Multiple choice. Score and corrections at the end.</p>
+            <p class="lesson-theme" style="margin-top:6px">Multiple choice. Review and change every answer before you submit.</p>
           )}
-          <button class="btn" style="margin-top:12px;background:var(--sage-deep)" onClick={() => navigate('quiz')}>{quiz.result ? 'Retake the quiz' : 'Start the quiz'}</button>
+          <button class="btn" style="margin-top:12px;background:var(--sage-deep)" onClick={() => navigate('quiz', weekStart)}>
+            {quiz.result ? 'Retake the quiz' : quiz.started ? 'Continue the quiz' : `Take this week's quiz — ${quiz.count} questions`}
+          </button>
+          <button class="btn btn--ghost" style="margin-top:8px;width:100%" onClick={() => navigate('week', weekStart)}>Review the week first</button>
+        </div>
+      )}
+      {quizMissing && (
+        <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.15)">
+          <div class="eyebrow">Weekly quiz</div>
+          <p class="lesson-theme" style="margin-top:6px">
+            {staleWeek
+              ? 'This week’s quiz is published but could not be downloaded. It will appear next time you open Morning online.'
+              : 'This week’s pack was downloaded before its quiz existed. Open Morning online once and the quiz will appear.'}
+          </p>
+          <button class="btn btn--ghost" style="margin-top:12px" onClick={() => void lessonActions.sync()}>Check for it now</button>
         </div>
       )}
     </section>
@@ -419,6 +486,58 @@ function StockSection({ stock, onSave }: { stock: StockBlock; onSave: (title: st
       )}
       {showRule && <p class="stock-rule">{stock.rule}</p>}
       <p class="stock-disclaimer">Mechanical screen on past prices. Not investment advice; nothing here knows your situation. Prices via Yahoo Finance, may be delayed.</p>
+    </section>
+  );
+}
+
+/**
+ * The lesson an archived edition carried, resolved from the fixed date → week/day mapping.
+ *
+ * Read-only on purpose: revisiting an old lesson must not mark it read, must not move the daily
+ * sequence, and must not change which lesson belongs to today. On a Sunday it also offers that
+ * week's quiz, which is how an old Sunday edition stays connected to its own quiz.
+ */
+function ArchivedLesson({ view, date, pinned }: { view: TodayLesson; date: string; pinned: Edition['lessonRef'] }) {
+  if (!view.lesson) {
+    return (
+      <section class="lesson" aria-label="Lesson for this edition">
+        <div class="eyebrow">Lesson for {formatDateLong(dateFromYMD(date))}</div>
+        <h2>Not recoverable</h2>
+        <p class="lesson-theme" style="margin-top:8px">
+          {view.startsOn
+            ? `The lesson sequence starts ${formatDateLong(dateFromYMD(view.startsOn))}, so this edition predates it.`
+            : 'The lesson pack for this week is not downloaded, so this day’s lesson cannot be shown.'}
+        </p>
+      </section>
+    );
+  }
+  const changed = pinned?.packVersion && view.packVersion && pinned.packVersion !== view.packVersion;
+  return (
+    <section class="lesson" aria-label="Lesson for this edition">
+      <div class="eyebrow">Lesson for {formatDateLong(dateFromYMD(date))} · Day {view.lesson.day} of 7</div>
+      <h2>{view.lesson.title}</h2>
+      <div class="lesson-theme">
+        Week {view.weekNumber}: {view.lesson.theme} · {view.lesson.readMinutes} min
+      </div>
+      <LessonBody lesson={view.lesson} />
+      {changed && (
+        <p class="small" style="margin-top:10px;opacity:.8">
+          This week&rsquo;s lesson pack has been updated since this edition was read. You are seeing the current text.
+        </p>
+      )}
+      <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,.15);display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn btn--ghost" onClick={() => navigate('week', view.weekStart)}>See the whole week</button>
+        {view.dayIndex === 6 && !view.quizMissing && (
+          <button class="btn" style="background:var(--sage-deep)" onClick={() => navigate('quiz', view.weekStart)}>
+            Take this week&rsquo;s quiz
+          </button>
+        )}
+      </div>
+      {view.dayIndex === 6 && view.quizMissing && (
+        <p class="small" style="margin-top:10px;opacity:.8">
+          This week&rsquo;s quiz is not in the downloaded pack yet.
+        </p>
+      )}
     </section>
   );
 }

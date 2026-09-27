@@ -85,4 +85,20 @@ export const editionActions = {
   async loadArchived(date: string): Promise<Edition | null> {
     return kvGet<Edition | null>(`edition:${date}`, null);
   },
+
+  /**
+   * Record which lesson an archived edition carried, once, the first time it is re-read.
+   *
+   * Editions are published without a lesson reference — the builder cannot know when a given
+   * install started its sequence. Pinning it here turns a derived answer into a stored fact, so
+   * future edits to a lesson pack cannot rewrite an old edition's lesson behind Paolo's back.
+   */
+  async pinLesson(date: string, ref: NonNullable<Edition['lessonRef']>): Promise<void> {
+    const ed = await kvGet<Edition | null>(`edition:${date}`, null);
+    if (!ed || ed.lessonRef?.lessonId === ref.lessonId) return;
+    await kvSet(`edition:${date}`, { ...ed, lessonRef: ref });
+    if (editionStore.get().edition?.date === date) {
+      await kvSet('edition:current', { ...ed, lessonRef: ref });
+    }
+  },
 };

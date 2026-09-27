@@ -1,20 +1,57 @@
-import { useMemo, useState } from 'preact/hooks';
-import { BookOpen, ExternalLink, Link as LinkIcon, Newspaper, Plus, Search, Trash2 } from 'lucide-preact';
+import { useEffect, useMemo, useState } from 'preact/hooks';
+import { BookOpen, Link as LinkIcon, Newspaper, Pencil, Plus, Search, Trash2 } from 'lucide-preact';
 import type { LibraryEntry } from '@/types';
 import { ScreenHeader } from '@/ui/ScreenHeader';
 import { Sheet } from '@/ui/Sheet';
 import { useToast } from '@/ui/Toast';
 import { shortDate } from '@/lib/format';
+import { navigate, routeParam } from '@/ui/router';
 import { DEFAULT_TAGS, libraryActions, libraryStore } from '@/state/library';
+import { lessonActions } from '@/state/lessons';
 
 const ICONS = { story: Newspaper, lesson: BookOpen, own: LinkIcon };
 
 export function Library() {
   const { entries, ready } = libraryStore.use();
   const toast = useToast();
-  const [q, setQ] = useState('');
-  const [tag, setTag] = useState<string | null>(null);
+  const [q, setQ] = useState(() => sessionStorage.getItem('library:q') ?? '');
+  const [tag, setTag] = useState<string | null>(() => sessionStorage.getItem('library:tag'));
   const [editing, setEditing] = useState<LibraryEntry | 'new' | null>(null);
+
+  // Give older saved items their content reference once per open, so tapping them reads rather than
+  // edits. Additive and idempotent: nothing is deleted and nothing already readable is touched.
+  useEffect(() => {
+    void lessonActions.sync().finally(() => void libraryActions.repair());
+  }, []);
+
+  // Keep the search, the tag and the scroll position across a trip into the reader and back.
+  useEffect(() => {
+    try {
+      sessionStorage.setItem('library:q', q);
+      if (tag) sessionStorage.setItem('library:tag', tag);
+      else sessionStorage.removeItem('library:tag');
+    } catch { /* storage disabled; filters simply do not persist */ }
+  }, [q, tag]);
+
+  useEffect(() => {
+    if (!ready) return;
+    const y = Number(sessionStorage.getItem('library:scrollY') ?? '0');
+    if (y > 0) requestAnimationFrame(() => scrollTo({ top: y }));
+  }, [ready]);
+
+  // `#/library/edit:<id>` opens the editor directly — the path the reader's Edit button uses.
+  useEffect(() => {
+    const p = routeParam();
+    if (!p?.startsWith('edit:') || !ready) return;
+    const hit = entries.find((e) => e.id === p.slice(5));
+    if (hit) setEditing(hit);
+    navigate('library');
+  }, [ready, entries]);
+
+  const openEntry = (e: LibraryEntry) => {
+    try { sessionStorage.setItem('library:scrollY', String(Math.round(scrollY))); } catch { /* ignore */ }
+    navigate('read', e.id);
+  };
 
   const tags = useMemo(() => [...new Set([...DEFAULT_TAGS, ...entries.flatMap((e) => e.tags)])].filter((t) => entries.some((e) => e.tags.includes(t)) || DEFAULT_TAGS.includes(t)), [entries]);
   const shown = useMemo(
@@ -58,7 +95,7 @@ export function Library() {
               <div class="thumb" style="width:40px;height:40px;border-radius:10px;flex:none">
                 <Icon size={18} strokeWidth={1.8} />
               </div>
-              <button class="task-body" style="text-align:left" onClick={() => setEditing(e)}>
+              <button class="task-body" style="text-align:left" onClick={() => openEntry(e)} aria-label={`Read ${e.title}`}>
                 <div class="task-text" style="font-weight:500">{e.title}</div>
                 <div class="task-notes">
                   {e.publisher ? `${e.publisher} · ` : ''}
@@ -70,11 +107,9 @@ export function Library() {
                   </div>
                 )}
               </button>
-              {e.url && (
-                <a class="icon-btn" href={e.url} target="_blank" rel="noopener noreferrer" aria-label={`Open ${e.title}`}>
-                  <ExternalLink size={18} />
-                </a>
-              )}
+              <button class="icon-btn" onClick={() => setEditing(e)} aria-label={`Edit ${e.title}`}>
+                <Pencil size={18} strokeWidth={1.9} />
+              </button>
             </li>
           );
         })}
@@ -87,6 +122,8 @@ export function Library() {
           onClose={() => setEditing(null)}
           onSave={async (e) => {
             if (editing === 'new') await libraryActions.save(e);
+            // Spread the edits over the existing entry so `ref` and `snapshot` survive: editing a
+            // title or a note must never break the link to the saved content.
             else await libraryActions.update({ ...editing, ...e });
             setEditing(null);
             toast({ message: editing === 'new' ? 'Added to Library' : 'Saved' }, 1500);
@@ -121,7 +158,7 @@ function EntrySheet({ entry, knownTags, onClose, onSave, onDelete }: SheetProps)
       footer={
         <>
           <button class="btn btn--ghost" onClick={onClose}>Cancel</button>
-          <button class="btn" disabled={!title.trim() || !urlOk} onClick={() => void onSave({ kind: entry?.kind ?? 'own', title: title.trim(), url: url.trim() || null, note: note.trim(), publisher: entry?.publisher, tags })}>Save</button>
+          <button class="btn" disabled={!title.trim() || !urlOk} onClick={() => void onSave({ kind: entry?.kind ?? 'own', title: title.trim(), url: url.trim() || null, note: note.trim(), publisher: entry?.publisher, tags, ref: entry?.ref, snapshot: entry?.snapshot, contentMissing: entry?.contentMissing })}>Save</button>
         </>
       }
     >

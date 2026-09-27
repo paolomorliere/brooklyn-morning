@@ -256,3 +256,58 @@
 .scoreboard td, .scoreboard th { padding: 6px 4px; border-bottom: 1px solid var(--line); text-align: left; }
 .scoreboard th { font-size: var(--fs-12); color: var(--ink-muted); font-weight: 600; }
 .scoreboard td.num, .scoreboard th.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* ---------- reading view (Library) ---------- */
+.reader-title {
+  font-family: var(--font-display);
+  font-size: var(--fs-24);
+  line-height: 1.22;
+  color: var(--espresso);
+  margin: 4px 0 4px;
+}
+.reader-body {
+  margin-top: 16px;
+  font-size: var(--fs-16);
+  line-height: 1.6;
+  color: var(--espresso);
+}
+.reader-body h4 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 16px 0 6px;
+}
+.reader-body h4:first-child {
+  margin-top: 0;
+}
+.reader-body p {
+  margin: 0 0 10px;
+}
+
+/* A lesson shown outside Morning's dark card: same layout, page colours. */
+.lesson--quiet {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  color: var(--espresso);
+}
+.lesson--quiet h2,
+.lesson--quiet .eyebrow,
+.lesson--quiet .lesson-theme {
+  color: inherit;
+}
+.lesson--quiet .eyebrow,
+.lesson--quiet .lesson-theme {
+  opacity: 0.72;
+}
+.lesson--quiet .lesson-body h4 {
+  color: var(--ink-faint);
+}
+.lesson--quiet .lesson-example {
+  background: var(--paper-2);
+}
+.lesson--quiet .lesson-exercise {
+  border-top-color: var(--line);
+}

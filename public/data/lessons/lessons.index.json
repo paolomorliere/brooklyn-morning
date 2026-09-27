@@ -4,42 +4,58 @@
   {
    "week": 1,
    "theme": "The stock market, from zero",
-   "file": "week-01.json"
+   "file": "week-01.json",
+   "version": "9d4b88052a30",
+   "quizQuestions": 20
   },
   {
    "week": 2,
    "theme": "Turning points in history",
-   "file": "week-02.json"
+   "file": "week-02.json",
+   "version": "53f2920df7bd",
+   "quizQuestions": 20
   },
   {
    "week": 3,
    "theme": "The stock market, one level up",
-   "file": "week-03.json"
+   "file": "week-03.json",
+   "version": "c049adcb62e8",
+   "quizQuestions": 20
   },
   {
    "week": 4,
    "theme": "How AI actually works (no code)",
-   "file": "week-04.json"
+   "file": "week-04.json",
+   "version": "34860e63ca87",
+   "quizQuestions": 20
   },
   {
    "week": 5,
    "theme": "Geography that explains the news",
-   "file": "week-05.json"
+   "file": "week-05.json",
+   "version": "2e8023428ecd",
+   "quizQuestions": 20
   },
   {
    "week": 6,
    "theme": "Cooking fundamentals",
-   "file": "week-06.json"
+   "file": "week-06.json",
+   "version": "f9dfee595a93",
+   "quizQuestions": 20
   },
   {
    "week": 7,
    "theme": "Data literacy: reading numbers like an analyst",
-   "file": "week-07.json"
+   "file": "week-07.json",
+   "version": "ab04d1b20608",
+   "quizQuestions": 20
   },
   {
    "week": 8,
    "theme": "Everyday economics",
-   "file": "week-08.json"
+   "file": "week-08.json",
+   "version": "f6b3206de3e2",
+   "quizQuestions": 20
   }
  ]
 }
