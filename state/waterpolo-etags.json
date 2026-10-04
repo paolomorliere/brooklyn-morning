@@ -1,67 +1,67 @@
 {
   "liu": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:43 GMT",
-    "at": "2026-10-04T01:54:42.640Z"
+    "lastModified": "Sun, 04 Oct 2026 17:24:56 GMT",
+    "at": "2026-10-04T17:24:56.058Z"
   },
   "harvard": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:42 GMT",
-    "at": "2026-10-04T01:54:42.676Z"
+    "lastModified": "Sun, 04 Oct 2026 17:17:29 GMT",
+    "at": "2026-10-04T17:24:56.104Z"
   },
   "princeton": {
-    "etag": "W/\"qKukSKUnaD\"",
-    "lastModified": "Sun, 04 Oct 2026 01:54:43 GMT",
-    "at": "2026-10-04T01:54:42.678Z"
+    "etag": "W/\"lhxhc8wZbF\"",
+    "lastModified": "Sun, 04 Oct 2026 17:24:56 GMT",
+    "at": "2026-10-04T17:24:56.106Z"
   },
   "mit": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:42 GMT",
-    "at": "2026-10-04T01:54:42.679Z"
+    "lastModified": "Sun, 04 Oct 2026 17:24:56 GMT",
+    "at": "2026-10-04T17:24:56.108Z"
   },
   "brown": {
-    "etag": "W/\"MUQkUAWuW6\"",
-    "lastModified": "Sun, 04 Oct 2026 01:54:44 GMT",
-    "at": "2026-10-04T01:54:43.448Z"
+    "etag": "W/\"HjDON2vrWR\"",
+    "lastModified": "Sun, 04 Oct 2026 17:24:56 GMT",
+    "at": "2026-10-04T17:24:56.522Z"
   },
   "iona": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:43 GMT",
-    "at": "2026-10-04T01:54:43.733Z"
+    "lastModified": "Sun, 04 Oct 2026 17:24:57 GMT",
+    "at": "2026-10-04T17:24:56.727Z"
   },
   "wagner": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:44 GMT",
-    "at": "2026-10-04T01:54:43.967Z"
+    "lastModified": "Sun, 04 Oct 2026 17:19:37 GMT",
+    "at": "2026-10-04T17:24:56.864Z"
   },
   "fordham": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:44 GMT",
-    "at": "2026-10-04T01:54:44.318Z"
+    "lastModified": "Sun, 04 Oct 2026 17:22:26 GMT",
+    "at": "2026-10-04T17:24:57.117Z"
   },
   "bucknell": {
-    "etag": "W/\"CmehKlXGLg\"",
-    "lastModified": "Sun, 04 Oct 2026 01:54:45 GMT",
-    "at": "2026-10-04T01:54:44.469Z"
+    "etag": "W/\"6eSMJqSX2P\"",
+    "lastModified": "Sun, 04 Oct 2026 17:24:57 GMT",
+    "at": "2026-10-04T17:24:57.236Z"
   },
   "air-force": {
-    "etag": "W/\"ky2STGE2OR\"",
-    "lastModified": "Sun, 04 Oct 2026 01:54:45 GMT",
-    "at": "2026-10-04T01:54:45.382Z"
+    "etag": "W/\"RozRSNggGY\"",
+    "lastModified": "Sun, 04 Oct 2026 17:24:57 GMT",
+    "at": "2026-10-04T17:24:57.293Z"
   },
   "navy": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:45 GMT",
-    "at": "2026-10-04T01:54:45.503Z"
+    "lastModified": "Sun, 04 Oct 2026 17:24:57 GMT",
+    "at": "2026-10-04T17:24:57.626Z"
   },
   "mount-st-marys": {
     "etag": null,
-    "lastModified": "Sun, 04 Oct 2026 01:54:46 GMT",
-    "at": "2026-10-04T01:54:46.088Z"
+    "lastModified": "Sun, 04 Oct 2026 17:24:58 GMT",
+    "at": "2026-10-04T17:24:57.779Z"
   },
   "george-washington": {
-    "etag": "W/\"qDivlTQteD\"",
-    "lastModified": "Sun, 04 Oct 2026 01:54:47 GMT",
-    "at": "2026-10-04T01:54:46.415Z"
+    "etag": "W/\"KxMyrmcVJc\"",
+    "lastModified": "Sun, 04 Oct 2026 17:24:58 GMT",
+    "at": "2026-10-04T17:24:58.047Z"
   }
 }
