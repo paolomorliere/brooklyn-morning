@@ -119,6 +119,18 @@
    "volRatio": 5.436019028467668,
    "pctOfHigh60": 1,
    "mentions": 0
+  },
+  {
+   "date": "2026-10-05",
+   "ticker": "ADI",
+   "name": "Analog Devices",
+   "lastClose": 417.1499938964844,
+   "asOf": "2026-10-02",
+   "r5": 0.05983228513155869,
+   "r20": 0.1701262100883152,
+   "volRatio": 0.8002787494617488,
+   "pctOfHigh60": 1,
+   "mentions": 0
   }
  ]
 }
