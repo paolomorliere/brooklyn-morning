@@ -66,9 +66,21 @@ test('the deployed team page switches between Results and Schedule', async ({ pa
 test('the deployed poll shows the published week', async ({ page }) => {
   await page.goto(`${SITE}#/poll`);
   await expect(page.locator('.polo-poll-table tbody tr').first()).toBeVisible({ timeout: 40_000 });
-  await expect(page.locator('.polo-poll-title')).toContainText('Week 4');
-  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(25);
-  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(0);
+  // Read from the file the site is actually serving. Hardcoding the week and the row count meant
+  // this test went red every time the CWPA published, which says nothing about the app.
+  const poll = await page.evaluate(async () => {
+    const r = await fetch('data/poll.json', { cache: 'no-store' });
+    return (await r.json()) as {
+      week: number;
+      rows: { team: string }[];
+      teams: Record<string, { logo: string | null } | undefined>;
+    };
+  });
+  await expect(page.locator('.polo-poll-title')).toContainText(`Week ${poll.week}`);
+  await expect(page.locator('.polo-poll-table tbody tr')).toHaveCount(poll.rows.length);
+  // Initials only where the identity rules refuse to claim a school as one already known.
+  const withoutLogo = poll.rows.filter((r) => !poll.teams[r.team]?.logo).length;
+  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(withoutLogo);
 });
 
 test('the deployed app shows the Air Force result once, and no longer as a fixture', async ({ page }) => {
@@ -83,9 +95,10 @@ test('the deployed app shows the Air Force result once, and no longer as a fixtu
   await expect(pair).not.toHaveClass(/polo-row--fixture/);
   await expect(pair).toContainText('16');
   await expect(pair).toContainText('15');
-  // And it is gone from "This weekend".
-  const weekend = page.locator('section', { has: page.getByRole('heading', { name: 'This weekend' }) });
-  await expect(weekend.locator('.polo-row', { hasText: 'Wagner' })).toHaveCount(0);
+  // And that fixture is gone from "This weekend" — this one game, not every later Wagner fixture,
+  // which is what the broader assertion started catching once a new weekend was published.
+  const weekend = page.locator('.polo-weekend');
+  await expect(weekend.locator('.polo-row', { hasText: 'Air Force' }).filter({ hasText: 'Wagner' })).toHaveCount(0);
 });
 
 test('the deployed refresh panel names each timestamp and offers no dropdown to get wrong', async ({ page }) => {
@@ -96,4 +109,63 @@ test('the deployed refresh panel names each timestamp and offers no dropdown to 
   await expect(page.locator('.polo-last')).toContainText(/Your last refresh|have not run a manual refresh/);
   // Never both wordings for one time.
   await expect(page.locator('.polo-last')).not.toContainText('Last successful refresh');
+});
+
+test('the deployed conference table lines its headers up with its numbers', async ({ page }) => {
+  await page.goto(`${SITE}#/waterpolo`);
+  await expect(page.locator('.polo-row').first()).toBeVisible({ timeout: 40_000 });
+  await page.getByRole('button', { name: 'MAWPC', exact: true }).click();
+
+  const table = page.locator('.polo-standings .polo-table');
+  await expect(table).toBeVisible();
+  const heads = table.locator('thead th.polo-num');
+  const rows = table.locator('tbody tr');
+  for (let i = 0; i < (await heads.count()); i++) {
+    const head = await heads.nth(i).boundingBox();
+    const cell = await rows.first().locator('td.polo-num').nth(i).boundingBox();
+    expect(Math.abs((cell?.x ?? 0) - (head?.x ?? 0))).toBeLessThan(1);
+    expect(await heads.nth(i).evaluate((el) => getComputedStyle(el).textAlign)).toBe('right');
+  }
+  // And the fixtures section is gone while a filter is on.
+  await expect(page.getByRole('heading', { name: 'This weekend' })).toHaveCount(0);
+  await expect(page.locator('.polo-standings')).toContainText('MAWPC schedule read');
+
+  await page.getByRole('button', { name: 'Reset' }).click();
+  await expect(page.getByRole('heading', { name: 'This weekend' })).toBeVisible();
+});
+
+test('the deployed To Do screen reorders a task by press and hold', async ({ page }) => {
+  await page.goto(`${SITE}#/todo`);
+  const input = page.getByRole('textbox', { name: 'New task' });
+  await expect(input).toBeVisible({ timeout: 40_000 });
+
+  // Two throwaway tasks, reordered, then removed again — this runs against Paolo's own device data.
+  const names = [`zz-check-a-${Date.now()}`, `zz-check-b-${Date.now()}`];
+  for (const n of names) {
+    await input.fill(n);
+    await input.press('Enter');
+  }
+  const rows = page.locator('li.task', { hasText: 'zz-check-' });
+  await expect(rows).toHaveCount(2);
+
+  const a = await rows.nth(0).boundingBox();
+  const b = await rows.nth(1).boundingBox();
+  if (!a || !b) throw new Error('rows not on screen');
+  await page.mouse.move(a.x + a.width / 2, a.y + a.height / 2);
+  await page.mouse.down();
+  await page.waitForTimeout(600);
+  await page.mouse.move(a.x + a.width / 2, b.y + b.height / 2, { steps: 12 });
+  await page.waitForTimeout(120);
+  await page.mouse.up();
+
+  await expect(rows.first()).toContainText(names[1]);
+  await page.reload();
+  await expect(page.locator('li.task', { hasText: 'zz-check-' }).first()).toContainText(names[1], { timeout: 40_000 });
+
+  for (const n of names) {
+    await page.locator('li.task', { hasText: n }).locator('.task-body').click();
+    await page.getByRole('button', { name: 'Delete task' }).click();
+    await page.getByRole('button', { name: 'Tap again to delete permanently' }).click();
+  }
+  await expect(page.locator('li.task', { hasText: 'zz-check-' })).toHaveCount(0);
 });
