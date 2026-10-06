@@ -1,0 +1,19 @@
+{
+ "strategyVersion": 2,
+ "picks": [
+  {
+   "date": "2026-10-06",
+   "publishedAt": "2026-10-06T22:20:59.688Z",
+   "ticker": "ATEX",
+   "name": "Anterix Inc.",
+   "cik": "1304492",
+   "sic": "4813",
+   "division": "Transportation, Communications and Utilities",
+   "decisionSession": "2026-10-05",
+   "referenceClose": 85.61,
+   "rankScore": 100,
+   "composite": 1.6198366132131505,
+   "strategyHash": "46527bc8ea38a026"
+  }
+ ]
+}

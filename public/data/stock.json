@@ -1,0 +1,557 @@
+{
+ "builtAt": "2026-10-06T22:20:59.697Z",
+ "decidedFor": "2026-10-06",
+ "strategyVersion": 2,
+ "strategyHash": "46527bc8ea38a026",
+ "block": {
+  "kind": "pick",
+  "strategyVersion": 2,
+  "strategyHash": "46527bc8ea38a026",
+  "date": "2026-10-06",
+  "publishedAt": "2026-10-06T22:20:59.688Z",
+  "decisionSession": "2026-10-05",
+  "ticker": "ATEX",
+  "name": "Anterix Inc.",
+  "cik": "1304492",
+  "sic": "4813",
+  "sector": "Transportation, Communications and Utilities",
+  "industry": "48",
+  "referenceClose": 85.61,
+  "referenceCloseDate": "2026-10-05",
+  "horizonSessions": 21,
+  "plannedEntry": "2026-10-06",
+  "plannedExit": "2026-11-03",
+  "thesis": "Ranked first among today's eligible candidates on operating margin trend, growth acceleration, six-month return against its sector — revenue +7.8% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago.",
+  "rankScore": 100,
+  "composite": 1.6198366132131505,
+  "scoredAgainst": "355 operating candidates",
+  "scanned": 5051,
+  "eligible": 475,
+  "signals": [
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth, trailing year",
+    "value": 0.07793069142762388,
+    "z": -0.2978448247576473,
+    "cohort": 355
+   },
+   {
+    "key": "growthAcceleration",
+    "label": "Growth acceleration",
+    "value": 0.40517724099313446,
+    "z": 3.294244409773492,
+    "cohort": 355
+   },
+   {
+    "key": "operatingMarginTrend",
+    "label": "Operating margin trend",
+    "value": 16.390844503827594,
+    "z": 3.7254512488131097,
+    "cohort": 322
+   },
+   {
+    "key": "cashConversion",
+    "label": "Cash conversion",
+    "value": 0.06080432503999559,
+    "z": -1.4152010164239759,
+    "cohort": 302
+   },
+   {
+    "key": "earningsYield",
+    "label": "Earnings yield",
+    "value": 0.055973418905245174,
+    "z": 0.9895029711557787,
+    "cohort": 335
+   },
+   {
+    "key": "relativeStrengthSpy",
+    "label": "Six-month return against SPY",
+    "value": 0.9447429166780963,
+    "z": 2.264221769493769,
+    "cohort": 355
+   },
+   {
+    "key": "relativeStrengthSector",
+    "label": "Six-month return against its sector",
+    "value": 1.1323458459698241,
+    "z": 2.778481734437527,
+    "cohort": 355
+   }
+  ],
+  "signalsDropped": [
+   {
+    "key": "grossMarginTrend",
+    "why": "gross profit is not reported"
+   },
+   {
+    "key": "grossProfitability",
+    "why": "gross profit or total assets is not reported"
+   },
+   {
+    "key": "fcfYield",
+    "why": "capital expenditure is not reported"
+   }
+  ],
+  "evidence": [
+   {
+    "label": "Revenue, trailing year",
+    "value": "$7M, +7.8%",
+    "period": "4 qtrs to 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "Revenues"
+   },
+   {
+    "label": "Quarterly revenue, year on year",
+    "value": "+41.0%, against +0.4% the quarter before",
+    "period": "quarter to 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "Revenues"
+   },
+   {
+    "label": "Operating margin, trailing year",
+    "value": "1444.9%, from -194.2%",
+    "period": "4 qtrs to 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "OperatingIncomeLoss"
+   },
+   {
+    "label": "Cash conversion (cash flow ÷ earnings)",
+    "value": "0.06×",
+    "period": "4 qtrs to 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "NetCashProvidedByUsedInOperatingActivities"
+   },
+   {
+    "label": "Return on equity, trailing year",
+    "value": "34.6%",
+    "period": "4 qtrs to 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "StockholdersEquity"
+   },
+   {
+    "label": "Equity ÷ assets",
+    "value": "56.4%",
+    "period": "at 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "StockholdersEquity"
+   },
+   {
+    "label": "Earnings yield / free cash flow yield",
+    "value": "5.6% / —",
+    "period": "trailing year against the reference close",
+    "filed": null,
+    "interpretation": true
+   },
+   {
+    "label": "Share count",
+    "value": "18,914,271 (market cap $1.6bn)",
+    "period": "at 2026-03-31",
+    "filed": "2026-06-25",
+    "tag": "CommonStockSharesOutstanding"
+   }
+  ],
+  "peers": [
+   {
+    "ticker": "ATEX",
+    "name": "Anterix Inc.",
+    "revenueTtm": 6501000,
+    "revenueGrowth": 0.07793069142762388,
+    "quarterYoY": 0.40964722822174227,
+    "grossMargin": null,
+    "operatingMargin": 14.448546377480387,
+    "cashConversion": 0.06080432503999559,
+    "freeCashFlowTtm": null
+   },
+   {
+    "ticker": "FOX",
+    "name": "Fox Corporation",
+    "revenueTtm": 16201000000,
+    "revenueGrowth": 0.00596088171375353,
+    "quarterYoY": -0.08625028597574924,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 1.4948571428571429,
+    "freeCashFlowTtm": 2136000000
+   },
+   {
+    "ticker": "FOXA",
+    "name": "Fox Corporation",
+    "revenueTtm": 16201000000,
+    "revenueGrowth": 0.00596088171375353,
+    "quarterYoY": -0.08625028597574924,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 1.4948571428571429,
+    "freeCashFlowTtm": 2136000000
+   },
+   {
+    "ticker": "SIRI",
+    "name": "SiriusXM Holdings Inc.",
+    "revenueTtm": 8581000000,
+    "revenueGrowth": -0.0027890761185357382,
+    "quarterYoY": 0.01112185686653766,
+    "grossMargin": null,
+    "operatingMargin": 0.17923318960494114,
+    "cashConversion": 2.2777777777777777,
+    "freeCashFlowTtm": 1358000000
+   },
+   {
+    "ticker": "ROKU",
+    "name": "Roku, Inc.",
+    "revenueTtm": 4965458000,
+    "revenueGrowth": 0.16776577038033658,
+    "quarterYoY": 0.2235850498495109,
+    "grossMargin": 0.4419159320248001,
+    "operatingMargin": 0.020920124588708636,
+    "cashConversion": 2.7004843864768824,
+    "freeCashFlowTtm": 537643000
+   },
+   {
+    "ticker": "FWONK",
+    "name": "Liberty Media Corporation",
+    "revenueTtm": 4746000000,
+    "revenueGrowth": 0.3509820666097352,
+    "quarterYoY": 0.5906040268456376,
+    "grossMargin": null,
+    "operatingMargin": 0.14917825537294563,
+    "cashConversion": 1.4398682042833608,
+    "freeCashFlowTtm": 768000000
+   },
+   {
+    "ticker": "VSAT",
+    "name": "ViaSat, Inc.",
+    "revenueTtm": 4640280000,
+    "revenueGrowth": 0.02670806587616381,
+    "quarterYoY": 0.021102240293196184,
+    "grossMargin": null,
+    "operatingMargin": 0.023301395605437602,
+    "cashConversion": null,
+    "freeCashFlowTtm": null
+   }
+  ],
+  "peerBasis": null,
+  "runnersUp": [
+   {
+    "ticker": "VCTR",
+    "name": "Victory Capital Holdings, Inc.",
+    "rankScore": 100,
+    "why": "its weakest signal was earnings yield (0.14)"
+   },
+   {
+    "ticker": "TVTX",
+    "name": "Travere Therapeutics, Inc.",
+    "rankScore": 99,
+    "why": "its weakest signal was growth acceleration (-2.40)"
+   },
+   {
+    "ticker": "SLDE",
+    "name": "Slide Insurance Holdings, Inc.",
+    "rankScore": 98,
+    "why": "its weakest signal was growth acceleration (-0.49)"
+   }
+  ],
+  "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
+  "invalidation": [
+   "Quarterly revenue growth falling below +0.4%, the rate it was running at the quarter before.",
+   "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
+   "A close below the 200-session average, which stood at $59.67 on the decision date."
+  ],
+  "risks": [
+   "The share count is from 2026-03-31, 188 days older than the price, so the market capitalisation carries that staleness.",
+   "The most recent filing covers a period ending 2026-03-31, 188 days before the decision date.",
+   "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
+   "Point-in-time fundamentals are built from filings accepted up to 2026-10-05."
+  ],
+  "earnings": {
+   "estimate": "2026-11-11",
+   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-12) plus 364 days",
+   "spreadDays": 42,
+   "confirmed": false,
+   "inWindow": false,
+   "nearWindow": true
+  },
+  "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
+  "validation": "The held-out window has not been opened. No claim of an edge is made or implied.",
+  "sources": {
+   "universe": "Nasdaq Trader nasdaqtraded.txt",
+   "identity": "SEC company_tickers.json",
+   "fundamentals": "SEC Financial Statement Data Sets (twelve quarters), point-in-time by accepted timestamp, topped up from companyfacts for companies that have filed since the newest data set",
+   "earnings": "EDGAR 8-K item 2.02",
+   "prices": "Massive (Polygon.io) grouped daily bars, splits and dividends"
+  }
+ },
+ "recaps": [
+  {
+   "kind": "recap",
+   "strategyVersion": 2,
+   "asOf": "2026-10-05",
+   "rows": [
+    {
+     "strategyVersion": 2,
+     "date": "2026-10-06",
+     "ticker": "ATEX",
+     "name": "Anterix Inc.",
+     "status": "not-entered",
+     "reason": "the market has not opened since publication",
+     "entryDate": null,
+     "entryPrice": null,
+     "valueDate": null,
+     "valuePrice": null,
+     "sessionsHeld": 0,
+     "horizon": 21,
+     "netPct": null,
+     "grossPct": null,
+     "excessSpyPct": null,
+     "excessRspPct": null
+    }
+   ],
+   "completed": 0,
+   "open": 0,
+   "meanNetPct": null,
+   "meanExcessSpyPct": null,
+   "meanExcessRspPct": null,
+   "winRate": null,
+   "mixedHorizonMeanPct": null,
+   "horizonsSpanned": [],
+   "note": "Each position is bought at the open of the first session after it was published and held 21 sessions. Costs of 10 basis points each way on the stock and 2 on the benchmark are deducted. Only completed positions enter the average; a position still running is listed with the sessions elapsed and counted nowhere else."
+  },
+  {
+   "kind": "recap",
+   "strategyVersion": 1,
+   "asOf": "2026-10-05",
+   "rows": [
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-21",
+     "ticker": "INTC",
+     "name": "Intel",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-21",
+     "entryPrice": 116.53,
+     "valueDate": "2026-09-25",
+     "valuePrice": 123,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": 5.341324769798139,
+     "grossPct": 5.552218312880797,
+     "excessSpyPct": 4.716135152341083,
+     "excessRspPct": 6.081883149185286
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-22",
+     "ticker": "AMD",
+     "name": "AMD",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-22",
+     "entryPrice": 606.565,
+     "valueDate": "2026-09-28",
+     "valuePrice": 607.87,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": 0.014915882959698479,
+     "grossPct": 0.21514594478744264,
+     "excessSpyPct": 1.1422859801713314,
+     "excessRspPct": 1.842917018076362
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-23",
+     "ticker": "META",
+     "name": "Meta Platforms",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-23",
+     "entryPrice": 747.6,
+     "valueDate": "2026-09-29",
+     "valuePrice": 738.79,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": -1.3758833461883224,
+     "grossPct": -1.178437667201715,
+     "excessSpyPct": -0.22477905184903335,
+     "excessRspPct": -0.03147139756094486
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-24",
+     "ticker": "PLTR",
+     "name": "Palantir",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-24",
+     "entryPrice": 189.2,
+     "valueDate": "2026-09-30",
+     "valuePrice": 187.05,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": -1.3338933793478946,
+     "grossPct": -1.1363636363636243,
+     "excessSpyPct": -1.106165240799517,
+     "excessRspPct": 0.15053897092814905
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-25",
+     "ticker": "ETN",
+     "name": "Eaton",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-25",
+     "entryPrice": 444.4,
+     "valueDate": "2026-10-01",
+     "valuePrice": 437.28,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": -1.798759296509067,
+     "grossPct": -1.6021602160216086,
+     "excessSpyPct": -1.135951354962561,
+     "excessRspPct": -0.9710828114889769
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-28",
+     "ticker": "QCOM",
+     "name": "Qualcomm",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-28",
+     "entryPrice": 199.16,
+     "valueDate": "2026-10-02",
+     "valuePrice": 184.87,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": -7.360599833988046,
+     "grossPct": -7.175135569391444,
+     "excessSpyPct": -7.488432925533339,
+     "excessRspPct": -7.142197023509944
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-29",
+     "ticker": "DHR",
+     "name": "Danaher",
+     "status": "complete",
+     "reason": null,
+     "entryDate": "2026-09-29",
+     "entryPrice": 226.19,
+     "valueDate": "2026-10-05",
+     "valuePrice": 221.21,
+     "sessionsHeld": 5,
+     "horizon": 5,
+     "netPct": -2.3970900667483086,
+     "grossPct": -2.201688845660721,
+     "excessSpyPct": -3.3999368481738124,
+     "excessRspPct": -3.057986268142421
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-09-30",
+     "ticker": "TXN",
+     "name": "Texas Instruments",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-09-30",
+     "entryPrice": 281.17,
+     "valueDate": "2026-10-05",
+     "valuePrice": 294.9,
+     "sessionsHeld": 4,
+     "horizon": 5,
+     "netPct": 4.673609990677963,
+     "grossPct": 4.8831667674360535,
+     "excessSpyPct": 3.6206867766385153,
+     "excessRspPct": 4.13260528071
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-10-01",
+     "ticker": "MSFT",
+     "name": "Microsoft",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-01",
+     "entryPrice": 519.88,
+     "valueDate": "2026-10-05",
+     "valuePrice": 525.18,
+     "sessionsHeld": 3,
+     "horizon": 5,
+     "netPct": 0.8176289356561783,
+     "grossPct": 1.0194660306224401,
+     "excessSpyPct": -0.5116046681437725,
+     "excessRspPct": -0.5394475189918868
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-10-02",
+     "ticker": "ACN",
+     "name": "Accenture",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-02",
+     "entryPrice": 211.02,
+     "valueDate": "2026-10-05",
+     "valuePrice": 195.05,
+     "sessionsHeld": 2,
+     "horizon": 5,
+     "netPct": -7.752682347507478,
+     "grossPct": -7.568003032887882,
+     "excessSpyPct": -8.264002388775783,
+     "excessRspPct": -8.164524611495082
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-10-05",
+     "ticker": "ADI",
+     "name": "Analog Devices",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-05",
+     "entryPrice": 417.85,
+     "valueDate": "2026-10-05",
+     "valuePrice": 419.1,
+     "sessionsHeld": 1,
+     "horizon": 5,
+     "netPct": 0.09875250990485362,
+     "grossPct": 0.2991504128275757,
+     "excessSpyPct": -0.5287897439902434,
+     "excessRspPct": -0.45662409762492473
+    },
+    {
+     "strategyVersion": 1,
+     "date": "2026-10-06",
+     "ticker": "NVDA",
+     "name": "Nvidia",
+     "status": "not-entered",
+     "reason": "the market has not opened since publication",
+     "entryDate": null,
+     "entryPrice": null,
+     "valueDate": null,
+     "valuePrice": null,
+     "sessionsHeld": 0,
+     "horizon": 5,
+     "netPct": null,
+     "grossPct": null,
+     "excessSpyPct": null,
+     "excessRspPct": null
+    }
+   ],
+   "completed": 7,
+   "open": 4,
+   "meanNetPct": -1.2728550385748287,
+   "meanExcessSpyPct": -1.0709777555436926,
+   "meanExcessRspPct": -0.44677119464464143,
+   "winRate": 0.2857142857142857,
+   "mixedHorizonMeanPct": -1.006606925572026,
+   "horizonsSpanned": [
+    1,
+    2,
+    3,
+    4,
+    5
+   ],
+   "note": "Version 1 stopped picking on 6 October 2026. Its positions are tracked to the end of a uniform five-session hold using the current price feed, so they are at least comparable with each other. The published version 1 cards are left exactly as they were, and version 1 and version 2 are never combined into one figure."
+  }
+ ]
+}
