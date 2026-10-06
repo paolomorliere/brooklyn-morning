@@ -25,8 +25,18 @@ export interface Story {
 
 export interface Quote { text: string; who: string }
 
-export interface StockPick {
+/**
+ * Version 1 of "Stock in Focus", kept exactly as it was published.
+ *
+ * Version 1 ranked mostly on a five-day return over 104 tickers chosen by hand, stated no holding
+ * period, used unadjusted closes, and had no tests. It stopped picking on 2026-10-06. Its records are
+ * not rewritten — `strategyVersion` is absent from every historical file and is read as 1, so the
+ * archived editions stay byte-identical while every pick is still attributable to the rule that made
+ * it. v1 and v2 results are reported separately and never merged.
+ */
+export interface StockPickV1 {
   kind: 'pick';
+  strategyVersion?: 1;
   date: string;
   ticker: string;
   name: string;
@@ -40,8 +50,161 @@ export interface StockPick {
   rule: string;
   scanned?: number;
 }
+
+/** One figure on the card, with the filing it came from. Verified evidence, not interpretation. */
+export interface StockEvidence {
+  label: string;
+  value: string;
+  /** What the figure covers: a trailing year, a quarter, or an instant. */
+  period?: string | null;
+  /** The date the filing it came from was accepted by EDGAR. */
+  filed?: string | null;
+  /** The XBRL tag used, because `Revenues` and the ASC 606 tags are not the same number. */
+  tag?: string | null;
+  /** True where this is a comparison or a judgement rather than a figure off a filing. */
+  interpretation?: boolean;
+}
+
+/** One signal's contribution to the ranking, so the card can show what produced the score. */
+export interface StockSignal {
+  key: string;
+  label: string;
+  value: number | null;
+  /** The z-score against the cohort, already signed so positive always means "helped". */
+  z: number;
+  cohort: number;
+}
+
+/** A peer in the same SIC major group, measured by the same method from the same source. */
+export interface StockPeer {
+  ticker: string;
+  name?: string | null;
+  revenueTtm: number | null;
+  revenueGrowth: number | null;
+  quarterYoY: number | null;
+  grossMargin: number | null;
+  operatingMargin: number | null;
+  cashConversion: number | null;
+  freeCashFlowTtm: number | null;
+}
+
+export interface StockEarningsRisk {
+  /** Always an estimate: no free source publishes a confirmed forward date. */
+  estimate: string | null;
+  basis: string | null;
+  spreadDays: number | null;
+  confirmed: boolean;
+  inWindow: boolean;
+  nearWindow: boolean;
+}
+
+/**
+ * Version 2: one position per session, held 21 sessions, chosen in three stages.
+ *
+ * Every input value is stored with its source and the timestamp it was known at, so a later change to
+ * the rules can never rewrite an earlier selection. `strategyHash` is the hash of the frozen rule
+ * file that made this pick.
+ */
+export interface StockPickV2 {
+  kind: 'pick';
+  strategyVersion: 2;
+  strategyHash: string;
+  /** The edition date this pick is for. */
+  date: string;
+  publishedAt: string;
+  /** The last completed session the decision was made on. */
+  decisionSession: string;
+  ticker: string;
+  name: string;
+  cik: string | null;
+  sic: string | null;
+  sector: string;
+  industry: string | null;
+  /** The latest reference close at the decision session — explicitly not the entry price. */
+  referenceClose: number;
+  referenceCloseDate: string;
+  horizonSessions: number;
+  plannedEntry: string | null;
+  plannedExit: string | null;
+  /** One sentence on which stage decided it and why. */
+  thesis: string;
+  /** A ranking position among the day's eligible candidates, 0–100. Never a probability. */
+  rankScore: number;
+  composite: number;
+  scoredAgainst: string;
+  scanned: number;
+  eligible: number;
+  signals: StockSignal[];
+  /** Signals that do not exist for this company, and why. Never scored as zero. */
+  signalsDropped: { key: string; why: string }[];
+  evidence: StockEvidence[];
+  peers: StockPeer[];
+  peerBasis: string | null;
+  runnersUp: { ticker: string; name: string; rankScore: number; why: string }[];
+  counterargument: string;
+  invalidation: string[];
+  risks: string[];
+  earnings: StockEarningsRisk;
+  rule: string;
+  validation: string;
+  sources: Record<string, string>;
+}
+
+/**
+ * The record of positions taken: v2's own, and v1's still running to the end of their horizon.
+ *
+ * Open positions never enter an average. The old recap combined five positions held 5, 4, 3, 2 and 1
+ * sessions into one number; `mixedHorizonMean` exists only to reproduce that figure for the v1
+ * record, under a name that cannot be mistaken for a return.
+ */
+export interface StockRecapRow {
+  strategyVersion: 1 | 2;
+  date: string;
+  ticker: string;
+  name: string;
+  status: 'complete' | 'open' | 'not-entered' | 'unpriced';
+  reason?: string | null;
+  entryDate?: string | null;
+  entryPrice?: number | null;
+  valueDate?: string | null;
+  valuePrice?: number | null;
+  sessionsHeld?: number;
+  horizon?: number;
+  netPct?: number | null;
+  grossPct?: number | null;
+  excessSpyPct?: number | null;
+  excessRspPct?: number | null;
+}
+
+export interface StockRecap {
+  kind: 'recap';
+  strategyVersion: 1 | 2;
+  asOf: string;
+  rows: StockRecapRow[];
+  completed: number;
+  open: number;
+  meanNetPct: number | null;
+  meanExcessSpyPct: number | null;
+  meanExcessRspPct: number | null;
+  winRate: number | null;
+  mixedHorizonMeanPct: number | null;
+  horizonsSpanned: number[];
+  note: string;
+}
+
+export interface StockUnavailable {
+  kind: 'unavailable';
+  reason: string;
+  rule: string;
+  strategyVersion?: 1 | 2;
+  /** The decision date of the last pick that was published, so a stale card can say so. */
+  lastPublishedFor?: string | null;
+}
+
+/** Version 1's weekend scoreboard, as it was published. Not produced any more. */
 export interface StockScoreboard {
   kind: 'scoreboard';
+  strategyVersion?: 1;
   weekOf: string;
   rows: { date: string; ticker: string; name: string; openAtPick: number | null; latestClose: number | null; changePct: number | null; asOf: string | null }[];
   combinedPct: number | null;
@@ -51,8 +214,26 @@ export interface StockScoreboard {
   note: string;
   rule: string;
 }
-export interface StockUnavailable { kind: 'unavailable'; reason: string; rule: string }
-export type StockBlock = StockPick | StockScoreboard | StockUnavailable;
+
+/** What the edition carries. `StockPick` stays an alias so v1 readers keep compiling. */
+export type StockPick = StockPickV1;
+export type StockBlock = StockPickV1 | StockPickV2 | StockScoreboard | StockRecap | StockUnavailable;
+
+/** The published feed the stocks build writes, read by the edition build and by the app. */
+export interface StockFeed {
+  builtAt: string;
+  /** The edition date this file is for. A different date means the card is stale, and says so. */
+  decidedFor: string;
+  strategyVersion: 2;
+  strategyHash: string;
+  block: StockBlock;
+  recaps: StockRecap[];
+}
+
+/** Pure: which rule made a pick. Absent means version 1, which never wrote the field. */
+export function strategyVersionOf(block: { strategyVersion?: number } | null | undefined): 1 | 2 {
+  return block?.strategyVersion === 2 ? 2 : 1;
+}
 
 export interface SourceStatus {
   id: string;

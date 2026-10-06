@@ -257,6 +257,98 @@
 .scoreboard th { font-size: var(--fs-12); color: var(--ink-muted); font-weight: 600; }
 .scoreboard td.num, .scoreboard th.num { text-align: right; font-variant-numeric: tabular-nums; }
 
+/* Stock in focus, version 2: a brief with the detail one tap away.
+   The visual rule throughout is that a figure off a filing, a comparison against other candidates,
+   and a judgement are three different kinds of claim and never share a treatment. */
+.stock-horizon { margin-top: var(--s-1); }
+.stock-score {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  padding: var(--s-3);
+  background: var(--paper-2);
+  border-radius: var(--radius-s);
+}
+.stock-score-v { font-family: var(--font-display); font-size: var(--fs-28); line-height: 1; white-space: nowrap; }
+.stock-score-of { font-size: var(--fs-15); color: var(--ink-muted); }
+.stock-score-k { font-size: var(--fs-12); color: var(--ink-muted); line-height: 1.45; }
+.stock-thesis { margin-top: var(--s-3); line-height: 1.5; }
+
+/* Judgement, not evidence: a terracotta rule on the left marks everything that is an argument. */
+.stock-judgement { margin-top: var(--s-3); padding-left: var(--s-3); border-left: 2px solid var(--terracotta); }
+.stock-judgement h3 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-12);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--terracotta);
+}
+.stock-judgement p { margin-top: 2px; font-size: var(--fs-14); line-height: 1.5; }
+.stock-judgement ul { margin: var(--s-1) 0 0; padding-left: 1.1em; font-size: var(--fs-14); line-height: 1.5; }
+.stock-judgement li { margin-top: 2px; }
+
+.stock-detail { margin-top: var(--s-4); }
+.stock-detail h3 {
+  font-family: var(--font-ui);
+  font-size: var(--fs-13);
+  font-weight: 600;
+  margin-top: var(--s-4);
+}
+.stock-detail h3:first-child { margin-top: 0; }
+
+/* Fixed layout and declared widths, for the same reason the water polo tables need them: without
+   them the browser sizes every column from its content and the headers stop sitting over their
+   numbers. */
+.stock-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+  margin-top: var(--s-2);
+  font-size: var(--fs-13);
+}
+.stock-table th, .stock-table td { padding: 5px 4px; border-bottom: 1px solid var(--line); text-align: left; vertical-align: top; }
+.stock-table th { font-size: var(--fs-12); color: var(--ink-muted); font-weight: 600; }
+.stock-table th.num, .stock-table td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.stock-table tr.stock-self { font-weight: 600; }
+/* An interpretation inside the evidence table is greyed, so it cannot be read as a filed figure. */
+.stock-table tr.stock-interpretation td { color: var(--ink-muted); font-style: italic; }
+.stock-tag {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 10px;
+  color: var(--ink-faint);
+  word-break: break-all;
+}
+
+.stock-signals { list-style: none; margin: var(--s-2) 0 0; padding: 0; font-size: var(--fs-13); }
+.stock-signals li { display: flex; gap: var(--s-2); padding: 4px 0; border-bottom: 1px solid var(--line); }
+.stock-signals .grow { flex: 1; }
+.stock-signals .num { font-variant-numeric: tabular-nums; }
+.stock-dropped { margin: var(--s-2) 0 0; padding-left: 1.1em; font-size: var(--fs-13); color: var(--ink-muted); line-height: 1.45; }
+.stock-dropped li { margin-top: 3px; }
+
+.stock-validation {
+  margin-top: var(--s-3);
+  padding: var(--s-2) var(--s-3);
+  background: var(--paper-2);
+  border-radius: var(--radius-s);
+  font-size: var(--fs-13);
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+.stock-frozen { margin-top: var(--s-3); font-size: var(--fs-12); color: var(--ink-muted); line-height: 1.45; }
+
+/* On the narrowest phone the peer table has six columns, so it gets its own scroll rather than
+   forcing the whole page sideways. */
+@media (max-width: 380px) {
+  .stock-score { gap: var(--s-2); padding: var(--s-2); }
+  .stock-score-v { font-size: var(--fs-22); }
+  .stock-table { font-size: var(--fs-12); }
+  .stock-table th, .stock-table td { padding: 4px 2px; }
+}
+
 /* ---------- reading view (Library) ---------- */
 .reader-title {
   font-family: var(--font-display);

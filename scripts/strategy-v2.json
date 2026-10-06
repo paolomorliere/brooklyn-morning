@@ -1,0 +1,59 @@
+{
+  "strategyVersion": 2,
+  "name": "Quality compounding, bought when the trend confirms it",
+  "frozenAt": "2026-10-06",
+  "horizonSessions": 21,
+  "positionsPerSession": 1,
+  "capitalPerPosition": "1/21",
+  "costBasisPoints": { "stock": 10, "benchmark": 2 },
+  "benchmarks": ["SPY", "RSP"],
+  "eligibility": {
+    "minClose": 5,
+    "minMedianDollarVolume": 20000000,
+    "minSessions": 253,
+    "maxFinancialsAgeDays": 200,
+    "volatilityPercentile": 0.85,
+    "maxLeverage": 6,
+    "maxOpenPositions": 21,
+    "maxPerDivision": 3,
+    "announcementQuietSessions": 2,
+    "trendFilter": "close above the 200-session average"
+  },
+  "ranking": {
+    "weighting": "equal, over the signals defined for the candidate's sector group",
+    "zScoreCohort": "sector group, widened to the whole eligible set below 8 members",
+    "winsorisation": 0.02,
+    "signals": [
+      "revenueGrowth",
+      "growthAcceleration",
+      "grossMarginTrend",
+      "operatingMarginTrend",
+      "cashConversion",
+      "grossProfitability",
+      "returnOnEquity",
+      "leverage",
+      "equityToAssets",
+      "fcfYield",
+      "earningsYield",
+      "peerPercentile",
+      "relativeStrengthSpy",
+      "relativeStrengthSector"
+    ],
+    "candidateSignalsAdopted": [],
+    "candidateSignalsUnderTest": ["momentum12_1", "return5"],
+    "overextendedRankedLast": 3
+  },
+  "sources": {
+    "universe": "Nasdaq Trader nasdaqtraded.txt",
+    "identity": "SEC company_tickers.json",
+    "fundamentals": "SEC Financial Statement Data Sets, point-in-time by accepted timestamp",
+    "earnings": "EDGAR 8-K item 2.02",
+    "prices": "Massive (Polygon.io) grouped daily bars, splits and dividends"
+  },
+  "validation": {
+    "status": "not-enough-evidence",
+    "developmentWindow": null,
+    "heldOutWindow": null,
+    "note": "The held-out window has not been opened. No claim of an edge is made or implied."
+  }
+}

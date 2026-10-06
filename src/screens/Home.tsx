@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
 import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp, ExternalLink, History, Info, RefreshCw, Settings } from 'lucide-preact';
-import type { Edition, Lesson, StockBlock, Story, TopicId } from '@/types';
-import { TOPIC_META, TOPIC_ORDER } from '@/types';
+import type { Edition, Lesson, StockBlock, StockPickV1, StockPickV2, StockRecap, Story, TopicId } from '@/types';
+import { TOPIC_META, TOPIC_ORDER, strategyVersionOf } from '@/types';
 import { formatDateLong, formatTime, readMinutes, relativeTime, shortDate } from '@/lib/format';
 import { navigate } from '@/ui/router';
 import { useToast } from '@/ui/Toast';
@@ -208,7 +208,22 @@ export function Home() {
         )
       )}
 
-      {edition?.stock && !viewingDate && <StockSection stock={edition.stock} onSave={(title, url) => void libraryActions.save({ kind: 'own', title, url, note: 'Stock in focus', tags: ['Learning'] }).then(({ existed }) => toast({ message: existed ? 'Already in Library' : 'Saved to Library' }, 1500))} />}
+      {/*
+        Archived editions show their stock card too. Hiding it was a small dishonesty: the published
+        record of what the rule picked on a given day is exactly the thing worth being able to look
+        back at, and a feature that only ever shows today's pick cannot be held to account.
+      */}
+      {edition?.stock && (
+        <StockSection
+          stock={edition.stock}
+          archived={!!viewingDate}
+          onSave={(title, url) =>
+            void libraryActions
+              .save({ kind: 'own', title, url, note: 'Stock in focus', tags: ['Learning'] })
+              .then(({ existed }) => toast({ message: existed ? 'Already in Library' : 'Saved to Library' }, 1500))
+          }
+        />
+      )}
 
       {edition && edition.sources.some((s) => !s.ok) && (
         <p class="small faint" style="margin-top:24px">
@@ -416,33 +431,75 @@ function pct(v: number | null | undefined, digits = 1) {
   return `${v >= 0 ? '+' : ''}${v.toFixed(digits)}%`;
 }
 
-function StockSection({ stock, onSave }: { stock: StockBlock; onSave: (title: string, url: string) => void }) {
+/** SEC EDGAR, which is where every figure on a v2 card actually comes from. */
+const edgar = (cik: string | null) =>
+  cik
+    ? `https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=${encodeURIComponent(cik)}&type=10-&dateb=&owner=include&count=20`
+    : 'https://www.sec.gov/edgar/searchedgar/companysearch';
+
+/** Version 1 cards linked here, so an archived v1 card keeps the link it was published with. */
+const yahooQuote = (t: string) => `https://finance.yahoo.com/quote/${encodeURIComponent(t)}`;
+
+const money = (v: number | null | undefined) => {
+  if (v == null || Number.isNaN(v)) return '—';
+  const m = v / 1e6;
+  return Math.abs(m) >= 1000 ? `$${(m / 1000).toFixed(1)}bn` : `$${Math.round(m).toLocaleString('en-US')}M`;
+};
+
+const ratioText = (v: number | null | undefined, digits = 2) => (v == null || Number.isNaN(v) ? '—' : `${v.toFixed(digits)}×`);
+
+function StockSection({ stock, archived, onSave }: { stock: StockBlock; archived?: boolean; onSave: (title: string, url: string) => void }) {
   const [showRows, setShowRows] = useState(false);
   const [showRule, setShowRule] = useState(false);
-  const yahoo = (t: string) => `https://finance.yahoo.com/quote/${encodeURIComponent(t)}`;
+  const version = strategyVersionOf(stock as { strategyVersion?: number });
+  const rule = 'rule' in stock ? stock.rule : null;
   return (
     <section class="stock" aria-labelledby="stock-title">
-      <div class="eyebrow">{stock.kind === 'scoreboard' ? 'Stocks · this week\'s scoreboard' : 'Stock in focus · rules-based, not a recommendation'}</div>
-      {stock.kind === 'pick' && (
+      <div class="eyebrow">
+        {stock.kind === 'scoreboard'
+          ? "Stocks · this week's scoreboard"
+          : stock.kind === 'recap'
+            ? 'Stocks · the record so far'
+            : version === 2
+              ? 'Stock in focus · research process, not a recommendation'
+              : 'Stock in focus · rules-based, not a recommendation'}
+      </div>
+
+      {stock.kind === 'pick' && version === 2 && <StockBrief pick={stock as StockPickV2} archived={archived} onSave={onSave} />}
+
+      {stock.kind === 'pick' && version === 1 && (
         <>
+          {/* Version 1's card, kept exactly as it was so an archived edition still reads correctly. */}
           <div class="stock-head">
-            <h2 id="stock-title">{stock.name} <span class="muted" style="font-family:var(--font-ui);font-size:var(--fs-15)">{stock.ticker}</span></h2>
-            <span class="price">${stock.lastClose.toFixed(2)}</span>
+            <h2 id="stock-title">
+              {stock.name} <span class="muted" style="font-family:var(--font-ui);font-size:var(--fs-15)">{stock.ticker}</span>
+            </h2>
+            <span class="price">${(stock as StockPickV1).lastClose.toFixed(2)}</span>
           </div>
-          <div class="small muted">Last close {shortDate(`${stock.asOf}T12:00:00`)} · picked by the rule on {shortDate(`${stock.date}T12:00:00`)}</div>
+          <div class="small muted">
+            Last close {shortDate(`${(stock as StockPickV1).asOf}T12:00:00`)} · picked by the rule on {shortDate(`${stock.date}T12:00:00`)}
+          </div>
           <div class="stock-metrics">
-            <div><div class={`v ${stock.r5 >= 0 ? 'pos' : 'neg'}`}>{pct(stock.r5 * 100)}</div><div class="k">5 days</div></div>
-            <div><div class={`v ${stock.r20 >= 0 ? 'pos' : 'neg'}`}>{pct(stock.r20 * 100)}</div><div class="k">20 days</div></div>
-            <div><div class="v">{stock.volRatio.toFixed(1)}×</div><div class="k">volume vs avg</div></div>
-            <div><div class="v">{stock.mentions}</div><div class="k">headline hits</div></div>
+            <div><div class={`v ${(stock as StockPickV1).r5 >= 0 ? 'pos' : 'neg'}`}>{pct((stock as StockPickV1).r5 * 100)}</div><div class="k">5 days</div></div>
+            <div><div class={`v ${(stock as StockPickV1).r20 >= 0 ? 'pos' : 'neg'}`}>{pct((stock as StockPickV1).r20 * 100)}</div><div class="k">20 days</div></div>
+            <div><div class="v">{(stock as StockPickV1).volRatio.toFixed(1)}×</div><div class="k">volume vs avg</div></div>
+            <div><div class="v">{(stock as StockPickV1).mentions}</div><div class="k">headline hits</div></div>
           </div>
+          <p class="stock-frozen">
+            Version 1 of this feature, which stopped picking on 6 October 2026. It ranked 104 hand-picked tickers mostly on their
+            five-day return, stated no holding period and was never tested. Its record is kept as published and is never merged
+            with the current process.
+          </p>
           <div class="story-actions" style="margin-top:12px">
-            <a class="btn btn--quiet" href={yahoo(stock.ticker)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} /> Quote</a>
-            <button class="btn btn--quiet" onClick={() => onSave(`${stock.name} (${stock.ticker}) — stock in focus ${stock.date}`, yahoo(stock.ticker))}><Bookmark size={16} /> Save</button>
+            <a class="btn btn--quiet" href={yahooQuote(stock.ticker)} target="_blank" rel="noopener noreferrer"><ExternalLink size={16} /> Quote</a>
+            <button class="btn btn--quiet" onClick={() => onSave(`${stock.name} (${stock.ticker}) — stock in focus ${stock.date}`, yahooQuote(stock.ticker))}><Bookmark size={16} /> Save</button>
             <button class="btn btn--quiet" onClick={() => setShowRule(!showRule)} aria-expanded={showRule}>{showRule ? <ChevronUp size={16} /> : <ChevronDown size={16} />} The rule</button>
           </div>
         </>
       )}
+
+      {stock.kind === 'recap' && <StockRecapCard recap={stock} />}
+
       {stock.kind === 'scoreboard' && (
         <div class="scoreboard">
           <h2 id="stock-title" style="font-size:var(--fs-22);margin-top:4px">Week of {shortDate(`${stock.weekOf}T12:00:00`)}</h2>
@@ -461,7 +518,7 @@ function StockSection({ stock, onSave }: { stock: StockBlock; onSave: (title: st
                     {stock.rows.map((r) => (
                       <tr key={r.date + r.ticker}>
                         <td>{shortDate(`${r.date}T12:00:00`)}</td>
-                        <td><a href={yahoo(r.ticker)} target="_blank" rel="noopener noreferrer">{r.ticker}</a></td>
+                        <td><a href={yahooQuote(r.ticker)} target="_blank" rel="noopener noreferrer">{r.ticker}</a></td>
                         <td class="num">{r.openAtPick != null ? r.openAtPick.toFixed(2) : '—'}</td>
                         <td class="num">{r.latestClose != null ? r.latestClose.toFixed(2) : '—'}</td>
                         <td class={`num ${(r.changePct ?? 0) >= 0 ? 'pos' : 'neg'}`}>{pct(r.changePct, 2)}</td>
@@ -477,16 +534,331 @@ function StockSection({ stock, onSave }: { stock: StockBlock; onSave: (title: st
           {stock.counted > 0 && <p class="stock-disclaimer">{stock.note}</p>}
         </div>
       )}
+
       {stock.kind === 'unavailable' && (
         <>
-          <h2 id="stock-title" style="font-size:var(--fs-22);margin-top:4px">No stock today</h2>
-          <p class="muted small" style="margin-top:4px">{stock.reason === 'skipped' ? 'The screen was not run for this edition.' : `Market data was unavailable when the edition was prepared (${stock.reason}).`}</p>
+          <h2 id="stock-title" style="font-size:var(--fs-22);margin-top:4px">No qualifying pick today</h2>
+          {/*
+            The reason is always the test that actually bound, never a softened summary. The thresholds
+            are published and are not moved to fill this card: an empty card is information, and a card
+            filled by relaxing a rule would make every number on it meaningless.
+          */}
+          <p class="muted small" style="margin-top:4px">
+            {stock.reason === 'skipped' ? 'The screen was not run for this edition.' : stock.reason}
+          </p>
+          {stock.lastPublishedFor && (
+            <p class="small faint" style="margin-top:4px">
+              The last pick was published for {shortDate(`${stock.lastPublishedFor}T12:00:00`)}. It is not repeated here: a pick
+              belongs to the session it was made in.
+            </p>
+          )}
           <button class="btn btn--quiet" style="margin-top:8px;margin-left:-10px" onClick={() => setShowRule(!showRule)} aria-expanded={showRule}>{showRule ? <ChevronUp size={16} /> : <ChevronDown size={16} />} The rule</button>
         </>
       )}
-      {showRule && <p class="stock-rule">{stock.rule}</p>}
-      <p class="stock-disclaimer">Mechanical screen on past prices. Not investment advice; nothing here knows your situation. Prices via Yahoo Finance, may be delayed.</p>
+
+      {showRule && rule && <p class="stock-rule">{rule}</p>}
+      <p class="stock-disclaimer">
+        {version === 2
+          ? 'A transparent research process on public filings and end-of-day prices. Not investment advice; nothing here knows your situation. Fundamentals from SEC filings, universe from Nasdaq Trader, prices from Massive.'
+          : 'Mechanical screen on past prices. Not investment advice; nothing here knows your situation. Prices via Yahoo Finance, may be delayed.'}
+      </p>
     </section>
+  );
+}
+
+/**
+ * The version 2 card: a brief, with the detail one tap away.
+ *
+ * Three things are kept deliberately apart, because they are different questions and running them
+ * together is how a screen starts sounding like advice: a **figure off a filing** (in the evidence
+ * table, with its period and the date it was filed), a **comparison** against other candidates (the
+ * score and the signal list), and a **judgement** (the thesis, the counterargument, the invalidation
+ * conditions). The counterargument and the invalidation conditions are never behind the expander —
+ * they are the parts most worth reading.
+ */
+function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: boolean; onSave: (title: string, url: string) => void }) {
+  const [showDetail, setShowDetail] = useState(false);
+  return (
+    <>
+      <div class="stock-head">
+        <h2 id="stock-title">
+          {pick.name} <span class="muted" style="font-family:var(--font-ui);font-size:var(--fs-15)">{pick.ticker}</span>
+        </h2>
+        <span class="price">${pick.referenceClose.toFixed(2)}</span>
+      </div>
+      <div class="small muted">
+        Reference close {shortDate(`${pick.referenceCloseDate}T12:00:00`)} · {pick.sector}
+        {pick.sic ? ` (SIC ${pick.sic})` : ''}
+      </div>
+      <div class="small muted stock-horizon">
+        <strong>{pick.horizonSessions}-session horizon</strong>
+        {pick.plannedEntry ? ` · entry ${shortDate(`${pick.plannedEntry}T12:00:00`)} open` : ''}
+        {pick.plannedExit ? ` → exit ${shortDate(`${pick.plannedExit}T12:00:00`)} close` : ''}
+      </div>
+
+      <div class="stock-score">
+        <div class="stock-score-v">{pick.rankScore}<span class="stock-score-of">/100</span></div>
+        <div class="stock-score-k">
+          Ranked above {pick.rankScore}% of the {pick.eligible.toLocaleString('en-US')} candidates that were eligible today, out of{' '}
+          {pick.scanned.toLocaleString('en-US')} scanned. <strong>This is a ranking position, not an {pick.rankScore}% chance of
+          profit.</strong>
+        </div>
+      </div>
+
+      <p class="stock-thesis">{pick.thesis}</p>
+
+      <div class="stock-judgement">
+        <h3>The strongest counterargument</h3>
+        <p>{pick.counterargument}</p>
+      </div>
+
+      {pick.invalidation.length > 0 && (
+        <div class="stock-judgement">
+          <h3>What would show this was wrong</h3>
+          <ul>
+            {pick.invalidation.map((i) => (
+              <li key={i}>{i}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div class="stock-judgement">
+        <h3>Timing and risk</h3>
+        <p>
+          {pick.earnings.estimate ? (
+            <>
+              Next results <strong>estimated {shortDate(`${pick.earnings.estimate}T12:00:00`)}</strong>
+              {pick.earnings.spreadDays ? `, give or take about ${pick.earnings.spreadDays} days` : ''} —{' '}
+              {pick.earnings.basis}. This is an estimate, not a confirmed date: no free source publishes one.
+              {pick.earnings.inWindow
+                ? ' It falls inside the holding window, so part of the outcome rides on that announcement.'
+                : pick.earnings.nearWindow
+                  ? ' It sits just outside the holding window, within the spread of the estimate.'
+                  : ' It falls outside the holding window.'}
+            </>
+          ) : (
+            'No announcement history on file, so no next results date can be estimated.'
+          )}
+        </p>
+        {pick.risks.length > 0 && (
+          <ul>
+            {pick.risks.map((r) => (
+              <li key={r}>{r}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      <div class="story-actions" style="margin-top:12px">
+        <a class="btn btn--quiet" href={edgar(pick.cik)} target="_blank" rel="noopener noreferrer">
+          <ExternalLink size={16} /> Filings
+        </a>
+        <button
+          class="btn btn--quiet"
+          onClick={() => onSave(`${pick.name} (${pick.ticker}) — stock in focus ${pick.date}`, edgar(pick.cik))}
+        >
+          <Bookmark size={16} /> Save
+        </button>
+        <button class="btn btn--quiet" onClick={() => setShowDetail(!showDetail)} aria-expanded={showDetail}>
+          {showDetail ? <ChevronUp size={16} /> : <ChevronDown size={16} />} {showDetail ? 'Hide the evidence' : 'The evidence'}
+        </button>
+      </div>
+
+      {showDetail && (
+        <div class="stock-detail">
+          <h3>Evidence</h3>
+          <p class="small faint">
+            Every figure below is read off an SEC filing, from single quarters only so no year-to-date total is counted twice.
+            Figures are stated as filed; the periods and filing dates are shown so each can be checked.
+          </p>
+          <table class="stock-table">
+            <thead>
+              <tr>
+                <th scope="col">Figure</th>
+                <th scope="col" class="num">Value</th>
+                <th scope="col">Period</th>
+                <th scope="col">Filed</th>
+              </tr>
+            </thead>
+            <tbody>
+              {pick.evidence.map((e) => (
+                <tr key={e.label} class={e.interpretation ? 'stock-interpretation' : undefined}>
+                  <td>
+                    {e.label}
+                    {e.tag && <span class="stock-tag">{e.tag}</span>}
+                  </td>
+                  <td class="num">{e.value}</td>
+                  <td>{e.period ?? '—'}</td>
+                  <td>{e.filed ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          <h3>What produced the score</h3>
+          <p class="small faint">
+            Equally weighted z-scores against {pick.scoredAgainst}. A positive number means the signal helped.
+          </p>
+          <ul class="stock-signals">
+            {pick.signals.map((sig) => (
+              <li key={sig.key}>
+                <span class="grow">{sig.label}</span>
+                <span class={`num ${sig.z >= 0 ? 'pos' : 'neg'}`}>{sig.z >= 0 ? '+' : ''}{sig.z.toFixed(2)}</span>
+              </li>
+            ))}
+          </ul>
+          {pick.signalsDropped.length > 0 && (
+            <>
+              <h3>Signals that do not apply to this company</h3>
+              <p class="small faint">
+                These were left out and the remaining weights share the difference. None of them was scored as zero, which would
+                have been a claim that the company is average at something nobody measured.
+              </p>
+              <ul class="stock-dropped">
+                {pick.signalsDropped.map((d) => (
+                  <li key={d.key}>
+                    <strong>{d.key}</strong> — {d.why}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          {pick.peers.length > 0 && (
+            <>
+              <h3>Peers</h3>
+              <p class="small faint">{pick.peerBasis ?? 'The same method, the same source, the same periods.'}</p>
+              <table class="stock-table">
+                <thead>
+                  <tr>
+                    <th scope="col">&nbsp;</th>
+                    <th scope="col" class="num">TTM rev</th>
+                    <th scope="col" class="num">Growth</th>
+                    <th scope="col" class="num">Gross</th>
+                    <th scope="col" class="num">Op</th>
+                    <th scope="col" class="num">OCF/NI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {pick.peers.map((peer) => (
+                    <tr key={peer.ticker} class={peer.ticker === pick.ticker ? 'stock-self' : undefined}>
+                      <td>{peer.ticker}</td>
+                      <td class="num">{money(peer.revenueTtm)}</td>
+                      <td class="num">{pct(peer.revenueGrowth == null ? null : peer.revenueGrowth * 100)}</td>
+                      <td class="num">{pct(peer.grossMargin == null ? null : peer.grossMargin * 100)}</td>
+                      <td class="num">{pct(peer.operatingMargin == null ? null : peer.operatingMargin * 100)}</td>
+                      <td class="num">{ratioText(peer.cashConversion)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+
+          {pick.runnersUp.length > 0 && (
+            <>
+              <h3>Why this one and not the runners-up</h3>
+              <ul class="stock-dropped">
+                {pick.runnersUp.map((r) => (
+                  <li key={r.ticker}>
+                    <strong>{r.ticker}</strong> scored {r.rankScore} — {r.why}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <h3>Sources</h3>
+          <ul class="stock-dropped">
+            {Object.entries(pick.sources).map(([what, where]) => (
+              <li key={what}>
+                <strong>{what}</strong> — {where}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <p class="stock-validation">{pick.validation}</p>
+      {archived && (
+        <p class="small faint" style="margin-top:4px">
+          This is the pick as it was published on {shortDate(`${pick.date}T12:00:00`)}. Nothing on this card has been revised
+          since.
+        </p>
+      )}
+    </>
+  );
+}
+
+/**
+ * The record so far.
+ *
+ * Only completed positions enter the average. A position still running is listed with the sessions
+ * elapsed and counted nowhere else — which is the specific failure the first version of this feature
+ * had, when five positions held 5, 4, 3, 2 and 1 sessions were averaged into a single figure.
+ */
+function StockRecapCard({ recap }: { recap: StockRecap }) {
+  const [showRows, setShowRows] = useState(false);
+  return (
+    <div class="scoreboard">
+      <h2 id="stock-title" style="font-size:var(--fs-22);margin-top:4px">
+        {recap.strategyVersion === 1 ? 'Version 1, tracked to the end' : 'The record so far'}
+      </h2>
+      {recap.completed > 0 ? (
+        <>
+          <div class={`scoreboard-combined ${(recap.meanExcessSpyPct ?? 0) >= 0 ? 'pos' : 'neg'}`}>{pct(recap.meanExcessSpyPct, 2)}</div>
+          <div class="small muted">
+            Average return against SPY over {recap.completed} completed {recap.completed === 1 ? 'position' : 'positions'}, after
+            costs{recap.meanExcessRspPct != null ? ` · against RSP ${pct(recap.meanExcessRspPct, 2)}` : ''}
+            {recap.winRate != null ? ` · ${Math.round(recap.winRate * 100)}% finished ahead` : ''}
+          </div>
+        </>
+      ) : (
+        <p class="muted" style="margin-top:8px">
+          No position has completed its horizon yet{recap.open > 0 ? `, and ${recap.open} ${recap.open === 1 ? 'is' : 'are'} still running` : ''}.
+          There is nothing to average.
+        </p>
+      )}
+      {recap.open > 0 && recap.completed > 0 && (
+        <div class="small faint" style="margin-top:4px">
+          {recap.open} {recap.open === 1 ? 'position is' : 'positions are'} still running and {recap.open === 1 ? 'is' : 'are'} not in
+          that average.
+        </div>
+      )}
+      <div class="story-actions" style="margin-top:8px">
+        <button class="btn btn--quiet" onClick={() => setShowRows(!showRows)} aria-expanded={showRows}>
+          {showRows ? <ChevronUp size={16} /> : <ChevronDown size={16} />} {showRows ? 'Hide positions' : 'Every position'}
+        </button>
+      </div>
+      {showRows && (
+        <table>
+          <thead>
+            <tr>
+              <th>Picked</th>
+              <th>Stock</th>
+              <th class="num">Entry</th>
+              <th class="num">Held</th>
+              <th class="num">Net</th>
+              <th class="num">vs SPY</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recap.rows.map((r) => (
+              <tr key={r.date + r.ticker}>
+                <td>{shortDate(`${r.date}T12:00:00`)}</td>
+                <td>{r.ticker}</td>
+                <td class="num">{r.entryPrice != null ? r.entryPrice.toFixed(2) : '—'}</td>
+                <td class="num">{r.status === 'complete' ? `${r.horizon ?? r.sessionsHeld}` : `${r.sessionsHeld ?? 0}/${r.horizon ?? '—'}`}</td>
+                <td class={`num ${(r.netPct ?? 0) >= 0 ? 'pos' : 'neg'}`}>{pct(r.netPct, 2)}</td>
+                <td class={`num ${(r.excessSpyPct ?? 0) >= 0 ? 'pos' : 'neg'}`}>{pct(r.excessSpyPct, 2)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+      <p class="stock-disclaimer">{recap.note}</p>
+    </div>
   );
 }
 
