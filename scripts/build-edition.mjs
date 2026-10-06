@@ -177,7 +177,16 @@ async function stockBlock(dateYMD) {
   } catch {
     /* nothing published yet: `stockCardFor` says so */
   }
-  return stockCardFor(feed, dateYMD);
+  // What this edition already carries, but only if it is this edition. A refresh keeps today's card;
+  // a new day never inherits yesterday's.
+  let existing = null;
+  try {
+    const current = JSON.parse(await readFile('public/data/edition.json', 'utf8'));
+    if (current?.date === dateYMD && current.stock) existing = current.stock;
+  } catch {
+    /* no edition yet */
+  }
+  return stockCardFor(feed, dateYMD, { existing });
 }
 
 async function main() {

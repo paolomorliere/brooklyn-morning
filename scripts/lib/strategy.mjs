@@ -86,19 +86,22 @@ export function validationNote(rules) {
  * is nothing for today and names the date of the last one. A feed that silently repeats itself is how
  * a broken price source produces weeks of confident, wrong cards without anything failing.
  */
-export function stockCardFor(feed, date) {
+export function stockCardFor(feed, date, { existing = null } = {}) {
   const rule = typeof feed?.block?.rule === 'string' ? feed.block.rule : '';
-  if (!feed || typeof feed !== 'object') {
-    return { kind: 'unavailable', strategyVersion: 2, reason: 'The stock build has not published anything yet.', rule: '', lastPublishedFor: null };
-  }
-  if (feed.decidedFor === date && feed.block) return feed.block;
-  return {
-    kind: 'unavailable',
-    strategyVersion: 2,
-    reason: feed.decidedFor
-      ? `The stock build last published for ${feed.decidedFor}, not today. A pick belongs to the session it was made in, so it is not repeated here.`
-      : 'The stock build has not published a dated card.',
-    rule,
-    lastPublishedFor: feed.decidedFor ?? null,
+  const nothing = (reason, lastPublishedFor = null) => {
+    // A refresh rebuilds today's edition in place with the latest stories, and must not take away a
+    // card the edition already published. Declining to destroy a real card is not the same as inventing
+    // one: nothing here ever fabricates a pick, and a kept card carries its own `strategyVersion`, so
+    // the app still labels it for the rule that made it.
+    if (existing && existing.kind !== 'unavailable') return existing;
+    return { kind: 'unavailable', strategyVersion: 2, reason, rule, lastPublishedFor };
   };
+  if (!feed || typeof feed !== 'object') return nothing('The stock build has not published anything yet.');
+  if (feed.decidedFor === date && feed.block) return feed.block;
+  return feed.decidedFor
+    ? nothing(
+        `The stock build last published for ${feed.decidedFor}, not today. A pick belongs to the session it was made in, so it is not repeated here.`,
+        feed.decidedFor,
+      )
+    : nothing('The stock build has not published a dated card.');
 }

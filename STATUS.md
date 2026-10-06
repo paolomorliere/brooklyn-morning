@@ -196,7 +196,8 @@ Four reported problems plus a failed run, all fixed at their own cause.
 
 ## Deployment 2 — "Stock in focus" rebuilt as a research process (2026-10-06)
 
-Replaces the version 1 screen. **Version 1 stopped picking on 2026-10-06.** Its eleven published picks and
+Replaces the version 1 screen. **Version 1's last pick was NVDA on 2026-10-06**, published by the morning
+cron shortly before this change landed; it stops picking from the next run. Its twelve published picks and
 their cards are kept exactly as they were — verified byte-identical — and are read as `strategyVersion: 1`
 because the field is absent from every historical file. Version 1 and version 2 are reported separately
 and never combined into one figure.
@@ -275,13 +276,16 @@ cross-checked against ADI's own reported annual revenue. The card's *format* sta
   says it is not a probability of profit.
 - The evidence table shows each figure's period, the day it was filed and the XBRL tag; anything that
   involves a market price is marked as an interpretation, not a filed figure.
-- `decidedFor` on `public/data/stock.json` means a stale card can never be shown as today's.
+- `decidedFor` on `public/data/stock.json` means a stale card can never be shown as today's. A **refresh**
+  keeps the card today's edition already published, because rebuilding in place must not take away
+  something the edition had already said — declining to destroy a card is not the same as inventing one.
 - Archived editions now show their stock card. Hiding it was a small dishonesty: the published record of
   what the rule picked is the thing most worth being able to look back at.
 
 ### Not yet done, and why
-- **No pick has been published.** The price feed needs `MASSIVE_API_KEY`, which only Paolo can create.
-  Until then the card says the stock build has not published anything — which is true.
+- **No version 2 pick has been published.** The price feed needs `MASSIVE_API_KEY`, which only Paolo can
+  create. Until then today's version 1 NVDA card stays on screen (a refresh keeps it), and from tomorrow
+  the card says the stock build has not published anything — which is true.
 - **The backtest has not been run.** It needs the price cache. `node scripts/backtest-stocks.mjs` refuses
   to run without it and says what to do. Its output will be written into this file under `<!-- backtest -->`.
 - **12−1 momentum and the five-session return are computed but not in the score.**

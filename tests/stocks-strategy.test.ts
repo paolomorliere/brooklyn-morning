@@ -70,6 +70,22 @@ describe('strategy — which card an edition carries', () => {
     expect(stockCardFor(feed({ decidedFor: undefined }), '2026-10-06').reason).toBe('The stock build has not published a dated card.');
   });
 
+  it('a refresh keeps the card today\'s edition already published', () => {
+    // A refresh rebuilds today's edition in place with the latest stories. Replacing a real card with
+    // "nothing published" would take away something the edition had already said, which is a different
+    // thing from declining to invent a card.
+    const published = { kind: 'pick', ticker: 'NVDA', name: 'Nvidia', rule: 'v1 rule' };
+    expect(stockCardFor(null, '2026-10-06', { existing: published })).toBe(published);
+    expect(stockCardFor(feed({ decidedFor: '2026-10-05' }), '2026-10-06', { existing: published })).toBe(published);
+    // But a newer card for today wins over whatever was there.
+    expect(stockCardFor(feed(), '2026-10-06', { existing: published })).toMatchObject({ ticker: 'ADI' });
+    // And an existing card that already says nothing is not preserved in preference to a fresh reason.
+    const blank = { kind: 'unavailable', reason: 'old reason' };
+    expect(stockCardFor(null, '2026-10-06', { existing: blank })).toMatchObject({
+      reason: 'The stock build has not published anything yet.',
+    });
+  });
+
   it('passes an unavailable card through unchanged when it is today\'s', () => {
     const published = { kind: 'unavailable', strategyVersion: 2, reason: 'No candidate qualified today. …', rule: 'r' };
     expect(stockCardFor(feed({ block: published }), '2026-10-06')).toBe(published);

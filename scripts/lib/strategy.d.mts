@@ -34,4 +34,8 @@ export interface StrategyRules {
 export function loadStrategy(): Promise<{ rules: StrategyRules; hash: string }>;
 export function ruleText(rules: StrategyRules): string;
 export function validationNote(rules: StrategyRules): string;
-export function stockCardFor(feed: unknown, date: string): Record<string, unknown>;
+export function stockCardFor(
+  feed: unknown,
+  date: string,
+  opts?: { existing?: Record<string, unknown> | null },
+): Record<string, unknown>;
