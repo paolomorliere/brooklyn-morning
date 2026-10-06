@@ -38,6 +38,16 @@ export const API_BASE = process.env.MASSIVE_BASE_URL ?? 'https://api.polygon.io'
 /** The free plan's documented ceiling. One spare request a minute, deliberately. */
 export const FREE_REQUESTS_PER_MINUTE = 5;
 
+/**
+ * How far back the free plan will answer for.
+ *
+ * "Stocks Basic" includes two years of history. Asking for a session older than that is refused, and the
+ * refusal looks exactly like a refusal for any other reason — so the start of a backfill is computed from
+ * this rather than written down as a date. 720 days keeps a fortnight of margin inside the entitlement,
+ * which matters because the boundary moves every day.
+ */
+export const FREE_HISTORY_DAYS = 720;
+
 const USER_AGENT = 'BrooklynMorning/0.2 (personal morning edition; contact via repository)';
 
 /**
@@ -69,6 +79,22 @@ export class AllowanceExhausted extends Error {
   }
 }
 
+/** Thrown when the feed will not accept the key at all. A setup problem, not a usage one. */
+export class KeyRejected extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'KeyRejected';
+  }
+}
+
+/** Thrown when the plan will not serve that particular date. The caller stops reaching further back. */
+export class OutsideEntitlement extends Error {
+  constructor(message) {
+    super(message);
+    this.name = 'OutsideEntitlement';
+  }
+}
+
 /**
  * One GET, paced, with the key in the header rather than the query string.
  *
@@ -90,14 +116,22 @@ export async function getJson(path, { apiKey, limiter, attempt = 0, timeoutMs = 
     if (attempt < 2) return getJson(path, { apiKey, limiter, attempt: attempt + 1, timeoutMs });
     throw new Error(`${path}: ${err.message}`);
   }
-  if (res.status === 429) throw new AllowanceExhausted(`${path}: the plan's request allowance is exhausted`);
-  if (res.status === 403) {
-    const body = await res.text().catch(() => '');
-    throw new AllowanceExhausted(`${path}: refused (403) — ${body.slice(0, 200)}`);
-  }
+  // Whatever went wrong, say what the feed actually said. A bare status code in a build log is a
+  // guessing game, and the three ways this can fail need three different responses.
   if (!res.ok) {
+    const body = (await res.text().catch(() => '')).slice(0, 400);
+    const where = `${path}: HTTP ${res.status}${body ? ` — ${body}` : ''}`;
+    if (res.status === 401) throw new KeyRejected(where);
+    if (res.status === 403) {
+      // Massive answers 403 both for "this key is not valid" and for "your plan does not cover that".
+      // The body distinguishes them, and getting it wrong means either giving up on a working key or
+      // hammering a feed that will never answer.
+      if (/not entitled|entitlement|upgrade|plan|subscription|date/i.test(body)) throw new OutsideEntitlement(where);
+      throw new KeyRejected(where);
+    }
+    if (res.status === 429) throw new AllowanceExhausted(where);
     if (res.status >= 500 && attempt < 2) return getJson(path, { apiKey, limiter, attempt: attempt + 1, timeoutMs });
-    throw new Error(`${path}: HTTP ${res.status}`);
+    throw new Error(where);
   }
   return res.json();
 }
@@ -249,7 +283,14 @@ export function seriesByTicker(sessions, { tickers = null } = {}) {
 
 /* ------------------------------------------------------------------ endpoints */
 
-/** One session's bars for every US ticker — the call that makes a 4,700-name universe affordable. */
+/** The oldest session the free plan will answer for, as at `today`. */
+export function earliestAvailableSession(today, days = FREE_HISTORY_DAYS) {
+  const t = Date.parse(`${today}T00:00:00Z`);
+  if (Number.isNaN(t)) return null;
+  return new Date(t - days * 86_400_000).toISOString().slice(0, 10);
+}
+
+/** One session's bars for every US ticker — the call that makes a 5,000-name universe affordable. */
 export async function fetchGroupedBars(date, opts) {
   const json = await getJson(`/v2/aggs/grouped/locale/us/market/stocks/${date}?adjusted=true`, opts);
   // The endpoint answers 200 with no results on a day the market was shut, which is information, not

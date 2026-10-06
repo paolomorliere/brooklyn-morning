@@ -37,6 +37,10 @@ on:
         description: Compute and report without writing anything
         type: boolean
         default: false
+      check_only:
+        description: Just test the key with one request, then stop
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -111,13 +115,14 @@ jobs:
         # The quarterly data sets are large, so the parse needs more heap than Node's default.
         run: |
           node --max-old-space-size=6144 scripts/build-stocks.mjs \
+            ${{ inputs.check_only == true && '--check' || '' }} \
             ${{ inputs.dry_run == true && '--dry-run' || '' }} \
             --backfill "${{ inputs.backfill || '0' }}" \
             --max-companyfacts "${{ inputs.max_companyfacts || '300' }}"
 
       - name: Commit data
         id: commit
-        if: steps.secrets.outputs.ready == 'true' && inputs.dry_run != true
+        if: steps.secrets.outputs.ready == 'true' && inputs.dry_run != true && inputs.check_only != true
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"

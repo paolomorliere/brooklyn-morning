@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   AllowanceExhausted,
+  FREE_HISTORY_DAYS,
   FREE_REQUESTS_PER_MINUTE,
+  KeyRejected,
+  OutsideEntitlement,
+  earliestAvailableSession,
   RateLimiter,
   barsPath,
   encodeBarsCsv,
@@ -111,6 +115,22 @@ describe('prices — assembling series', () => {
   });
 });
 
+describe('prices — the two-year history limit', () => {
+  it('computes the oldest session the plan serves, instead of hardcoding a date', () => {
+    // The first version of the backfill started at a written-down 2024-10-01. On 6 October 2026 that is
+    // four days outside the two-year window, so the very first request was refused and the whole run
+    // died. The boundary moves every day; it has to be computed from the day the build runs.
+    expect(earliestAvailableSession('2026-10-06')).toBe('2024-10-16');
+    expect(earliestAvailableSession('2026-10-07')).toBe('2024-10-17');
+    expect(FREE_HISTORY_DAYS).toBe(720);
+    // A fortnight of margin inside the two years, because the refusal is indistinguishable from any other.
+    const span = (Date.parse('2026-10-06') - Date.parse(earliestAvailableSession('2026-10-06')!)) / 86_400_000;
+    expect(span).toBeLessThan(730);
+    expect(span).toBeGreaterThan(700);
+    expect(earliestAvailableSession('not a date')).toBeNull();
+  });
+});
+
 describe('prices — staying inside the free allowance', () => {
   it('paces requests at the plan\'s documented rate', async () => {
     expect(FREE_REQUESTS_PER_MINUTE).toBe(5);
@@ -124,9 +144,18 @@ describe('prices — staying inside the free allowance', () => {
     expect(new RateLimiter().intervalMs).toBe(12_000);
   });
 
-  it('has a distinct error for an exhausted allowance, so a run stops rather than degrades', () => {
-    const err = new AllowanceExhausted('finished');
-    expect(err).toBeInstanceOf(Error);
-    expect(err.name).toBe('AllowanceExhausted');
+  it('tells the three refusals apart, because each needs a different response', () => {
+    // A rejected key is a setup problem and the run must stop. A date outside the plan's history is one
+    // session to skip. An exhausted allowance means stop and try again later. Collapsing them into one
+    // error is how a four-day-stale start date killed an otherwise working build.
+    for (const [E, name] of [
+      [AllowanceExhausted, 'AllowanceExhausted'],
+      [KeyRejected, 'KeyRejected'],
+      [OutsideEntitlement, 'OutsideEntitlement'],
+    ] as const) {
+      const err = new E('x');
+      expect(err).toBeInstanceOf(Error);
+      expect(err.name).toBe(name);
+    }
   });
 });

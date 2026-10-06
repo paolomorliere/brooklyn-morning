@@ -19,6 +19,10 @@ export class RateLimiter {
   wait(): Promise<void>;
 }
 export class AllowanceExhausted extends Error {}
+export class KeyRejected extends Error {}
+export class OutsideEntitlement extends Error {}
+export const FREE_HISTORY_DAYS: number;
+export function earliestAvailableSession(today: string, days?: number): string | null;
 
 export interface FetchOpts { apiKey: string; limiter?: RateLimiter; timeoutMs?: number }
 export function getJson(path: string, opts: FetchOpts): Promise<unknown>;

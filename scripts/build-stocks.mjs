@@ -7,6 +7,7 @@
 //   --sec-quarters N       how many quarterly data sets to keep in the digest (default 5)
 //   --max-companyfacts N   per-run cap on near-end fundamentals top-ups (default 300)
 //   --max-submissions N    per-run cap on the exact earnings check (default 12)
+//   --check                make one price request, report what came back, and stop
 //   --no-prices            skip the price feed, for working on the SEC side without a key
 //   --sec-only             build only the fundamentals caches and report, then stop
 //
@@ -31,6 +32,7 @@
 
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import {
+  addDays,
   allTags,
   daysBetween,
   latestFinancialFiling,
@@ -46,7 +48,10 @@ import {
 } from './lib/earnings.mjs';
 import {
   AllowanceExhausted,
+  KeyRejected,
+  OutsideEntitlement,
   RateLimiter,
+  earliestAvailableSession,
   fetchDividends,
   fetchGroupedBars,
   fetchSplits,
@@ -103,6 +108,8 @@ const val = (n, d) => {
 const DRY = has('--dry-run');
 const NO_PRICES = has('--no-prices');
 const SEC_ONLY = has('--sec-only');
+/** Make one price request, report exactly what came back, and stop. */
+const CHECK_ONLY = has('--check');
 const TZ = 'America/New_York';
 const TODAY = val('--date', new Date().toLocaleDateString('en-CA', { timeZone: TZ }));
 const BACKFILL = Number(val('--backfill', 0));
@@ -192,6 +199,25 @@ function candidateSessions(from, to, limit) {
   return out;
 }
 
+/**
+ * One request, to find out whether the key works, before spending two hours discovering that it does not.
+ *
+ * The most recent weekday is certainly inside the plan's two-year window, so anything other than a
+ * success here is about the key or the plan, not about the date. A 200 with no rows is still a success:
+ * it just means the session has not closed yet.
+ */
+async function checkConnection(apiKey) {
+  let probe = TODAY;
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(Date.parse(`${probe}T00:00:00Z`)).getUTCDay();
+    if (day !== 0 && day !== 6) break;
+    probe = addDays(probe, -1);
+  }
+  const got = await fetchGroupedBars(probe, { apiKey, limiter: new RateLimiter() });
+  log(`prices: the key works — ${probe} returned ${got.rows.length} rows${got.traded ? '' : ' (the session has not closed yet)'}`);
+  return got;
+}
+
 /** Every session already cached, oldest first. */
 async function cachedSessionDates(root = 'state/bars') {
   const out = [];
@@ -225,15 +251,45 @@ async function cachedSessionDates(root = 'state/bars') {
  */
 async function ensurePrices(apiKey, { limit }) {
   const cached = await cachedSessionDates();
-  const from = cached.length ? cached[cached.length - 1] : '2024-10-01';
+  // The free plan serves two years. Where the backfill starts is computed from that, not written down:
+  // the boundary moves every day, and a date one week past it is refused in a way that looks exactly
+  // like every other refusal. The first version of this asked for 2024-10-01 — four days outside the
+  // window — and the whole run died on its first request.
+  const floor = earliestAvailableSession(TODAY);
+  const last = cached.length ? cached[cached.length - 1] : null;
+  const from = last && last >= floor ? last : addDays(floor, -1);
   const wanted = candidateSessions(from, TODAY, limit);
+  if (wanted.length > 5) await checkConnection(apiKey);
+  if (!cached.length && limit < LIMITS.minSessions) {
+    log(`prices: nothing cached yet, and only ${limit} sessions would be fetched. Run this workflow once with`);
+    log(`prices: backfill set to about ${LIMITS.minSessions + 270} to fill the history the formulas need.`);
+  }
   if (wanted.length === 0) return { cached, fetched: 0, closedDays: [] };
   const limiter = new RateLimiter();
   let fetched = 0;
+  let refused = 0;
   const closedDays = [];
-  log(`prices: ${cached.length} sessions cached, ${wanted.length} to try (${wanted[0]} … ${wanted[wanted.length - 1]})`);
+  log(`prices: ${cached.length} sessions cached, ${wanted.length} to try (${wanted[0]} … ${wanted[wanted.length - 1]}); the plan reaches back to ${floor}`);
   for (const date of wanted) {
-    const got = await fetchGroupedBars(date, { apiKey, limiter });
+    let got;
+    try {
+      got = await fetchGroupedBars(date, { apiKey, limiter });
+    } catch (err) {
+      if (err instanceof OutsideEntitlement) {
+        // One session the plan will not serve. Skip it rather than abandoning the run — but if the
+        // oldest several in a row are refused, the window has moved and there is no point reaching
+        // further back.
+        refused++;
+        log(`prices: ${date} is outside the plan's history — skipped`);
+        if (refused >= 5 && fetched === 0) {
+          log('prices: the five oldest sessions were all refused, so the backfill starts later than expected.');
+          continue;
+        }
+        continue;
+      }
+      throw err;
+    }
+    refused = 0;
     if (!got.traded || got.rows.length === 0) {
       closedDays.push(date);
       continue;
@@ -241,7 +297,7 @@ async function ensurePrices(apiKey, { limit }) {
     if (!DRY) await writeBars(date, got.rows);
     cached.push(date);
     fetched++;
-    if (fetched % 25 === 0) log(`prices: ${fetched} sessions fetched`);
+    if (fetched % 25 === 0) log(`prices: ${fetched} sessions fetched (${date})`);
   }
   cached.sort();
   log(`prices: ${fetched} new sessions, ${closedDays.length} days the market was shut`);
@@ -585,6 +641,12 @@ async function main() {
   // carries on. A missing contact would be caught by the same handler and the run would finish green on
   // stale fundamentals, which is precisely the failure this project refuses to have.
   secUserAgent();
+
+  if (CHECK_ONLY) {
+    await checkConnection(apiKey);
+    log('--check: the price key and the SEC contact are both accepted. Nothing else was done.');
+    return;
+  }
 
   const universe = await ensureUniverse();
 
@@ -1007,6 +1069,19 @@ main().catch((err) => {
     console.error('                   declare a contact, and a false one would misrepresent who is asking.');
     console.error('');
     console.error('Nothing has been published.');
+    process.exit(1);
+  }
+  if (err instanceof KeyRejected) {
+    console.error(`The price feed would not accept the key: ${err.message}`);
+    console.error('');
+    console.error('Check the MASSIVE_API_KEY secret against the key on your Massive dashboard. The whole');
+    console.error('key is one unbroken string — a stray space or a missing character at either end is the');
+    console.error('usual cause. Nothing has been published.');
+    process.exit(1);
+  }
+  if (err instanceof OutsideEntitlement) {
+    console.error(`The price feed will not serve that history on this plan: ${err.message}`);
+    console.error('The free plan covers two years. Nothing has been published.');
     process.exit(1);
   }
   if (err instanceof AllowanceExhausted) {
