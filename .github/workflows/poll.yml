@@ -33,7 +33,10 @@ concurrency:
 
 jobs:
   collect:
-    runs-on: ubuntu-latest
+    # Pinned deliberately. GitHub migrates `ubuntu-latest` to Ubuntu 26 from 19 October 2026, and an
+    # image change arriving on its own schedule would break the daily builds at a moment nobody chose.
+    # Both runners are free for public repositories, so this costs nothing.
+    runs-on: ubuntu-24.04
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:

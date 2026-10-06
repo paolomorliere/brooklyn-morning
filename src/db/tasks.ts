@@ -79,6 +79,24 @@ export async function saveCategoryOrder(categories: Category[]): Promise<void> {
   await tx.done;
 }
 
+/**
+ * Persist a manual task order in one transaction.
+ *
+ * Only `order` is written, and each row is re-read inside the transaction first: a task can be
+ * completed, edited or starred while a finger is still holding another one down, and this write has
+ * no business carrying a stale copy of the rest of the row back to disk. A task that has since been
+ * deleted is simply skipped.
+ */
+export async function saveTaskOrder(tasks: Task[]): Promise<void> {
+  const db = await personalDB();
+  const tx = db.transaction('tasks', 'readwrite');
+  for (const t of tasks) {
+    const cur = await tx.store.get(t.id);
+    if (cur) tx.store.put({ ...cur, order: t.order });
+  }
+  await tx.done;
+}
+
 /** Remove a category and move its tasks to `targetId`, atomically. */
 export async function removeCategory(removeId: string, targetId: string): Promise<void> {
   const db = await personalDB();

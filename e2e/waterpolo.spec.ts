@@ -291,8 +291,10 @@ test('the conference filter shows the table and only that conference’s games',
   await expect(table.locator('thead')).toContainText('GD');
 
   // Three points a win, and it says so rather than implying these are the official standings.
+  // Checked as the rule rather than as a fixed number, which went stale as soon as a game was played.
   const first = table.locator('tbody tr').first();
-  await expect(first.locator('.polo-pts')).toHaveText('9');
+  const wins = Number(await first.locator('td.polo-num').nth(1).innerText());
+  await expect(first.locator('.polo-pts')).toHaveText(String(wins * 3));
   await expect(page.locator('.polo-standings .polo-table-note')).toContainText('my own calculation');
   await expect(page.locator('.polo-standings .polo-table-note')).toContainText('not the CWPA');
 

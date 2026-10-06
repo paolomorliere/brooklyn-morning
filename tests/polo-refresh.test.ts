@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { refreshOutcome } from '@/lib/polo';
+import { conferenceCoverageOf, isNewerBuild, refreshOutcome } from '@/lib/polo';
 
 describe('refreshOutcome', () => {
   const base = { rebuilt: true, added: 0, fixturesChanged: 0, failedSources: 0 };
@@ -73,5 +73,66 @@ describe('the workflows a manual refresh triggers', () => {
     const yml = readFileSync('.github/workflows/poll.yml', 'utf8');
     expect(yml).toMatch(/steps\.due\.outputs\.expect == 'true' && '--expect-new'/);
     expect(yml).toMatch(/echo "expect=false" >> "\$GITHUB_OUTPUT"/);
+  });
+});
+
+describe('a feed may never roll backwards', () => {
+  it('accepts a strictly newer build', () => {
+    expect(isNewerBuild('2026-10-05T08:50:33.974Z', '2026-10-05T19:11:02.000Z')).toBe(true);
+  });
+  it('refuses the same build, so a re-download is a fetch and not a refresh', () => {
+    expect(isNewerBuild('2026-10-05T08:50:33.974Z', '2026-10-05T08:50:33.974Z')).toBe(false);
+  });
+  it('refuses an older build — the case a stale cache or a lagging CDN node produces', () => {
+    expect(isNewerBuild('2026-10-05T19:11:02.000Z', '2026-10-05T08:50:33.974Z')).toBe(false);
+  });
+  it('accepts anything when nothing is saved yet', () => {
+    expect(isNewerBuild(null, '2026-10-05T08:50:33.974Z')).toBe(true);
+    expect(isNewerBuild(undefined, '2026-10-05T08:50:33.974Z')).toBe(true);
+  });
+  it('refuses an unreadable incoming timestamp and replaces an unreadable saved one', () => {
+    expect(isNewerBuild('2026-10-05T08:50:33.974Z', 'not a date')).toBe(false);
+    expect(isNewerBuild('2026-10-05T08:50:33.974Z', null)).toBe(false);
+    expect(isNewerBuild('nonsense', '2026-10-05T08:50:33.974Z')).toBe(true);
+  });
+  it('compares moments, not strings, across a zone offset', () => {
+    // Same instant written two ways: neither is newer than the other.
+    expect(isNewerBuild('2026-10-05T12:00:00Z', '2026-10-05T08:00:00-04:00')).toBe(false);
+    expect(isNewerBuild('2026-10-05T08:00:00-04:00', '2026-10-05T12:00:00Z')).toBe(false);
+  });
+});
+
+describe('conference coverage is reported separately from the schools', () => {
+  const src = (id: string, ok: boolean) => ({ id, url: `https://example.test/${id}`, ok, fixtures: ok ? 30 : 0, skipped: 0, error: ok ? null : 'HTTP 503' });
+  const block = (sources: ReturnType<typeof src>[]) => ({
+    checkedAt: '2026-10-05T08:50:33.974Z',
+    sources,
+    classified: 72,
+    dropped: [],
+    members: {},
+  });
+
+  it('reports both schedules read', () => {
+    const c = conferenceCoverageOf(block([src('MAWPC', true), src('NWPC', true)]));
+    expect(c).toMatchObject({ complete: true, okCount: 2, total: 2, failed: [], classified: 72 });
+    expect(c.checkedAt).toBe('2026-10-05T08:50:33.974Z');
+  });
+
+  it('names the conference whose schedule could not be read', () => {
+    const c = conferenceCoverageOf(block([src('MAWPC', true), src('NWPC', false)]));
+    expect(c.complete).toBe(false);
+    expect(c.failed).toEqual(['NWPC']);
+    expect(c.okCount).toBe(1);
+  });
+
+  it('a build with no conference block is no coverage, never complete', () => {
+    expect(conferenceCoverageOf(undefined)).toEqual({ complete: false, okCount: 0, total: 0, failed: [], checkedAt: null, classified: 0 });
+  });
+
+  it('an unread conference schedule makes a refresh partial even when all schools were read', () => {
+    const coverage = conferenceCoverageOf(block([src('MAWPC', true), src('NWPC', false)]));
+    expect(
+      refreshOutcome({ rebuilt: true, added: 3, fixturesChanged: 0, failedSources: 0 + coverage.failed.length }),
+    ).toBe('partial');
   });
 });

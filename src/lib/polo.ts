@@ -1,4 +1,4 @@
-import type { Poll, PoloFeed, PoloGame, PoloTeam, PoloSourceStatus } from '@/types';
+import type { Poll, PoloConferenceBlock, PoloFeed, PoloGame, PoloTeam, PoloSourceStatus } from '@/types';
 import { NY_TZ, mondayOfYMD, nyDate, shiftYMD } from '@/lib/lessons';
 
 /** Games that happened on one date, newest date first. */
@@ -448,4 +448,70 @@ export function refreshOutcome(input: {
   if (!input.rebuilt) return 'nothing';
   if (input.failedSources > 0) return 'partial';
   return input.added + input.fixturesChanged > 0 ? 'success' : 'unchanged';
+}
+
+/**
+ * Whether a downloaded feed may replace the one already saved.
+ *
+ * Only a strictly newer build counts. The quiet hourly fetch asks for the file without a cache
+ * buster, so it can legitimately be served an **older** copy — by the service worker's NetworkFirst
+ * cache, or by a Pages node that has not caught up. Treating any difference in `builtAt` as a
+ * rebuild let that older copy overwrite newer results in IndexedDB, which is how the conference
+ * table could silently go backwards while the refresh reported itself as successful.
+ *
+ * A build timestamp that will not parse is not trusted in either direction: an unreadable incoming
+ * value is refused, and an unreadable saved one is replaced.
+ */
+export function isNewerBuild(current: string | null | undefined, next: string | null | undefined): boolean {
+  const b = next ? Date.parse(next) : NaN;
+  if (Number.isNaN(b)) return false;
+  if (!current) return true;
+  const a = Date.parse(current);
+  if (Number.isNaN(a)) return true;
+  return b > a;
+}
+
+/** How much of the CWPA's own conference schedule the current build managed to read. */
+export interface ConferenceCoverage {
+  /** Every conference schedule in the build was read. */
+  complete: boolean;
+  okCount: number;
+  total: number;
+  /** Conference ids whose schedule could not be read, e.g. `['NWPC']`. */
+  failed: string[];
+  /** When the conference schedules were last read, from the build that is on screen. */
+  checkedAt: string | null;
+  /** Games the build was able to match to a conference fixture. */
+  classified: number;
+}
+
+/**
+ * Conference coverage, reported separately from the thirteen school pages.
+ *
+ * The standings count only games the CWPA's own conference schedule lists, so when one of those two
+ * pages cannot be read the results list still grows while the table does not move. The build has
+ * always recorded this; nothing read it, so the screen had no way to say it. A build with no
+ * conference block at all is reported as no coverage, never as complete.
+ */
+export function conferenceCoverageOf(block: PoloConferenceBlock | undefined): ConferenceCoverage {
+  const sources = block?.sources ?? [];
+  const failed = sources.filter((s) => !s.ok);
+  return {
+    complete: sources.length > 0 && failed.length === 0,
+    okCount: sources.length - failed.length,
+    total: sources.length,
+    failed: failed.map((s) => s.id),
+    checkedAt: block?.checkedAt ?? null,
+    classified: block?.classified ?? 0,
+  };
+}
+
+/** "12:41 PM ET · Sun 27 Sep" — a moment stated in New York, where the season lives. */
+export function formatNyStamp(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  const time = d.toLocaleTimeString('en-US', { timeZone: NY_TZ, hour: 'numeric', minute: '2-digit' });
+  const day = d.toLocaleDateString('en-US', { timeZone: NY_TZ, weekday: 'short', month: 'short', day: 'numeric' });
+  return `${time} ET · ${day}`;
 }

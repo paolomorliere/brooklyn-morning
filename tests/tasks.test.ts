@@ -1,9 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import type { Task } from '@/types';
-import { COMPLETED_TTL_MS, expiredCompletedIds, moveCategory, planCategoryRemoval, sortOpen, validateCategoryName } from '@/lib/tasks';
+import { COMPLETED_TTL_MS, canMoveTask, expiredCompletedIds, moveCategory, moveTask, moveTaskBy, planCategoryRemoval, renumberTasks, sortOpen, validateCategoryName } from '@/lib/tasks';
 import { _resetPersonalDB, DEFAULT_CATEGORIES } from '@/db/personal';
-import { addCategory, addTask, allCategories, allTasks, completeTask, purgeExpiredCompleted, removeCategory, uncompleteTask } from '@/db/tasks';
+import { addCategory, addTask, allCategories, allTasks, completeTask, purgeExpiredCompleted, removeCategory, saveTaskOrder, uncompleteTask } from '@/db/tasks';
 
 const mk = (id: string, extra: Partial<Task> = {}): Task => ({
   id, text: id, notes: '', categoryId: 'inbox', starred: false, createdAt: '2026-09-19T10:00:00Z', completedAt: null, order: 0, ...extra,
@@ -85,5 +85,100 @@ describe('IndexedDB task repository', () => {
     expect(tasks.find((t) => t.id === a.id)?.categoryId).toBe('personal');
     expect((await allCategories()).some((c) => c.id === travel.id)).toBe(false);
     expect(tasks.filter((t) => t.categoryId === 'personal')).toHaveLength(2);
+  });
+});
+
+describe('manual task reordering (pure)', () => {
+  const list = () => [
+    mk('s1', { starred: true, order: 0 }),
+    mk('s2', { starred: true, order: 1 }),
+    mk('a', { order: 0 }),
+    mk('b', { order: 1 }),
+    mk('c', { order: 2 }),
+  ];
+
+  it('moves a task down inside its block and renumbers without gaps', () => {
+    const next = moveTask(list(), 'a', 4);
+    expect(sortOpen(next).map((t) => t.id)).toEqual(['s1', 's2', 'b', 'c', 'a']);
+    expect(sortOpen(next).map((t) => t.order)).toEqual([0, 1, 0, 1, 2]);
+  });
+
+  it('moves a task up inside its block', () => {
+    expect(sortOpen(moveTask(list(), 'c', 2)).map((t) => t.id)).toEqual(['s1', 's2', 'c', 'a', 'b']);
+  });
+
+  it('reorders the starred block independently', () => {
+    expect(sortOpen(moveTask(list(), 's2', 0)).map((t) => t.id)).toEqual(['s2', 's1', 'a', 'b', 'c']);
+  });
+
+  it('clamps an unstarred task to the top of its own block, never into the stars', () => {
+    // Index 0 is inside the starred block; the move must stop at the first unstarred position.
+    const next = sortOpen(moveTask(list(), 'c', 0));
+    expect(next.map((t) => t.id)).toEqual(['s1', 's2', 'c', 'a', 'b']);
+    expect(next.filter((t) => t.starred).map((t) => t.id)).toEqual(['s1', 's2']);
+  });
+
+  it('clamps a starred task to the bottom of the starred block', () => {
+    expect(sortOpen(moveTask(list(), 's1', 4)).map((t) => t.id)).toEqual(['s2', 's1', 'a', 'b', 'c']);
+  });
+
+  it('is a no-op for an unknown id, and still returns a gap-free order', () => {
+    const next = moveTask([mk('a', { order: 7 }), mk('b', { order: 9 })], 'nope', 0);
+    expect(next.map((t) => [t.id, t.order])).toEqual([['a', 0], ['b', 1]]);
+  });
+
+  it('moveTaskBy steps one place and stops at the block edges', () => {
+    expect(sortOpen(moveTaskBy(list(), 'b', -1)).map((t) => t.id)).toEqual(['s1', 's2', 'b', 'a', 'c']);
+    expect(sortOpen(moveTaskBy(list(), 'a', -1)).map((t) => t.id)).toEqual(['s1', 's2', 'a', 'b', 'c']);
+    expect(sortOpen(moveTaskBy(list(), 'c', 1)).map((t) => t.id)).toEqual(['s1', 's2', 'a', 'b', 'c']);
+  });
+
+  it('canMoveTask refuses to cross the star boundary or the ends', () => {
+    const l = list();
+    expect(canMoveTask(l, 's1', -1)).toBe(false);
+    expect(canMoveTask(l, 's1', 1)).toBe(true);
+    expect(canMoveTask(l, 's2', 1)).toBe(false); // would land on an unstarred task
+    expect(canMoveTask(l, 'a', -1)).toBe(false); // would land on a starred task
+    expect(canMoveTask(l, 'a', 1)).toBe(true);
+    expect(canMoveTask(l, 'c', 1)).toBe(false);
+    expect(canMoveTask(l, 'missing', 1)).toBe(false);
+  });
+
+  it('numbers each block from zero so sortOpen is unambiguous', () => {
+    const r = renumberTasks([mk('s', { starred: true, order: 50 }), mk('x', { order: 50 }), mk('y', { order: 50 })]);
+    expect(r.map((t) => [t.id, t.order])).toEqual([['s', 0], ['x', 0], ['y', 1]]);
+  });
+
+  it('survives a repeated move: the order after n moves is still 0..n-1', () => {
+    let l = list();
+    for (const id of ['a', 'b', 'c', 'a', 'c']) l = moveTask(l, id, 2);
+    const plain = sortOpen(l).filter((t) => !t.starred);
+    expect(plain.map((t) => t.order)).toEqual([0, 1, 2]);
+    expect(new Set(plain.map((t) => t.id)).size).toBe(3);
+  });
+});
+
+describe('manual task order on disk', () => {
+  beforeEach(() => {
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+  });
+
+  it('writes only order, leaving an edit made during the drag alone', async () => {
+    const a = await addTask('A', 'inbox');
+    const b = await addTask('B', 'inbox');
+    // Simulates the task being starred while the finger was still down on the other one.
+    await completeTask(b.id, new Date('2026-09-19T08:00:00Z'));
+    await saveTaskOrder(moveTask([a, b], a.id, 1));
+    const after = await allTasks();
+    expect(after.find((t) => t.id === b.id)?.completedAt).toBe('2026-09-19T08:00:00.000Z');
+    expect(after.find((t) => t.id === a.id)?.order).toBe(1);
+  });
+
+  it('ignores a task that was deleted before the write landed', async () => {
+    const a = await addTask('A', 'inbox');
+    const ghost = { ...a, id: 'gone', order: 0 };
+    await expect(saveTaskOrder([ghost, { ...a, order: 1 }])).resolves.toBeUndefined();
+    expect((await allTasks()).map((t) => t.id)).toEqual([a.id]);
   });
 });

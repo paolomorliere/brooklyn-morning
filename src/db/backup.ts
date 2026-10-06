@@ -1,5 +1,5 @@
 import { DEFAULT_PREFS, getLessonProgress, getPrefs, personalDB, STORES } from './personal';
-import { BACKUP_SCHEMA, validateBackup, type Backup } from '@/lib/backup';
+import { BACKUP_SCHEMA, repairCategoryOrders, repairTaskOrders, validateBackup, type Backup } from '@/lib/backup';
 
 export async function exportBackup(): Promise<Backup> {
   const db = await personalDB();
@@ -36,8 +36,10 @@ export async function restoreBackup(data: unknown): Promise<Backup> {
   const db = await personalDB();
   const tx = db.transaction(STORES, 'readwrite');
   for (const s of STORES) tx.objectStore(s).clear();
-  for (const t of b.tasks) tx.objectStore('tasks').put(t);
-  for (const c of b.categories) tx.objectStore('categories').put(c);
+  // Repaired on the way in, not on every read: a manual order is only as good as the numbers behind
+  // it, and a restored `undefined` would quietly randomise the list it was meant to preserve.
+  for (const t of repairTaskOrders(b.tasks)) tx.objectStore('tasks').put(t);
+  for (const c of repairCategoryOrders(b.categories)) tx.objectStore('categories').put(c);
   for (const it of b.list) tx.objectStore('list').put(it);
   for (const h of b.history) tx.objectStore('history').put(h);
   for (const e of b.library) tx.objectStore('library').put(e);

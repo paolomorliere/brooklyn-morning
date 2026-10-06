@@ -380,6 +380,10 @@
 }
 .polo-table {
   width: 100%;
+  /* Fixed layout is what makes the <colgroup> in Standings.tsx and Poll.tsx authoritative. Under
+     auto layout the browser sized every column from its content, so a header label and the numbers
+     below it ended up over different boundaries. */
+  table-layout: fixed;
   border-collapse: collapse;
   background: var(--paper);
   border: 1px solid var(--line);
@@ -408,7 +412,6 @@
   border-bottom: 0;
 }
 .polo-pos {
-  width: 2.4em;
   padding-left: 10px !important;
   color: var(--ink-faint);
   font-variant-numeric: tabular-nums;
@@ -418,6 +421,15 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
+}
+/* `.polo-table th` is (0,1,1) and `.polo-num` is only (0,1,0), so the th rule above won on
+   specificity no matter the source order and left-aligned PTS/W/L/GD over right-aligned numbers.
+   One rule per column, applied to the header and the body alike. */
+.polo-table th.polo-num {
+  text-align: right;
+}
+.polo-table th.polo-pos {
+  text-align: left;
 }
 .polo-table th.polo-num:last-child,
 .polo-table td.polo-num:last-child {
@@ -431,10 +443,8 @@
 }
 .polo-dash {
   color: var(--ink-faint);
-  text-align: center;
 }
 .polo-table-crest {
-  width: 26px;
   padding-right: 0 !important;
 }
 .polo-crest--sm {
@@ -471,6 +481,44 @@
 }
 .polo-table-note {
   margin-top: 8px;
+}
+/* Its own class, not `.polo-table-note`: the three-points-for-a-win note is the one the tests and
+   the rules identify by that name, and two paragraphs sharing it made it ambiguous. */
+.polo-coverage-note {
+  margin-top: 8px;
+}
+
+/*
+  Column widths for both tables. Every value is the border-box width of the column, so it has to
+  cover the cell padding as well as the widest content: two digits for a position or a W/L count,
+  "+12" for a goal difference, and the uppercase header above each one, which stays at --fs-12 even
+  on a narrow screen. The name column is deliberately left without a width: it takes whatever is
+  left over and wraps, which is the only column that should ever change size.
+*/
+.polo-col-pos {
+  width: 34px;
+}
+.polo-col-crest {
+  width: 30px;
+}
+.polo-col-pts {
+  width: 38px;
+}
+.polo-col-wl {
+  width: 30px;
+}
+.polo-col-gd {
+  width: 46px;
+}
+/* Wide enough for a tied rank printed as the CWPA prints it — "20 (T)" — on one line. */
+.polo-col-rank {
+  width: 54px;
+}
+.polo-col-prev {
+  width: 56px;
+}
+.polo-col-points {
+  width: 62px;
 }
 
 /* ---------- team screen ---------- */
@@ -538,9 +586,6 @@
 .polo-poll-table {
   margin-top: 12px;
 }
-.polo-poll-table .polo-pos {
-  width: 3.4em;
-}
 .polo-conf-fact a {
   white-space: nowrap;
 }
@@ -558,6 +603,33 @@
   }
   .polo-pos {
     padding-left: 6px !important;
+  }
+  /* Cell padding drops from 12px to 8px per column here (and the position column from 16px to
+     10px), so each width comes down by the same amount. The headers do not shrink — they are
+     already at --fs-12 — so nothing below these values would fit. */
+  .polo-col-pos {
+    width: 28px;
+  }
+  .polo-col-crest {
+    width: 28px;
+  }
+  .polo-col-pts {
+    width: 34px;
+  }
+  .polo-col-wl {
+    width: 26px;
+  }
+  .polo-col-gd {
+    width: 40px;
+  }
+  .polo-col-rank {
+    width: 50px;
+  }
+  .polo-col-prev {
+    width: 50px;
+  }
+  .polo-col-points {
+    width: 56px;
   }
   .polo-team-head .polo-crest {
     width: 36px;

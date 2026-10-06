@@ -14,6 +14,73 @@ export function sortOpen(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => Number(b.starred) - Number(a.starred) || a.order - b.order || a.createdAt.localeCompare(b.createdAt));
 }
 
+/**
+ * Manual reordering, within one category.
+ *
+ * Starred tasks stay pinned above the rest — that was the decision — so the list is really two
+ * lists, and a task cannot leave the one it is in. Everything here takes and returns a sorted list
+ * so the index a finger lands on is the index these functions reason about.
+ */
+
+/**
+ * Give every task a gap-free `order`, numbered from 0 inside each star block.
+ *
+ * `sortOpen` only ever compares `order` between tasks of the same starred state, so the two blocks
+ * can be numbered independently. Renumbering on every move is what stops deleted tasks, completed
+ * tasks and the `Date.now()` values new tasks start with from leaving holes that later make a move
+ * land somewhere unexpected.
+ */
+export function renumberTasks(tasks: Task[]): Task[] {
+  let starred = 0;
+  let plain = 0;
+  return tasks.map((t) => ({ ...t, order: t.starred ? starred++ : plain++ }));
+}
+
+/** The first and last index a task may be dropped at: the bounds of its own star block. */
+function blockBounds(sorted: Task[], starred: boolean): { first: number; last: number } {
+  const starredCount = sorted.filter((t) => t.starred).length;
+  return starred ? { first: 0, last: starredCount - 1 } : { first: starredCount, last: sorted.length - 1 };
+}
+
+/**
+ * Move one task to `toIndex` within its category, clamped to its star block.
+ *
+ * `tasks` is one category's open tasks; the result is the same tasks, in the new order, renumbered.
+ * An out-of-range index is clamped rather than refused, so a drag that overshoots the end of the
+ * block drops at the end of the block instead of doing nothing.
+ */
+export function moveTask(tasks: Task[], id: string, toIndex: number): Task[] {
+  const sorted = sortOpen(tasks);
+  const from = sorted.findIndex((t) => t.id === id);
+  if (from < 0) return renumberTasks(sorted);
+  const { first, last } = blockBounds(sorted, sorted[from].starred);
+  const to = Math.max(first, Math.min(last, toIndex));
+  if (to === from) return renumberTasks(sorted);
+  const next = [...sorted];
+  const [moving] = next.splice(from, 1);
+  next.splice(to, 0, moving);
+  return renumberTasks(next);
+}
+
+/** One step up or down. The keyboard and the Move up / Move down buttons use this. */
+export function moveTaskBy(tasks: Task[], id: string, direction: -1 | 1): Task[] {
+  const sorted = sortOpen(tasks);
+  const from = sorted.findIndex((t) => t.id === id);
+  if (from < 0) return renumberTasks(sorted);
+  return moveTask(sorted, id, from + direction);
+}
+
+/** Whether that step is possible, so a button that would do nothing can be disabled instead. */
+export function canMoveTask(tasks: Task[], id: string, direction: -1 | 1): boolean {
+  const sorted = sortOpen(tasks);
+  const i = sorted.findIndex((t) => t.id === id);
+  if (i < 0) return false;
+  const j = i + direction;
+  if (j < 0 || j >= sorted.length) return false;
+  // The boundary between the starred block and the rest is not crossable in either direction.
+  return sorted[j].starred === sorted[i].starred;
+}
+
 /** Completed tasks, most recent first. */
 export function sortCompleted(tasks: Task[]): Task[] {
   return [...tasks].sort((a, b) => (b.completedAt ?? '').localeCompare(a.completedAt ?? ''));

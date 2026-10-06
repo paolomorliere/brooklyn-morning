@@ -44,6 +44,44 @@
   border-radius: var(--radius-m);
   margin-bottom: var(--s-2);
   box-shadow: var(--shadow-card);
+  /* A press and hold is a reorder here, so iOS must not answer it with the selection callout or the
+     copy/paste bubble. Nothing on a task row is text the finger is meant to select. */
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  position: relative;
+}
+
+/*
+  While a row is lifted every other row slides out of its way. The transition is only applied during
+  a drag: outside one, the rows carry no transform at all and a list that re-renders — a task
+  completed, a new task added — must not animate from wherever the last drag left things.
+*/
+.task-list--dragging .task {
+  transition: transform 160ms var(--ease);
+  /* Latched too late by Safari to be the whole answer — the gesture also prevents default on
+     touchmove — but correct for anything that re-reads it mid-gesture. */
+  touch-action: none;
+}
+.task-list--dragging .task--lifted {
+  transition: none;
+  z-index: 2;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--espresso) 18%, transparent);
+  border-color: var(--line-strong);
+  opacity: 0.97;
+}
+/* The buttons are inert while a row is lifted: the drag must not also complete, open or star it. */
+.task-list--dragging .task--lifted button {
+  pointer-events: none;
+}
+
+.task-move {
+  display: flex;
+  gap: var(--s-2);
+}
+.task-move .btn {
+  flex: 1;
+  gap: 6px;
 }
 .task-check {
   flex: none;

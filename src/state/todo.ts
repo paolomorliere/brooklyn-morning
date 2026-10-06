@@ -43,6 +43,22 @@ export const todoActions = {
     await repo.renameCategory(id, name);
     await refresh();
   },
+  /**
+   * Save a new order for one category's tasks.
+   *
+   * The store is updated before the write, not after it: a reorder that waited for IndexedDB and a
+   * reload would let the row Paolo just dragged snap back to where it was and settle a moment later.
+   */
+  async saveTaskOrder(ordered: Task[]) {
+    await todoStore.ensure();
+    const orders = new Map(ordered.map((t) => [t.id, t.order]));
+    const s = todoStore.get();
+    todoStore.set({
+      ...s,
+      tasks: s.tasks.map((t) => (orders.has(t.id) ? { ...t, order: orders.get(t.id) as number } : t)),
+    });
+    await repo.saveTaskOrder(ordered);
+  },
   async saveCategoryOrder(categories: Category[]) {
     await repo.saveCategoryOrder(categories);
     await refresh();

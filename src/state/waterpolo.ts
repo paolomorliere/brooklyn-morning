@@ -1,7 +1,7 @@
 import type { PoloFeed } from '@/types';
 import { createStore } from './store';
 import { kvGet, kvSet } from '@/db/personal';
-import { isFinal, isUpcoming, refreshOutcome, validFeed } from '@/lib/polo';
+import { conferenceCoverageOf, isFinal, isNewerBuild, isUpcoming, refreshOutcome, validFeed } from '@/lib/polo';
 
 /**
  * Where a manual check actually happens.
@@ -65,6 +65,14 @@ export interface RefreshState {
   okCount: number;
   total: number;
   failed: string[];
+  /**
+   * Conference schedules the build could not read, e.g. `['NWPC']`.
+   *
+   * Kept apart from `failed`, which is about the thirteen school pages. The two failures have
+   * different consequences: an unread school page means missing results, an unread conference
+   * schedule means the standings cannot move even though the results list does.
+   */
+  conferenceFailed: string[];
   error: string | null;
   /** `builtAt` of the feed when the attempt began, so "changed" means changed since then. */
   baselineBuiltAt: string | null;
@@ -95,6 +103,7 @@ const IDLE: RefreshState = {
   okCount: 0,
   total: 0,
   failed: [],
+  conferenceFailed: [],
   error: null,
   baselineBuiltAt: null,
   sawRun: false,
@@ -134,7 +143,9 @@ export const waterPoloStore = createStore<WaterPoloState>(
     lastError: null,
     refreshing: false,
     ready: true,
-    refresh: await kvGet<RefreshState>('waterpolo:refresh', IDLE),
+    // Spread over IDLE: a refresh persisted by an earlier version of the app has no
+    // `conferenceFailed`, and `undefined.length` in the banner would take the screen down.
+    refresh: { ...IDLE, ...(await kvGet<Partial<RefreshState>>('waterpolo:refresh', IDLE)) },
   }),
 );
 
@@ -222,9 +233,18 @@ async function adopt(next: PoloFeed): Promise<RefreshState> {
 
   const failed = next.sources.filter((s) => !s.ok);
   const okCount = next.sources.length - failed.length;
+  // The conference schedules count toward completeness too. Without this, a build that read all
+  // thirteen schools but neither CWPA page reported "refresh complete" while the standings still
+  // showed the old results — exactly what must never be called fully completed.
+  const conference = conferenceCoverageOf(next.conference);
   // "All thirteen schools" is only ever said when all thirteen were actually read. `rebuilt` is
   // true by construction here: adopt() is only reached once a newer `builtAt` has arrived.
-  const phase = refreshOutcome({ rebuilt: true, added, fixturesChanged, failedSources: failed.length });
+  const phase = refreshOutcome({
+    rebuilt: true,
+    added,
+    fixturesChanged,
+    failedSources: failed.length + conference.failed.length,
+  });
   return {
     ...waterPoloStore.get().refresh,
     phase,
@@ -234,6 +254,7 @@ async function adopt(next: PoloFeed): Promise<RefreshState> {
     okCount,
     total: next.sources.length,
     failed: failed.map((s) => s.display),
+    conferenceFailed: conference.failed,
     error: null,
   };
 }
@@ -270,7 +291,7 @@ async function tick(baselineRunId: number | null, deadline: number): Promise<voi
   // The published file is the only thing that decides success: the job can report success and still
   // have committed nothing, and a job that has not finished has not updated anything.
   const next = await downloadFeed(true);
-  if (next && next.builtAt !== state.baselineBuiltAt) {
+  if (next && isNewerBuild(state.baselineBuiltAt, next.builtAt)) {
     stop();
     await setRefresh(await adopt(next));
     return;
@@ -399,7 +420,7 @@ export const waterPoloActions = {
       // Only a genuinely newer build means the schools were read again. Re-downloading the same
       // published file is worth recording as a fetch, but calling it a successful refresh is how
       // "last successful refresh 4:28 PM" came to sit above results that were hours old.
-      const rebuilt = !current || current.builtAt !== data.builtAt;
+      const rebuilt = isNewerBuild(current?.builtAt, data.builtAt);
       if (rebuilt) {
         await kvSet('waterpolo:feed', data);
         patch({ feed: data });

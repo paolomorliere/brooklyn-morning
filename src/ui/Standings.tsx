@@ -1,6 +1,6 @@
 import type { PoloFeed } from '@/types';
-import { Info } from 'lucide-preact';
-import { standingsOf } from '@/lib/polo';
+import { AlertTriangle, Info } from 'lucide-preact';
+import { conferenceCoverageOf, formatNyStamp, standingsOf } from '@/lib/polo';
 import { TeamCrest } from '@/screens/WaterPolo';
 
 /**
@@ -31,6 +31,13 @@ export function Standings({
   const played = rows.reduce((n, r) => n + r.played, 0) / 2;
   const anyTies = rows.some((r) => r.ties > 0);
 
+  // A game only counts here when the CWPA's own conference schedule lists it, so when that page
+  // could not be read the results list keeps growing while this table stands still. The build has
+  // always recorded that; until now nothing on screen said it, which is why the table could look
+  // stale with no explanation.
+  const coverage = conferenceCoverageOf(feed.conference);
+  const unread = coverage.failed.includes(conference);
+
   return (
     <section class="polo-standings" aria-labelledby={`st-${conference}`}>
       <div class="section-title">
@@ -39,6 +46,21 @@ export function Standings({
       </div>
 
       <table class="polo-table">
+        {/*
+          Explicit widths, because `table-layout: fixed` ignores anything the cells ask for. Without
+          this the four numeric columns were sized by their content, so the header labels and the
+          numbers beneath them sat over different boundaries. The name column takes whatever is
+          left, which is what lets a long school name wrap instead of widening the table.
+        */}
+        <colgroup>
+          <col class="polo-col-pos" />
+          <col class="polo-col-crest" />
+          <col class="polo-col-name" />
+          <col class="polo-col-pts" />
+          <col class="polo-col-wl" />
+          <col class="polo-col-wl" />
+          <col class="polo-col-gd" />
+        </colgroup>
         <thead>
           <tr>
             <th scope="col" class="polo-pos">#</th>
@@ -62,10 +84,17 @@ export function Standings({
                 </button>
               </td>
               {r.partial && r.played === 0 ? (
+                /*
+                  Four separate dashes rather than one cell spanning four columns. A colSpan here
+                  used to collapse the numeric columns on this row alone, so the row did not line up
+                  with the header and — under auto layout — it shifted the column widths for the
+                  whole table.
+                */
                 <>
-                  <td class="polo-num polo-dash" colSpan={4} title="This team's own schedule page could not be read">
-                    &mdash;
-                  </td>
+                  <td class="polo-num polo-dash" title="This team's own schedule page could not be read">&mdash;</td>
+                  <td class="polo-num polo-dash">&mdash;</td>
+                  <td class="polo-num polo-dash">&mdash;</td>
+                  <td class="polo-num polo-dash">&mdash;</td>
                 </>
               ) : (
                 <>
@@ -79,6 +108,23 @@ export function Standings({
           ))}
         </tbody>
       </table>
+
+      {unread ? (
+        <p class="small polo-partial polo-coverage-note">
+          <AlertTriangle size={14} strokeWidth={2} aria-hidden="true" />
+          <span>
+            The {conference} schedule could not be read on the last build
+            {coverage.checkedAt ? ` (${formatNyStamp(coverage.checkedAt)})` : ''}, so games that finished since then are
+            in the results list but not yet in this table.
+          </span>
+        </p>
+      ) : (
+        coverage.checkedAt && (
+          <p class="small faint polo-coverage-note">
+            {conference} schedule read {formatNyStamp(coverage.checkedAt)}
+          </p>
+        )
+      )}
 
       <p class="small polo-partial polo-table-note">
         <Info size={14} strokeWidth={2} aria-hidden="true" />

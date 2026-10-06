@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { IDBFactory } from 'fake-indexeddb';
 import { _resetPersonalDB, getLessonProgress, personalDB, setLessonProgress, setPrefs, DEFAULT_PREFS } from '@/db/personal';
-import { addCategory, addTask, allCategories, allTasks, completeTask } from '@/db/tasks';
+import { addCategory, addTask, allCategories, allTasks, completeTask, saveTaskOrder } from '@/db/tasks';
 import { exportBackup, restoreBackup } from '@/db/backup';
-import { validateBackup } from '@/lib/backup';
+import { repairTaskOrders, validateBackup } from '@/lib/backup';
+import { moveTask, sortOpen } from '@/lib/tasks';
 
 describe('backup round trip', () => {
   beforeEach(() => {
@@ -73,5 +74,72 @@ describe('favorites', () => {
     expect(await allFavorites()).toHaveLength(1);
     const { favorites: _f, ...old } = b;
     expect(validateBackup(old)).toEqual([]);
+  });
+});
+
+describe('manual order survives a restore', () => {
+  beforeEach(() => {
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+  });
+
+  it('round-trips a hand-made order and keeps the list in that order', async () => {
+    const a = await addTask('First', 'inbox');
+    const b = await addTask('Second', 'inbox');
+    const c = await addTask('Third', 'inbox');
+    await saveTaskOrder(moveTask([a, b, c], c.id, 0));
+    const before = sortOpen(await allTasks()).map((t) => t.text);
+    expect(before).toEqual(['Third', 'First', 'Second']);
+
+    const json = JSON.parse(JSON.stringify(await exportBackup()));
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+    await restoreBackup(json);
+
+    expect(sortOpen(await allTasks()).map((t) => t.text)).toEqual(before);
+  });
+
+  it('repairs a missing order instead of letting NaN randomise the list', async () => {
+    await addTask('One', 'inbox');
+    await addTask('Two', 'inbox');
+    const backup = JSON.parse(JSON.stringify(await exportBackup()));
+    // A backup written before manual ordering existed, or edited by hand.
+    for (const t of backup.tasks) delete t.order;
+    for (const c of backup.categories) delete c.order;
+
+    indexedDB = new IDBFactory();
+    _resetPersonalDB();
+    await restoreBackup(backup);
+
+    const tasks = await allTasks();
+    expect(tasks.every((t) => Number.isFinite(t.order))).toBe(true);
+    expect(sortOpen(tasks).map((t) => t.order)).toEqual([0, 1]);
+    const cats = await allCategories();
+    expect(cats.map((c) => c.order)).toEqual(cats.map((_, i) => i));
+  });
+
+  it('falls back to creation order when order is missing', () => {
+    // Two tasks created in the same millisecond have no defined relative order, with or without
+    // this repair, so the fixture uses distinct times — which is the case that actually matters.
+    const base = { text: 't', notes: '', completedAt: null, categoryId: 'inbox', starred: false };
+    const repaired = repairTaskOrders([
+      { ...base, id: 'newer', createdAt: '2026-09-19T12:00:00Z', order: undefined as unknown as number },
+      { ...base, id: 'older', createdAt: '2026-09-19T09:00:00Z', order: undefined as unknown as number },
+    ]);
+    expect(sortOpen(repaired).map((t) => t.id)).toEqual(['older', 'newer']);
+  });
+
+  it('numbers each category and each star block from zero', () => {
+    const base = { text: 't', notes: '', completedAt: null, createdAt: '2026-09-19T10:00:00Z' };
+    const repaired = repairTaskOrders([
+      { ...base, id: 'i1', categoryId: 'inbox', starred: false, order: 40 },
+      { ...base, id: 'i2', categoryId: 'inbox', starred: false, order: 10 },
+      { ...base, id: 'i3', categoryId: 'inbox', starred: true, order: 90 },
+      { ...base, id: 'w1', categoryId: 'work', starred: false, order: 5 },
+    ]);
+    const by = (id: string) => repaired.find((t) => t.id === id)?.order;
+    expect([by('i2'), by('i1')]).toEqual([0, 1]);
+    expect(by('i3')).toBe(0);
+    expect(by('w1')).toBe(0);
   });
 });

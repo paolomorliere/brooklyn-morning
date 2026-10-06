@@ -1,4 +1,5 @@
 import type { Category, Favorite, HistoryEvent, LessonProgress, LibraryEntry, ListItem, Prefs, Task } from '@/types';
+import { renumber, renumberTasks, sortOpen } from '@/lib/tasks';
 
 export const BACKUP_SCHEMA = 1;
 
@@ -57,6 +58,32 @@ export function validateBackup(data: unknown): string[] {
   }
   if (b.prefs !== undefined && (typeof b.prefs !== 'object' || b.prefs === null)) p.push('Prefs malformed');
   return p;
+}
+
+/**
+ * Make `order` usable on every restored task.
+ *
+ * `order` was never validated, and manual reordering is what finally made it matter. A backup
+ * written by an earlier version, or edited by hand, can carry `undefined` — and `a.order - b.order`
+ * is then `NaN`, which makes the comparator inconsistent and the sorted result arbitrary: the same
+ * list would come back in a different order on different reads. A row with no usable value falls
+ * back to its creation time, which is the order the list was in before manual ordering existed, and
+ * every row is then renumbered inside its category so no gaps or ties survive the restore.
+ */
+export function repairTaskOrders(tasks: Task[]): Task[] {
+  const byCategory = new Map<string, Task[]>();
+  for (const t of tasks) {
+    const seeded = { ...t, order: Number.isFinite(t.order) ? t.order : Date.parse(t.createdAt) || 0 };
+    const list = byCategory.get(seeded.categoryId);
+    if (list) list.push(seeded);
+    else byCategory.set(seeded.categoryId, [seeded]);
+  }
+  return [...byCategory.values()].flatMap((list) => renumberTasks(sortOpen(list)));
+}
+
+/** The same repair for categories, which have exactly the same exposure. */
+export function repairCategoryOrders(categories: Category[]): Category[] {
+  return renumber(categories.map((c) => ({ ...c, order: Number.isFinite(c.order) ? c.order : 0 })));
 }
 
 export function summarizeBackup(b: Backup): string {

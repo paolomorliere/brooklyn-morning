@@ -1,12 +1,20 @@
 import { useState } from 'preact/hooks';
-import { Plus, Star, Trash2 } from 'lucide-preact';
+import { ArrowDown, ArrowUp, Plus, Star, Trash2 } from 'lucide-preact';
 import type { Category, Task } from '@/types';
 import { Sheet } from '@/ui/Sheet';
 import { todoActions } from '@/state/todo';
+import { canMoveTask, moveTaskBy } from '@/lib/tasks';
 
-interface Props { task: Task; categories: Category[]; onClose: () => void; onManageCategories: () => void }
+interface Props {
+  task: Task;
+  categories: Category[];
+  /** The open tasks of this task's category, in the order the screen shows them. */
+  siblings: Task[];
+  onClose: () => void;
+  onManageCategories: () => void;
+}
 
-export function TaskSheet({ task, categories, onClose, onManageCategories }: Props) {
+export function TaskSheet({ task, categories, siblings, onClose, onManageCategories }: Props) {
   const [text, setText] = useState(task.text);
   const [notes, setNotes] = useState(task.notes);
   const [categoryId, setCategoryId] = useState(task.categoryId);
@@ -48,6 +56,37 @@ export function TaskSheet({ task, categories, onClose, onManageCategories }: Pro
           <button class="chip" onClick={onManageCategories} aria-label="Add category"><Plus size={16} /> New</button>
         </div>
       </div>
+      {/*
+        The pointer-free way to reorder, and the only place the press-and-hold gesture is explained.
+        It lives in the sheet rather than on the row so the list itself does not grow two buttons per
+        task. The position shown counts within the block the task is in, because priority tasks stay
+        pinned above the rest and a move never crosses that line.
+      */}
+      {siblings.length > 1 && (
+        <div class="field">
+          <label>Order in {categories.find((c) => c.id === task.categoryId)?.name ?? 'this category'}</label>
+          <div class="task-move">
+            <button
+              class="btn btn--ghost"
+              disabled={!canMoveTask(siblings, task.id, -1)}
+              onClick={() => void todoActions.saveTaskOrder(moveTaskBy(siblings, task.id, -1))}
+            >
+              <ArrowUp size={17} strokeWidth={2} aria-hidden="true" /> Move up
+            </button>
+            <button
+              class="btn btn--ghost"
+              disabled={!canMoveTask(siblings, task.id, 1)}
+              onClick={() => void todoActions.saveTaskOrder(moveTaskBy(siblings, task.id, 1))}
+            >
+              <ArrowDown size={17} strokeWidth={2} aria-hidden="true" /> Move down
+            </button>
+          </div>
+          <p class="small faint" style="margin:6px 0 0">
+            {positionNote(siblings, task)} On the list you can also press and hold a task for a moment, then drag it.
+          </p>
+        </div>
+      )}
+
       <div class="field">
         <button class="row-btn" aria-pressed={starred} onClick={() => setStarred(!starred)}>
           <Star size={20} fill={starred ? 'currentColor' : 'none'} style={starred ? 'color:var(--terracotta)' : 'color:var(--ink-faint)'} />
@@ -67,4 +106,19 @@ export function TaskSheet({ task, categories, onClose, onManageCategories }: Pro
       </div>
     </Sheet>
   );
+}
+
+/** "2nd of 5 priority tasks." — stated in terms of the block, since the blocks never mix. */
+function positionNote(siblings: Task[], task: Task): string {
+  const block = siblings.filter((t) => t.starred === task.starred);
+  const i = block.findIndex((t) => t.id === task.id);
+  if (i < 0) return '';
+  const kind = task.starred ? 'priority task' : 'task';
+  return `${ordinal(i + 1)} of ${block.length} ${kind}${block.length === 1 ? '' : 's'}.`;
+}
+
+function ordinal(n: number): string {
+  const rest = n % 100;
+  if (rest >= 11 && rest <= 13) return `${n}th`;
+  return `${n}${['th', 'st', 'nd', 'rd'][n % 10] ?? 'th'}`;
 }

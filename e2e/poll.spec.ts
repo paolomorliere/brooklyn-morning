@@ -20,6 +20,7 @@ async function publishedPoll(page: Page) {
       publishedAt: string;
       previous: { label: string } | null;
       rows: { rank: string; team: string; previous: string | null; points: number | null; pointsText: string | null }[];
+      teams: Record<string, { name: string; logo: string | null } | undefined>;
     };
   });
 }
@@ -82,7 +83,11 @@ test('every row has a crest, and a broken image falls back to initials', async (
   await openPoll(page);
   const poll = await publishedPoll(page);
   await expect(page.locator('.polo-poll-table tbody .polo-crest')).toHaveCount(poll.rows.length);
-  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(0);
+  // Driven by the published file, not a fixed number. A school the poll names but the identity
+  // rules refuse to merge with a known one — "Concordia University", which is deliberately not
+  // "Concordia Irvine" — has no logo, and initials are the honest answer rather than a wrong crest.
+  const withoutLogo = poll.rows.filter((r) => !poll.teams[r.team]?.logo).length;
+  await expect(page.locator('.polo-poll-table tbody .polo-crest--initials')).toHaveCount(withoutLogo);
 
   await page.route('**/logos/*.webp', (route) => route.abort());
   await page.reload();

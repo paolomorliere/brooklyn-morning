@@ -18,12 +18,14 @@ import {
   formatClock,
   formatDateChip,
   formatDayHeading,
+  formatNyStamp,
   freshnessOf,
   groupByDate,
   initials,
   stepDate,
   winnerOf,
 } from '@/lib/polo';
+import { nyDate } from '@/lib/lessons';
 import { Standings } from '@/ui/Standings';
 
 const base = () => import.meta.env.BASE_URL;
@@ -76,16 +78,31 @@ export function WaterPolo() {
   const [conference, setConference] = useState<ConferenceFilter>(restored?.conference ?? 'all');
   const [open, setOpen] = useState<PoloGame | null>(null);
 
-  useEffect(() => onResume(() => void waterPoloActions.refresh(false), 60 * 60_000), []);
+  // The calendar day has to be part of the render state, not read once at mount: a session left
+  // open from Sunday evening into Monday would otherwise keep showing — and labelling — the weekend
+  // that has just finished.
+  const [today, setToday] = useState(() => nyDate());
+  useEffect(
+    () =>
+      onResume(() => {
+        setToday(nyDate());
+        void waterPoloActions.refresh(false);
+      }, 60 * 60_000),
+    [],
+  );
   // Coming back to the app must show the real state of a refresh that was running when it was left.
   useEffect(() => { void waterPoloRefresh.resume(); }, []);
 
-  // Restore the scroll position once the rows that make the page that tall have rendered.
+  // Restore the scroll position once the rows that make the page that tall have rendered — once
+  // only. `feed` used to be a dependency, so a background refresh replacing the feed yanked the
+  // page back to the stored offset while Paolo was reading further down.
+  const [restoredScroll, setRestoredScroll] = useState(false);
   useEffect(() => {
-    if (!restored?.scrollY || !ready || !feed) return;
+    if (restoredScroll || !restored?.scrollY || !ready || !feed) return;
+    setRestoredScroll(true);
     const id = requestAnimationFrame(() => scrollTo({ top: restored.scrollY }));
     return () => cancelAnimationFrame(id);
-  }, [ready, feed]);
+  }, [ready, feed, restoredScroll]);
 
   const allGames = feed?.games ?? [];
   const teams = feed?.teams ?? {};
@@ -100,13 +117,12 @@ export function WaterPolo() {
 
   // Results and fixtures are the same events in two states, so they are filtered the same way and
   // only ever separated at the point of display.
-  const weekend = useMemo(() => weekendOf(), []);
-  const upcoming = useMemo(() => {
-    let list = mine;
-    if (conference !== 'all') list = list.filter((g) => g.conference === conference);
-    if (team) list = list.filter((g) => g.home.team === team || g.away.team === team);
-    return groupUpcoming(fixturesBetween(list, weekend.from, weekend.to));
-  }, [mine, conference, team, weekend]);
+  const weekend = useMemo(() => weekendOf(today), [today]);
+  // No filtering by team, conference or day: this section is only rendered when none is active.
+  const upcoming = useMemo(
+    () => groupUpcoming(fixturesBetween(mine, weekend.from, weekend.to)),
+    [mine, weekend],
+  );
 
   const shown = useMemo(() => {
     let list = mine.filter(isFinal);
@@ -206,7 +222,13 @@ export function WaterPolo() {
         <Standings feed={feed} conference={conference} onTeam={goTeam} />
       )}
 
-      {ready && feed && (
+      {/*
+        Upcoming fixtures belong to the unfiltered view only. Under any filter the whole section goes
+        — heading, count, range line and empty state together — because a fixture list that ignores
+        the active filter contradicts the results above it, and one that honours it is usually just
+        an empty box. A team's own fixtures are on its team screen, under Schedule.
+      */}
+      {ready && feed && !filtered && (
         <section class="polo-weekend" aria-labelledby="polo-weekend-h">
           <div class="section-title">
             <h2 id="polo-weekend-h">This weekend</h2>
@@ -214,10 +236,7 @@ export function WaterPolo() {
           </div>
           <p class="small faint polo-weekend-range">{weekend.label} · times in New York where the source states a zone</p>
           {upcoming.length === 0 ? (
-            <p class="small muted polo-weekend-empty">
-              No fixture for {team ? `${teams[team]?.name ?? team} ` : ''}
-              {conference !== 'all' ? `in ${conference} ` : ''}this Friday to Sunday.
-            </p>
+            <p class="small muted polo-weekend-empty">No fixture this Friday to Sunday.</p>
           ) : (
             upcoming.map((d) => (
               <div key={d.date}>
@@ -410,10 +429,15 @@ function RefreshBanner({ refresh }: { refresh: RefreshState }) {
       case 'partial':
         return (
           <>
-            <b>Refresh complete &mdash; some sources could not be read</b>
+            <b>Refresh not complete &mdash; some sources could not be read</b>
             <p class="small" style="margin:4px 0 0">
-              {refresh.okCount} of {refresh.total} schools were read.{' '}
-              {refresh.failed.length > 0 && `Couldn't reach ${refresh.failed.join(', ')}. `}
+              {refresh.failed.length > 0
+                ? `${refresh.okCount} of ${refresh.total} schools were read. Couldn't reach ${refresh.failed.join(', ')}. `
+                : `All ${refresh.total} schools were read. `}
+              {/* An unread conference schedule is the case where the results list moves and the
+                  table does not, so it has to be said in words rather than implied. */}
+              {refresh.conferenceFailed.length > 0 &&
+                `The ${refresh.conferenceFailed.join(' and ')} schedule could not be read, so ${refresh.conferenceFailed.length === 1 ? 'that table' : 'those tables'} may still show the old standings. `}
               {refresh.added + refresh.fixturesChanged > 0
                 ? `${refresh.added} new ${refresh.added === 1 ? 'result' : 'results'}, ${refresh.fixturesChanged} fixture change${refresh.fixturesChanged === 1 ? '' : 's'}.`
                 : 'Nothing changed in what was read.'}{' '}
@@ -494,7 +518,9 @@ function lastRefreshLine(refresh: RefreshState): string {
         : refresh.phase === 'unchanged'
           ? 'everything read, nothing new'
           : refresh.phase === 'partial'
-            ? `${refresh.okCount} of ${refresh.total} schools read`
+            ? refresh.conferenceFailed.length > 0
+              ? 'some sources could not be read'
+              : `${refresh.okCount} of ${refresh.total} schools read`
             : refresh.phase === 'nothing'
               ? 'nothing was published'
               : refresh.phase === 'failed'
@@ -505,16 +531,6 @@ function lastRefreshLine(refresh: RefreshState): string {
   // Deliberately no timestamp here. The line above the button already says when the schools were
   // last read, and a second time under a different name is what made this panel confusing.
   return 'You have not run a manual refresh yet';
-}
-
-/** "12:41 PM ET · Sun 27 Sep" — a completion time stated in New York, where the season lives. */
-function formatNyStamp(iso: string | null): string {
-  if (!iso) return '';
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return '';
-  const time = d.toLocaleTimeString('en-US', { timeZone: 'America/New_York', hour: 'numeric', minute: '2-digit' });
-  const day = d.toLocaleDateString('en-US', { timeZone: 'America/New_York', weekday: 'short', month: 'short', day: 'numeric' });
-  return `${time} ET · ${day}`;
 }
 
 function Filters({

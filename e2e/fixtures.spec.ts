@@ -101,7 +101,9 @@ test('a confirmed final moves the event out of Upcoming and into Results, once',
     feed.games = played
       ? [{ ...fixture, status: 'final', home: { team: 'liu', score: 14 }, away: { team: 'iona', score: 9 } }]
       : [fixture];
-    if (played) feed.builtAt = '2026-10-02T23:30:00.000Z';
+    // Strictly newer than whatever the published file carries today — a fixed date here silently
+    // became older than the real build and the app, correctly, refused it.
+    if (played) feed.builtAt = new Date(Date.parse(feed.builtAt) + 60_000).toISOString();
     await route.fulfill({ json: feed });
   });
 

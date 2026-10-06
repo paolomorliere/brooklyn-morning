@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
-import { Check, ChevronDown, ChevronRight, Plus, SlidersHorizontal, Star } from 'lucide-preact';
+import { ChevronDown, ChevronRight, Plus, SlidersHorizontal, Star } from 'lucide-preact';
 import type { Category, Task } from '@/types';
 import { ScreenHeader } from '@/ui/ScreenHeader';
 import { useToast } from '@/ui/Toast';
 import { onResume } from '@/state/store';
 import { todoActions, todoStore } from '@/state/todo';
 import { sortCompleted, sortOpen } from '@/lib/tasks';
+import { TaskList } from './todo/TaskList';
 import { TaskSheet } from './todo/TaskSheet';
 import { CategoriesSheet } from './todo/CategoriesSheet';
 
@@ -111,11 +112,13 @@ export function Todo() {
               <span class="count">{items.length}</span>
             </button>
             {!isCollapsed && (
-              <ul>
-                {items.map((t) => (
-                  <TaskRow key={t.id} task={t} onComplete={() => void complete(t)} onOpen={() => setEditing(t)} onStar={() => void todoActions.update(t.id, { starred: !t.starred })} />
-                ))}
-              </ul>
+              <TaskList
+                items={items}
+                onComplete={(t) => void complete(t)}
+                onOpen={setEditing}
+                onStar={(t) => void todoActions.update(t.id, { starred: !t.starred })}
+                onReorder={(ordered) => void todoActions.saveTaskOrder(ordered)}
+              />
             )}
           </section>
         );
@@ -137,26 +140,22 @@ export function Todo() {
         </div>
       )}
 
-      {editing && <TaskSheet task={tasks.find((t) => t.id === editing.id) ?? editing} categories={categories} onClose={() => setEditing(null)} onManageCategories={() => { setEditing(null); setManaging(true); }} />}
+      {editing && (() => {
+        const live = tasks.find((t) => t.id === editing.id) ?? editing;
+        return (
+          <TaskSheet
+            task={live}
+            categories={categories}
+            /* Exactly the list the screen is showing for that category — including the priority
+               filter, if it is on — so Move up and a drag can never disagree about what "up" is. */
+            siblings={sortOpen(open.filter((t) => t.categoryId === live.categoryId))}
+            onClose={() => setEditing(null)}
+            onManageCategories={() => { setEditing(null); setManaging(true); }}
+          />
+        );
+      })()}
       {managing && <CategoriesSheet categories={categories} tasks={tasks} onClose={() => setManaging(false)} />}
     </main>
-  );
-}
-
-function TaskRow({ task, onComplete, onOpen, onStar }: { task: Task; onComplete: () => void; onOpen: () => void; onStar: () => void }) {
-  return (
-    <li class="task">
-      <button class="task-check" role="checkbox" aria-checked="false" aria-label={`Complete ${task.text}`} onClick={onComplete}>
-        <Check size={14} strokeWidth={3} />
-      </button>
-      <button class="task-body" onClick={onOpen} style="text-align:left">
-        <div class="task-text">{task.text}</div>
-        {task.notes && <div class="task-notes">{task.notes}</div>}
-      </button>
-      <button class="task-star" aria-pressed={task.starred} aria-label={task.starred ? 'Remove priority' : 'Mark priority'} onClick={onStar}>
-        <Star size={18} fill={task.starred ? 'currentColor' : 'none'} />
-      </button>
-    </li>
   );
 }
 

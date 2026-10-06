@@ -83,6 +83,15 @@ export function Poll() {
           {lastError && <p class="small muted">{lastError}</p>}
 
           <table class="polo-table polo-poll-table">
+            {/* Five columns here, not seven — but the same reason as the conference table: with
+                `table-layout: fixed` the widths have to be declared, or nothing lines up. */}
+            <colgroup>
+              <col class="polo-col-rank" />
+              <col class="polo-col-crest" />
+              <col class="polo-col-name" />
+              <col class="polo-col-prev" />
+              <col class="polo-col-points" />
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col" class="polo-pos">Rank</th>
