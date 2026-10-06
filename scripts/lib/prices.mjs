@@ -290,6 +290,28 @@ export function earliestAvailableSession(today, days = FREE_HISTORY_DAYS) {
   return new Date(t - days * 86_400_000).toISOString().slice(0, 10);
 }
 
+/**
+ * The newest session that can possibly have closed: the last weekday strictly before `today`.
+ *
+ * The free plan is end of day, and this build runs before six in the morning. Asking for today's bar
+ * gets `NOT_AUTHORIZED — "Attempted to request today's data before end of day"`, which is not a problem
+ * with the key or the plan's history; it is a question that cannot have an answer yet. Weekends are
+ * skipped here; a public holiday simply comes back with no rows, which is information the trading
+ * calendar is built from.
+ */
+export function lastCompletedSession(today) {
+  const t = Date.parse(`${today}T00:00:00Z`);
+  if (Number.isNaN(t)) return null;
+  let d = new Date(t - 86_400_000);
+  while (d.getUTCDay() === 0 || d.getUTCDay() === 6) d = new Date(d.getTime() - 86_400_000);
+  return d.toISOString().slice(0, 10);
+}
+
+/** Pure: is this refusal just "the session has not closed yet"? */
+export function isBeforeEndOfDay(message) {
+  return /today's data before end of day/i.test(String(message ?? ''));
+}
+
 /** One session's bars for every US ticker — the call that makes a 5,000-name universe affordable. */
 export async function fetchGroupedBars(date, opts) {
   const json = await getJson(`/v2/aggs/grouped/locale/us/market/stocks/${date}?adjusted=true`, opts);

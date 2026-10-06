@@ -23,6 +23,8 @@ export class KeyRejected extends Error {}
 export class OutsideEntitlement extends Error {}
 export const FREE_HISTORY_DAYS: number;
 export function earliestAvailableSession(today: string, days?: number): string | null;
+export function lastCompletedSession(today: string): string | null;
+export function isBeforeEndOfDay(message: string | null | undefined): boolean;
 
 export interface FetchOpts { apiKey: string; limiter?: RateLimiter; timeoutMs?: number }
 export function getJson(path: string, opts: FetchOpts): Promise<unknown>;

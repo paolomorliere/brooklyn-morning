@@ -6,6 +6,8 @@ import {
   KeyRejected,
   OutsideEntitlement,
   earliestAvailableSession,
+  isBeforeEndOfDay,
+  lastCompletedSession,
   RateLimiter,
   barsPath,
   encodeBarsCsv,
@@ -128,6 +130,24 @@ describe('prices — the two-year history limit', () => {
     expect(span).toBeLessThan(730);
     expect(span).toBeGreaterThan(700);
     expect(earliestAvailableSession('not a date')).toBeNull();
+  });
+
+  it('never asks for today, because an end-of-day plan cannot have it yet', () => {
+    // The build runs before the market opens. Asking for today returned
+    // NOT_AUTHORIZED "Attempted to request today's data before end of day", which is not a problem with
+    // the key or with the plan's history — it is a question that cannot have an answer yet. The first
+    // connection check asked exactly that and reported a perfectly good key as broken.
+    expect(lastCompletedSession('2026-10-06')).toBe('2026-10-05'); // Tuesday to Monday
+    expect(lastCompletedSession('2026-10-05')).toBe('2026-10-02'); // Monday back over the weekend
+    expect(lastCompletedSession('2026-10-11')).toBe('2026-10-09'); // Sunday back to Friday
+    expect(lastCompletedSession('not a date')).toBeNull();
+  });
+
+  it('reads "before end of day" as proof the key works, not as a failure', () => {
+    expect(isBeforeEndOfDay("Attempted to request today's data before end of day. Please upgrade your plan")).toBe(true);
+    // And does not mistake a genuine entitlement refusal for it.
+    expect(isBeforeEndOfDay('You are not entitled to this data. Please upgrade your plan')).toBe(false);
+    expect(isBeforeEndOfDay(null)).toBe(false);
   });
 });
 

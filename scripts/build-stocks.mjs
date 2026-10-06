@@ -52,6 +52,8 @@ import {
   OutsideEntitlement,
   RateLimiter,
   earliestAvailableSession,
+  isBeforeEndOfDay,
+  lastCompletedSession,
   fetchDividends,
   fetchGroupedBars,
   fetchSplits,
@@ -207,15 +209,21 @@ function candidateSessions(from, to, limit) {
  * it just means the session has not closed yet.
  */
 async function checkConnection(apiKey) {
-  let probe = TODAY;
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(Date.parse(`${probe}T00:00:00Z`)).getUTCDay();
-    if (day !== 0 && day !== 6) break;
-    probe = addDays(probe, -1);
+  const probe = lastCompletedSession(TODAY);
+  try {
+    const got = await fetchGroupedBars(probe, { apiKey, limiter: new RateLimiter() });
+    log(`prices: the key works — ${probe} returned ${got.rows.length} rows${got.traded ? '' : ' (the market was shut that day)'}`);
+    return got;
+  } catch (err) {
+    // "Attempted to request today's data before end of day" proves the key is accepted — the plan is
+    // end of day and the session has not closed. Treating it as a failure is what made the first check
+    // report a working key as a broken one.
+    if (err instanceof OutsideEntitlement && isBeforeEndOfDay(err.message)) {
+      log(`prices: the key works — ${probe} has not closed yet on an end-of-day plan, which is an answer, not a fault`);
+      return null;
+    }
+    throw err;
   }
-  const got = await fetchGroupedBars(probe, { apiKey, limiter: new RateLimiter() });
-  log(`prices: the key works — ${probe} returned ${got.rows.length} rows${got.traded ? '' : ' (the session has not closed yet)'}`);
-  return got;
 }
 
 /** Every session already cached, oldest first. */
@@ -256,9 +264,12 @@ async function ensurePrices(apiKey, { limit }) {
   // like every other refusal. The first version of this asked for 2024-10-01 — four days outside the
   // window — and the whole run died on its first request.
   const floor = earliestAvailableSession(TODAY);
+  // Never ask for today. The plan is end of day and this build runs before the market opens, so today's
+  // bar cannot exist yet; asking for it is refused, and that refusal is not about the key or the plan.
+  const ceiling = lastCompletedSession(TODAY);
   const last = cached.length ? cached[cached.length - 1] : null;
   const from = last && last >= floor ? last : addDays(floor, -1);
-  const wanted = candidateSessions(from, TODAY, limit);
+  const wanted = candidateSessions(from, ceiling, limit);
   if (wanted.length > 5) await checkConnection(apiKey);
   if (!cached.length && limit < LIMITS.minSessions) {
     log(`prices: nothing cached yet, and only ${limit} sessions would be fetched. Run this workflow once with`);
@@ -269,7 +280,7 @@ async function ensurePrices(apiKey, { limit }) {
   let fetched = 0;
   let refused = 0;
   const closedDays = [];
-  log(`prices: ${cached.length} sessions cached, ${wanted.length} to try (${wanted[0]} … ${wanted[wanted.length - 1]}); the plan reaches back to ${floor}`);
+  log(`prices: ${cached.length} sessions cached, ${wanted.length} to try (${wanted[0]} … ${wanted[wanted.length - 1]}); the plan serves ${floor} to ${ceiling}`);
   for (const date of wanted) {
     let got;
     try {
@@ -1080,8 +1091,9 @@ main().catch((err) => {
     process.exit(1);
   }
   if (err instanceof OutsideEntitlement) {
-    console.error(`The price feed will not serve that history on this plan: ${err.message}`);
-    console.error('The free plan covers two years. Nothing has been published.');
+    console.error(`The price feed refused that request on this plan: ${err.message}`);
+    console.error('');
+    console.error('The free plan serves end-of-day data for the last two years. Nothing has been published.');
     process.exit(1);
   }
   if (err instanceof AllowanceExhausted) {
