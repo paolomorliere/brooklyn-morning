@@ -5,7 +5,9 @@ import {
   exitSession,
   maxDrawdown,
   measurePick,
+  neweyWestTStat,
   nyParts,
+  projectSessions,
   positionReturn,
   sessionIndexAtOrAfter,
   sessionIndexAtOrBefore,
@@ -96,6 +98,15 @@ describe('portfolio — the holding window', () => {
 
   it('has no exit yet when the calendar has not reached session 21', () => {
     expect(exitSession(WEEK, '2026-01-08', 21)).toBeNull();
+  });
+
+  it('projects the sessions a pick published before the bell will be bought in', () => {
+    // The entry session has not traded yet, so the real calendar cannot name it. Weekends are the only
+    // thing the projection knows: a holiday inside it shifts everything after by one session, which is
+    // why the card calls the exit approximate and why nothing is measured against a projection.
+    expect(projectSessions(WEEK, 4)).toEqual(['2026-01-12', '2026-01-13', '2026-01-14', '2026-01-15']);
+    expect(projectSessions(['2026-01-09'], 2)).toEqual(['2026-01-12', '2026-01-13']);
+    expect(projectSessions([], 3)).toEqual([]);
   });
 });
 
@@ -219,6 +230,37 @@ describe('portfolio — the recap', () => {
     expect(t).toBeCloseTo(-1.2, 2);
     expect(tStatistic([0.01])).toBeNull();
     expect(tStatistic([0.01, 0.01])).toBeNull();
+  });
+
+  it('widens the error when the observations overlap, as daily picks held a month do', () => {
+    // Twenty of any two consecutive days' positions are the same positions, so counting each day as
+    // fresh evidence inflates confidence. On an independent series the two statistics agree closely; on
+    // a strongly autocorrelated one the Newey-West figure is markedly smaller, which is the point.
+    // A seeded walk, so the "independent" case really is: a deterministic sine is periodic, and at some
+    // lags that is structure, not noise — the first version of this test used one and measured the
+    // opposite of what it meant to.
+    let seed = 20_260_101;
+    const rand = () => {
+      seed = (seed * 1_103_515_245 + 12_345) % 2_147_483_648;
+      return seed / 2_147_483_648 - 0.5;
+    };
+    const iid = Array.from({ length: 400 }, () => 0.004 + 0.04 * rand());
+    const plainIid = tStatistic(iid)!;
+    const nwIid = neweyWestTStat(iid, 21)!;
+    expect(Math.abs(nwIid - plainIid)).toBeLessThan(Math.abs(plainIid) * 0.5);
+
+    // Now the same shocks, but each day keeps most of the previous day's — which is what overlapping
+    // positions do. The ordinary statistic treats 400 correlated days as 400 independent ones.
+    let x = 0;
+    seed = 20_260_101;
+    const sticky = Array.from({ length: 400 }, () => {
+      x = 0.9 * x + 0.04 * rand();
+      return 0.004 + x;
+    });
+    expect(Math.abs(neweyWestTStat(sticky, 21)!)).toBeLessThan(Math.abs(tStatistic(sticky)!) * 0.8);
+
+    expect(neweyWestTStat([0.01, 0.02], 21)).toBeNull();
+    expect(neweyWestTStat([0.01, 0.01, 0.01], 21)).toBeNull();
   });
 
   it('measures the worst fall from a peak', () => {

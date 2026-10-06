@@ -448,6 +448,12 @@ const money = (v: number | null | undefined) => {
 
 const ratioText = (v: number | null | undefined, digits = 2) => (v == null || Number.isNaN(v) ? '—' : `${v.toFixed(digits)}×`);
 
+/** "an 8%", "an 11%", "an 18%", "an 80%" — and "a" for every other number. */
+const articleFor = (n: number) => {
+  const s = String(Math.abs(Math.round(n)));
+  return s === '8' || s === '11' || s === '18' || s.startsWith('8') || s.startsWith('11') || s.startsWith('18') ? 'an' : 'a';
+};
+
 function StockSection({ stock, archived, onSave }: { stock: StockBlock; archived?: boolean; onSave: (title: string, url: string) => void }) {
   const [showRows, setShowRows] = useState(false);
   const [showRule, setShowRule] = useState(false);
@@ -600,8 +606,10 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
         <div class="stock-score-v">{pick.rankScore}<span class="stock-score-of">/100</span></div>
         <div class="stock-score-k">
           Ranked above {pick.rankScore}% of the {pick.eligible.toLocaleString('en-US')} candidates that were eligible today, out of{' '}
-          {pick.scanned.toLocaleString('en-US')} scanned. <strong>This is a ranking position, not an {pick.rankScore}% chance of
-          profit.</strong>
+          {pick.scanned.toLocaleString('en-US')} scanned.{' '}
+          <strong>
+            This is a ranking position, not {articleFor(pick.rankScore)} {pick.rankScore}% chance of profit.
+          </strong>
         </div>
       </div>
 

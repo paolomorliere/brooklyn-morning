@@ -193,3 +193,119 @@ Four reported problems plus a failed run, all fixed at their own cause.
 **5. The failed run — diagnosed, no code fault.** Run `37365182925` (Morning edition, 2026-10-05 19:42 UTC) carries GitHub's annotation *"The job was not acquired by Runner of type hosted even after multiple attempts"*: `runner_name` empty, zero steps executed, cancelled after 15 minutes. GitHub never allocated a runner. That day's edition had already built at 11:22 UTC, so nothing was lost, and the 18-slot cron is self-healing by design. The same run carried a dated warning that **`ubuntu-latest` migrates to Ubuntu 26 from 19 October**, so all six workflows are now pinned to `ubuntu-24.04` — both images are free on public repositories, so this costs nothing.
 
 **Still true.** No new service, no key, no paid anything. Nothing was removed or weakened.
+
+## Deployment 2 — "Stock in focus" rebuilt as a research process (2026-10-06)
+
+Replaces the version 1 screen. **Version 1 stopped picking on 2026-10-06.** Its eleven published picks and
+their cards are kept exactly as they were — verified byte-identical — and are read as `strategyVersion: 1`
+because the field is absent from every historical file. Version 1 and version 2 are reported separately
+and never combined into one figure.
+
+### Why version 1 had to be replaced, not tuned
+- It ranked **104 tickers chosen by hand**, so "the best stock today" could only mean "the best of the
+  104 I typed in".
+- The score was mostly `1.0 × z(5-day return)`. It stated **no holding period**, used **unadjusted
+  closes**, compared itself to **no benchmark**, and had **no tests**.
+- Its published −2.85% averaged five positions held 5, 4, 3, 2 and **1** sessions as if comparable. The
+  figure reproduces exactly (independent recomputation −2.8483%) but is not a return. On a uniform
+  five-session hold: n=6 completed, mean excess **−2.03%**, sd 4.14%, **t ≈ −1.20** — inconclusive.
+- **Its price source was not ours to use.** Yahoo's robots.txt is `User-agent: * / Disallow: /`, the
+  chart endpoint is undocumented, and version 2's universe would have taken it from ~104 requests a day
+  to ~5,000. Removed, not scaled. `scripts/lib/stocks.mjs` keeps version 1's scoring functions for the
+  record and no longer contains a network call.
+
+### What version 2 is
+Quality compounding, bought when the trend confirms it, at a price that is not indefensible — **one
+position per session, held 21 sessions, a twenty-first of capital each**. Three stages, and the card says
+which one decided it: eligibility (binary), comparison (equal-weighted z-scores within a sector group),
+then thesis and risk. The frozen rules live in `scripts/strategy-v2.json` and are **hashed onto every
+pick**, so a later rule change can never be presented as having made an earlier selection.
+
+### New code, all unit-tested
+`scripts/lib/universe.mjs` · `fundamentals.mjs` · `earnings.mjs` · `signals.mjs` · `portfolio.mjs` ·
+`select.mjs` · `prices.mjs` · `sec.mjs` · `zip.mjs` · `strategy.mjs` · `scripts/build-stocks.mjs` ·
+`scripts/backtest-stocks.mjs` · `.github/workflows/stocks.yml` · `e2e/stock.spec.ts`.
+The edition build no longer fetches any price; it reads `public/data/stock.json`.
+
+### Measured facts this round (not assumptions)
+- Nasdaq Trader: **13,289 rows → 5,051** US common stocks. Largest exclusions: 5,758 funds, 1,524 not
+  described as common or ordinary shares, 547 class/status-suffixed symbols, 316 flagged financial
+  status. **5,042 resolve to a CIK.**
+- SEC digests, twelve quarters: **2,083,579 facts for 6,802 companies, 27 MB committed.** Of the 5,021
+  distinct universe CIKs, **2,663 (53.0%)** have a complete eight-quarter revenue series and are
+  analysable; 1,156 do not, and 1,132 filed nothing with these tags in twelve quarters (20-F filers are
+  not analysed). Three quarters of digests gave only 2.6% — the twelve-quarter window is what makes the
+  set usable.
+- Signals legitimately dropped among analysable companies: gross margin trend **53.5%**, cash conversion
+  39.7%, gross profitability 32.0%, FCF yield 22.0%, operating margin trend 15.8%, earnings yield 4.7%.
+  Each is recorded on the pick with its reason and the remaining weights renormalise. None is scored zero.
+- `EntityCommonStockSharesOutstanding` is **not in the data sets at all** (only in `companyfacts`), and
+  class-level share counts are filtered out as non-consolidated. Adding `CommonStockSharesIssued` and the
+  weighted-average fallback cut missing market caps from **31.6% to 4.1%**.
+- A confirmed **forward** earnings date is not obtainable free at scale. EDGAR full-text search found 19
+  8-Ks market-wide in five weeks announcing a future results date. The next date is an **estimate**: the
+  same fiscal quarter's announcement a year earlier plus 364 days. Verified end to end on Analog Devices:
+  **2026-11-24 ± 6 days**, from 2025-11-25, on gaps of 85–97 days. The mean-gap rule gives 2026-11-18.
+
+### Three bugs the live-data check caught
+1. **A tag a company stopped using could win the preference order.** ADI reported `Revenues` until FY2018
+   and ASC 606 contract revenue after; the old series is eight unbroken quarters long, so it was chosen,
+   and every figure described a company eight years out of date. A chosen series must now be **current**
+   as well as complete.
+2. **A fiscal-year equality check blocked the fourth-quarter derivation.** `companyfacts` labels a fact
+   with the fiscal year of the filing it appeared in, not of the period it covers, so a prior-year
+   quarter restated as a comparative carries the later year. The durations already pin the year. With the
+   check gone, ADI's four quarters sum to its reported annual revenue **exactly** (11,019.7M).
+3. **Debt could be double-counted.** `LongTermDebt` includes current maturities and
+   `LongTermDebtNoncurrent` excludes them; adding the current portion to the first counts it twice. The
+   two are now separate paths and the tags used are recorded on the pick.
+
+### The plan's demonstration figures for ADI were wrong — corrected
+The approved plan's §5 card quoted TTM revenue $13,686M, +43.5%, and a quarterly year-on-year of +52.3%.
+Those came from a gapped quarterly series computed before bug 2 was found: the missing FY2025 fourth
+quarter pushed the "year-ago quarter" back to 2025-05-03, a 455-day comparison. The correct figures at
+`asOf` 2026-10-02 are **TTM revenue $13,881.7M, +33.6%, quarterly year-on-year +39.6% against +37.2%**,
+cross-checked against ADI's own reported annual revenue. The card's *format* stands; those numbers do not.
+
+### Honesty mechanisms, concretely
+- Every Stage A rejection names **which test** fired, so an empty card says "the test that removed the
+  most was trend: the close is below its 200-session average — 1,904 of 2,663 screened" and the
+  thresholds are not touched.
+- The displayed score is a **percentile among the day's eligible candidates**, and the sentence next to it
+  says it is not a probability of profit.
+- The evidence table shows each figure's period, the day it was filed and the XBRL tag; anything that
+  involves a market price is marked as an interpretation, not a filed figure.
+- `decidedFor` on `public/data/stock.json` means a stale card can never be shown as today's.
+- Archived editions now show their stock card. Hiding it was a small dishonesty: the published record of
+  what the rule picked is the thing most worth being able to look back at.
+
+### Not yet done, and why
+- **No pick has been published.** The price feed needs `MASSIVE_API_KEY`, which only Paolo can create.
+  Until then the card says the stock build has not published anything — which is true.
+- **The backtest has not been run.** It needs the price cache. `node scripts/backtest-stocks.mjs` refuses
+  to run without it and says what to do. Its output will be written into this file under `<!-- backtest -->`.
+- **12−1 momentum and the five-session return are computed but not in the score.**
+  `candidateSignalsAdopted` is empty in the frozen rules and stays empty until the development window
+  says otherwise. Adopting one is a visible edit with a new hash.
+
+### Known limitations (agreed, and disclosed in the app)
+- **~12 non-overlapping 21-session blocks** is what two years of free history gives after the burn-in.
+  That cannot establish an edge. The card says "not enough evidence yet" and will keep saying it.
+- **Survivorship bias cannot be removed.** The universe is what trades today, so no backtest ever buys a
+  delisted company. There is no free source of historical listings.
+- **Forward earnings dates stay estimates**, ±1 week, until a free confirmed source exists.
+- **In the backtest the quiet window is a proxy** — the 10-Q/10-K acceptance date rather than the 8-K
+  item 2.02 announcement, because a historical per-company filing index is not cached. Live, the exact
+  test is applied to the candidates at the top of the ranking.
+- **Massive's free tier could change.** All bars are cached in the repo, so history is never lost; if the
+  tier ends the app says the feed stopped and publishes nothing. No paid plan is ever activated.
+
+### What Paolo must do, once
+Two repository Actions secrets (Settings → Secrets and variables → Actions):
+1. **`MASSIVE_API_KEY`** — a free Massive (Polygon.io) "Stocks Basic" key. No card, blocks rather than bills.
+2. **`SEC_CONTACT`** — a working email address. The SEC refuses automated requests that do not declare a
+   contact (measured: 403), and refuses a user agent carrying a URL instead of an address. A false contact
+   would misrepresent the requester, so the build fails without this rather than inventing one.
+
+Then run the **Stock in focus** workflow once with `backfill` set to about `520` to fill the price cache
+(~500 grouped-bars calls, paced at five a minute, roughly 1h45m), and `max_companyfacts` at `300`.

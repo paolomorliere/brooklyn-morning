@@ -46,7 +46,7 @@
   "sources": {
     "universe": "Nasdaq Trader nasdaqtraded.txt",
     "identity": "SEC company_tickers.json",
-    "fundamentals": "SEC Financial Statement Data Sets, point-in-time by accepted timestamp",
+    "fundamentals": "SEC Financial Statement Data Sets (twelve quarters), point-in-time by accepted timestamp, topped up from companyfacts for companies that have filed since the newest data set",
     "earnings": "EDGAR 8-K item 2.02",
     "prices": "Massive (Polygon.io) grouped daily bars, splits and dividends"
   },

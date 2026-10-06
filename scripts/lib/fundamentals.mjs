@@ -68,6 +68,7 @@ export const TAGS = {
     'PaymentsToAcquirePropertyPlantAndEquipment',
     'PaymentsToAcquireProductiveAssets',
     'PaymentsForCapitalImprovements',
+    'PaymentsToAcquireOtherPropertyPlantAndEquipment',
   ],
   assets: ['Assets'],
   equity: ['StockholdersEquity', 'StockholdersEquityIncludingPortionAttributableToNoncontrollingInterest'],
@@ -75,12 +76,21 @@ export const TAGS = {
   // Two different concepts that look alike. `LongTermDebt` is the US-GAAP total *including* current
   // maturities; `LongTermDebtNoncurrent` excludes them. Adding the current portion to the first counts
   // it twice, so they are kept in separate lists and the caller picks one path or the other.
-  longTermDebtTotal: ['LongTermDebt'],
+  longTermDebtTotal: ['LongTermDebt', 'LongTermDebtAndCapitalLeaseObligations'],
   longTermDebtNoncurrent: ['LongTermDebtNoncurrent'],
   longTermDebtCurrent: ['LongTermDebtCurrent', 'LongTermDebtAndCapitalLeaseObligationsCurrent'],
-  shortTermDebt: ['ShortTermBorrowings', 'OtherShortTermBorrowings', 'CommercialPaper'],
+  shortTermDebt: ['ShortTermBorrowings', 'OtherShortTermBorrowings', 'CommercialPaper', 'NotesPayableCurrent'],
   // Counted in shares, not dollars, so every caller passes `uom: 'shares'` for these.
-  shares: ['EntityCommonStockSharesOutstanding', 'CommonStockSharesOutstanding'],
+  //
+  // `EntityCommonStockSharesOutstanding` is the cover-page figure and is the one to want, but it is not
+  // in the quarterly data sets at all — only `companyfacts` carries it. `CommonStockSharesOutstanding`
+  // is, for about 5,100 companies, and is tried next. A company with several share classes often reports
+  // that one per class, which this project filters out as non-consolidated, so the weighted-average
+  // count from the income statement is the last resort. It is a duration fact, not an instant, and it is
+  // an average over the quarter rather than a count on a date — so it is used only when nothing else
+  // exists, and the tag that produced the number is recorded on the pick either way.
+  shares: ['EntityCommonStockSharesOutstanding', 'CommonStockSharesOutstanding', 'CommonStockSharesIssued'],
+  sharesWeighted: ['WeightedAverageNumberOfDilutedSharesOutstanding', 'WeightedAverageNumberOfSharesOutstandingBasic'],
 };
 
 /** Every tag this module ever asks for, so the 60 MB num.txt can be filtered in one pass. */
@@ -137,25 +147,55 @@ export function addDays(date, n) {
 /* ------------------------------------------------------------------ parsing */
 
 /**
- * Walk a tab-delimited SEC dataset file, calling `cb` with a header-keyed object per row.
+ * Walk a tab-delimited SEC data set line by line, from a Buffer or a string.
  *
- * Streaming rather than returning an array: `num.txt` is tens of millions of rows a quarter and
- * materialising it is the difference between a build that runs and one that is killed.
+ * It takes a Buffer because it has to. `num.txt` in a quarterly data set is over half a gigabyte
+ * uncompressed, which is past Node's maximum string length — `buffer.toString()` on one throws
+ * outright. Scanning the bytes for newlines and decoding one line at a time reads any size, and the
+ * short-lived line strings cost the garbage collector far less than one enormous one.
  */
-export function forEachTsvRow(text, cb) {
-  const lines = text.split('\n');
-  if (lines.length === 0) return 0;
-  const header = lines[0].replace(/\r$/, '').split('\t');
-  let n = 0;
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].replace(/\r$/, '');
-    if (!line) continue;
-    const f = line.split('\t');
-    const row = {};
-    for (let j = 0; j < header.length; j++) row[header[j]] = f[j] ?? '';
-    cb(row);
-    n++;
+function walkTsv(input, onHeader, onLine) {
+  const buf = Buffer.isBuffer(input) ? input : Buffer.from(String(input ?? ''), 'utf8');
+  let start = 0;
+  let sawHeader = false;
+  while (start < buf.length) {
+    let nl = buf.indexOf(10, start);
+    if (nl === -1) nl = buf.length;
+    let end = nl;
+    if (end > start && buf[end - 1] === 13) end--;
+    const line = buf.toString('utf8', start, end);
+    start = nl + 1;
+    if (!sawHeader) {
+      sawHeader = true;
+      onHeader(line.split('\t'));
+      continue;
+    }
+    if (line) onLine(line);
   }
+}
+
+/** The column name → position map, lower-cased so a change of case in a header cannot break a build. */
+function columnIndex(header) {
+  const idx = {};
+  header.forEach((h, i) => (idx[h.trim().toLowerCase()] = i));
+  return idx;
+}
+
+/** Walk a data set, calling `cb` with a header-keyed object per row. */
+export function forEachTsvRow(input, cb) {
+  let header = [];
+  let n = 0;
+  walkTsv(
+    input,
+    (h) => (header = h),
+    (line) => {
+      const f = line.split('\t');
+      const row = {};
+      for (let j = 0; j < header.length; j++) row[header[j]] = f[j] ?? '';
+      cb(row);
+      n++;
+    },
+  );
   return n;
 }
 
@@ -175,10 +215,10 @@ export function parseTsvRows(text) {
  * an unamended row whenever one is already knowable, which is what "never use a superseded figure"
  * means in practice.
  */
-export function digestSubmissions(text, { forms = FINANCIAL_FORMS, ciks = null } = {}) {
+export function digestSubmissions(input, { forms = FINANCIAL_FORMS, ciks = null } = {}) {
   const byAdsh = new Map();
   const byCik = new Map();
-  forEachTsvRow(text, (r) => {
+  forEachTsvRow(input, (r) => {
     const form = (r.form ?? '').trim();
     if (forms && !forms.has(form)) return;
     const cik = String(Number(r.cik ?? NaN));
@@ -220,38 +260,61 @@ export function isConsolidated(row) {
  * Everything that cannot be used is dropped at the door — unknown accession, non-consolidated,
  * unwanted tag, unparseable value — so no later stage has to re-check.
  */
-export function collectFacts(text, byAdsh, { tags = null } = {}) {
+export function collectFacts(input, byAdsh, { tags = null } = {}) {
   const out = [];
-  forEachTsvRow(text, (r) => {
-    const sub = byAdsh.get((r.adsh ?? '').trim());
-    if (!sub) return;
-    const tag = (r.tag ?? '').trim();
-    if (tags && !tags.has(tag)) return;
-    if (!isConsolidated(r)) return;
-    const value = Number(r.value);
-    if (!Number.isFinite(value)) return;
-    const ddate = ymdToIso(r.ddate);
-    if (!ddate) return;
-    const qtrs = Number(r.qtrs);
-    if (!Number.isInteger(qtrs)) return;
-    out.push({
-      cik: sub.cik,
-      adsh: sub.adsh,
-      tag,
-      version: (r.version ?? '').trim(),
-      ddate,
-      qtrs,
-      uom: (r.uom ?? '').trim(),
-      value,
-      accepted: sub.accepted,
-      filed: sub.filed,
-      form: sub.form,
-      period: sub.period,
-      fy: sub.fy,
-      fp: sub.fp,
-      prevrpt: sub.prevrpt,
-    });
-  });
+  let idx = {};
+  let tagAt = -1;
+  walkTsv(
+    input,
+    (header) => {
+      idx = columnIndex(header);
+      tagAt = idx.tag ?? -1;
+    },
+    (line) => {
+      // Reject on the raw line before building anything. A quarter holds tens of millions of facts and
+      // this project reads about twenty tags, so splitting every line into an object first would spend
+      // almost all of the build's time on rows that are about to be thrown away.
+      if (tags && tagAt >= 0) {
+        let from = 0;
+        for (let i = 0; i < tagAt; i++) {
+          from = line.indexOf('\t', from) + 1;
+          if (from === 0) return;
+        }
+        const to = line.indexOf('\t', from);
+        if (!tags.has(to === -1 ? line.slice(from) : line.slice(from, to))) return;
+      }
+      const f = line.split('\t');
+      const at = (name) => (idx[name] == null ? '' : (f[idx[name]] ?? ''));
+      const sub = byAdsh.get(at('adsh').trim());
+      if (!sub) return;
+      const tag = at('tag').trim();
+      if (tags && !tags.has(tag)) return;
+      if (!isConsolidated({ segments: at('segments'), coreg: at('coreg') })) return;
+      const value = Number(at('value'));
+      if (!Number.isFinite(value)) return;
+      const ddate = ymdToIso(at('ddate'));
+      if (!ddate) return;
+      const qtrs = Number(at('qtrs'));
+      if (!Number.isInteger(qtrs)) return;
+      out.push({
+        cik: sub.cik,
+        adsh: sub.adsh,
+        tag,
+        version: at('version').trim(),
+        ddate,
+        qtrs,
+        uom: at('uom').trim(),
+        value,
+        accepted: sub.accepted,
+        filed: sub.filed,
+        form: sub.form,
+        period: sub.period,
+        fy: sub.fy,
+        fp: sub.fp,
+        prevrpt: sub.prevrpt,
+      });
+    },
+  );
   return out;
 }
 

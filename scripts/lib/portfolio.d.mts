@@ -48,6 +48,7 @@ export interface Summary {
 
 export function nyParts(iso: string): { date: string; minutes: number } | null;
 export function calendarFrom(bars: Bar[] | null | undefined): string[];
+export function projectSessions(calendar: string[], n: number): string[];
 export function sessionIndexAtOrAfter(calendar: string[], date: string): number;
 export function sessionIndexAtOrBefore(calendar: string[], date: string): number;
 export function entrySession(calendar: string[], publishedAt: string): string | null;
@@ -72,5 +73,6 @@ export function measurePick(
   },
 ): MeasuredPick;
 export function tStatistic(values: number[]): number | null;
+export function neweyWestTStat(values: number[], lag?: number): number | null;
 export function maxDrawdown(equity: number[]): number;
 export function summarise(rows: MeasuredPick[], opts?: { benchmark?: string }): Summary;

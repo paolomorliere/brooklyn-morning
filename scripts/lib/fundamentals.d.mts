@@ -70,14 +70,14 @@ export function acceptedToIso(accepted: string | null | undefined): string | nul
 export function daysBetween(a: string, b: string): number;
 export function addDays(date: string, n: number): string | null;
 
-export function forEachTsvRow(text: string, cb: (row: Record<string, string>) => void): number;
+export function forEachTsvRow(input: Buffer | string, cb: (row: Record<string, string>) => void): number;
 export function parseTsvRows(text: string): Record<string, string>[];
 export function digestSubmissions(
-  text: string,
+  input: Buffer | string,
   opts?: { forms?: Set<string> | null; ciks?: Set<string> | null },
 ): { byAdsh: Map<string, Submission>; byCik: Map<string, Submission[]> };
 export function isConsolidated(row: { segments?: string; coreg?: string }): boolean;
-export function collectFacts(text: string, byAdsh: Map<string, Submission>, opts?: { tags?: Set<string> | null }): Fact[];
+export function collectFacts(input: Buffer | string, byAdsh: Map<string, Submission>, opts?: { tags?: Set<string> | null }): Fact[];
 
 export function seriesFor(
   facts: Fact[],

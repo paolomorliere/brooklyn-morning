@@ -72,8 +72,12 @@ test('categories: add, rename, reorder, remove with move picker', async ({ page 
   await dialog.getByRole('button', { name: 'Save name' }).click();
   await expect(dialog.getByText('Trips', { exact: true })).toBeVisible();
   await dialog.getByRole('button', { name: 'Move Trips up' }).click();
-  const names = await dialog.locator('li.row-btn .grow > div:first-child').allTextContents();
-  expect(names.indexOf('Trips')).toBe(names.length - 2);
+  // Auto-retrying, because the reorder is an IndexedDB write followed by a store update and the list
+  // re-renders a tick after the click. Reading the names immediately raced that, which is why this test
+  // failed about once per full-suite run — on a different viewport each time — while passing on its own.
+  const nameCells = dialog.locator('li.row-btn .grow > div:first-child');
+  const cellCount = await nameCells.count();
+  await expect(nameCells.nth(cellCount - 2)).toHaveText('Trips');
   // Move the Inbox task into Trips, then remove Trips → task must move where we say.
   await dialog.getByRole('button', { name: 'Close' }).click();
   await page.locator('li.task').getByText('Plan trip').click();

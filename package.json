@@ -12,6 +12,8 @@
     "e2e:deployed": "E2E_DEPLOYED=1 playwright test e2e/deployed.spec.ts --project=iphone-14",
     "build:catalog": "node scripts/build-catalog.mjs",
     "build:edition": "node scripts/build-edition.mjs",
+    "build:stocks": "node --max-old-space-size=6144 scripts/build-stocks.mjs",
+    "backtest:stocks": "node --max-old-space-size=6144 scripts/backtest-stocks.mjs",
     "icons": "node scripts/make-icons.mjs",
     "build:waterpolo": "node scripts/build-waterpolo.mjs",
     "build:poll": "node scripts/build-poll.mjs",

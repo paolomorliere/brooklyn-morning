@@ -66,6 +66,31 @@ export function calendarFrom(bars) {
   return dates;
 }
 
+/**
+ * The next `n` probable sessions after the calendar ends — weekdays, and nothing cleverer.
+ *
+ * A pick is published before the market opens, so the session it will be bought in has not happened
+ * and has no bar, which means the real calendar cannot name it. This projects it. Weekends are the only
+ * thing it knows about; a public holiday inside the projection shifts every later date by one session.
+ * That is why the card calls the exit approximate and why nothing is ever *measured* against a
+ * projection: `measurePick` recomputes the entry and the exit from the real calendar once the sessions
+ * have actually traded.
+ */
+export function projectSessions(calendar, n) {
+  const last = calendar.length ? calendar[calendar.length - 1] : null;
+  if (!last) return [];
+  const out = [];
+  let t = Date.parse(`${last}T00:00:00Z`);
+  while (out.length < n) {
+    t += 86_400_000;
+    const d = new Date(t);
+    const day = d.getUTCDay();
+    if (day === 0 || day === 6) continue;
+    out.push(d.toISOString().slice(0, 10));
+  }
+  return out;
+}
+
 /** The index of `date` in the calendar, or the index of the first session after it, or −1. */
 export function sessionIndexAtOrAfter(calendar, date) {
   for (let i = 0; i < calendar.length; i++) if (calendar[i] >= date) return i;
@@ -199,6 +224,39 @@ export function tStatistic(values) {
   const sd = Math.sqrt(values.reduce((a, b) => a + (b - m) ** 2, 0) / (n - 1));
   if (!sd) return null;
   return m / (sd / Math.sqrt(n));
+}
+
+/**
+ * A t-statistic that does not assume the observations are independent.
+ *
+ * They are not. A pick is made every session and held twenty-one, so twenty of any two consecutive
+ * days' positions overlap, and the ordinary standard error of the mean is far too small — it would turn
+ * an inconclusive result into a confident one purely by counting correlated observations as fresh
+ * evidence. Newey and West's estimator widens the error by the autocovariance out to `lag`, weighted so
+ * the result cannot go negative (Bartlett weights).
+ *
+ * This is reported as *supporting* evidence only. The headline statistic comes from non-overlapping
+ * blocks, where independence is a property of the design rather than an adjustment after the fact.
+ */
+export function neweyWestTStat(values, lag = HORIZON_SESSIONS) {
+  const n = values.length;
+  if (n < 3) return null;
+  const m = values.reduce((a, b) => a + b, 0) / n;
+  const e = values.map((v) => v - m);
+  const gamma = (j) => {
+    let sum = 0;
+    for (let t = j; t < n; t++) sum += e[t] * e[t - j];
+    return sum / n;
+  };
+  const g0 = gamma(0);
+  if (!(g0 > 0)) return null;
+  const L = Math.min(lag, n - 1);
+  let s = g0;
+  for (let j = 1; j <= L; j++) s += 2 * (1 - j / (L + 1)) * gamma(j);
+  // A Bartlett-weighted sum is non-negative in theory; floating point can still land on zero or a
+  // whisker below it, and reporting an imaginary standard error would be worse than reporting nothing.
+  if (!(s > 0)) return null;
+  return m / Math.sqrt(s / n);
 }
 
 /** The worst peak-to-trough fall in a sequence of cumulative values. */

@@ -132,10 +132,10 @@ export const fsdsUrl = ({ year, q }) =>
  */
 export async function fetchQuarterDigest({ year, q }, { tags, ciks = null } = {}) {
   const buf = await secGet(fsdsUrl({ year, q }), { binary: true });
-  const subText = readZipEntry(buf, 'sub.txt').toString('utf8');
-  const { byAdsh } = digestSubmissions(subText, { ciks });
-  const numText = readZipEntry(buf, 'num.txt').toString('utf8');
-  const facts = collectFacts(numText, byAdsh, { tags });
+  // Both members are handed over as Buffers. `num.txt` is over half a gigabyte uncompressed, which is
+  // past Node's maximum string length, so converting it to a string throws before any parsing starts.
+  const { byAdsh } = digestSubmissions(readZipEntry(buf, 'sub.txt'), { ciks });
+  const facts = collectFacts(readZipEntry(buf, 'num.txt'), byAdsh, { tags });
   // A submission whose facts were all filtered away is dropped too: it would only pad the cache.
   const used = new Set(facts.map((f) => f.adsh));
   const subs = [...byAdsh.values()].filter((s) => used.has(s.adsh));
@@ -226,6 +226,42 @@ export async function readDigest(path) {
     if (err.code === 'ENOENT') return null;
     throw err;
   }
+}
+
+/* ------------------------------------------------------------------ who filed today */
+
+/**
+ * Pure: the 10-Q and 10-K filings in one day's EDGAR form index.
+ *
+ * This is what makes the near-end top-up precise rather than speculative. One request a day returns
+ * every filing EDGAR disseminated, so instead of guessing which companies might have reported since
+ * the last quarterly data set, the build knows: it fetches `companyfacts` for exactly those CIKs that
+ * filed, and for nobody else. Off-season that is eight or ten companies a day.
+ *
+ * The form type is matched explicitly rather than taken as the first token, because plenty of EDGAR
+ * form names contain spaces ("SC 13D", "1-A POS") and splitting on whitespace mis-reads them.
+ */
+export function parseDailyIndex(text, { forms = /^10-[KQ]\S*$/ } = {}) {
+  const out = [];
+  for (const line of String(text ?? '').split('\n')) {
+    const m = /^(\S+)\s{2,}(.+?)\s{2,}(\d{1,10})\s+(\d{8})\s+(\S+)\s*$/.exec(line);
+    if (!m) continue;
+    const [, form, name, cik, filed, path] = m;
+    if (!forms.test(form)) continue;
+    out.push({ form, name: name.trim(), cik: String(Number(cik)), filed: ymdToIso(filed), path });
+  }
+  return out;
+}
+
+/** One session's EDGAR form index. Returns null for a day EDGAR published nothing. */
+export async function fetchDailyIndex(date) {
+  const { year, q } = quarterOf(date);
+  const url = `https://www.sec.gov/Archives/edgar/daily-index/${year}/QTR${q}/form.${date.replace(/-/g, '')}.idx`;
+  await pace();
+  const res = await fetch(url, { headers: { 'user-agent': secUserAgent(), accept: 'text/plain' }, signal: AbortSignal.timeout(60_000) });
+  if (res.status === 404 || res.status === 403) return null;
+  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
+  return parseDailyIndex(await res.text());
 }
 
 /* ------------------------------------------------------------------ the near end */

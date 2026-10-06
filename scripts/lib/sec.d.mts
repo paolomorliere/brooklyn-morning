@@ -20,6 +20,13 @@ export function decodeDigest(text: string): Digest;
 export function writeDigest(path: string, digest: { subs: Submission[]; facts: Fact[] }): Promise<string>;
 export function readDigest(path: string): Promise<Digest | null>;
 
+export function parseDailyIndex(
+  text: string,
+  opts?: { forms?: RegExp },
+): { form: string; name: string; cik: string; filed: string | null; path: string }[];
+export function fetchDailyIndex(
+  date: string,
+): Promise<{ form: string; name: string; cik: string; filed: string | null; path: string }[] | null>;
 export function padCik(cik: string | number): string;
 export function fetchSubmissionIndex(cik: string | number): Promise<unknown>;
 export function factsFromCompanyFacts(json: unknown, opts?: { tags?: Set<string> | null; cik?: string | null }): Fact[];

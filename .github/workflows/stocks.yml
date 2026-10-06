@@ -1,0 +1,120 @@
+# Choose the day's stock, on its own schedule and off the edition's critical path.
+#
+# The morning edition used to do this inline: 104 requests to an undocumented Yahoo Finance endpoint,
+# inside a build that has to finish before 6:00 AM New York time. That was wrong twice over. It put a
+# third-party feed on the critical path of the whole edition, and a permanently broken feed produced
+# green builds for weeks because nothing failed loudly. Now this workflow publishes
+# `public/data/stock.json` and the edition simply reads it — and says so when what it finds is not
+# today's.
+#
+# The schedule asks for a slot every 30 minutes from just after New York midnight. GitHub runs scheduled
+# workflows on a best-effort basis and on this repository they have started 3.5–6 hours late, so asking
+# once would be pointless; the run itself is cheap when there is nothing to do.
+#
+# Everything this uses is free and stays free:
+#   * Massive (Polygon.io) "Stocks Basic" — no payment method, five requests a minute, and it blocks
+#     rather than bills. One grouped-bars call covers every US ticker for one session.
+#   * SEC — one quarterly data set per quarter, one daily index per session, and `companyfacts` only for
+#     the companies the index says actually filed.
+# If the free allowance is ever exhausted the run fails, nothing is published, and the edition says the
+# feed stopped. No paid plan is ever activated.
+name: Stock in focus
+
+on:
+  schedule:
+    - cron: '20,50 4-12 * * *'
+  workflow_dispatch:
+    inputs:
+      backfill:
+        description: Sessions of price history to fetch (0 = just the recent ones)
+        type: string
+        default: '0'
+      max_companyfacts:
+        description: Cap on near-end fundamentals top-ups this run
+        type: string
+        default: '300'
+      dry_run:
+        description: Compute and report without writing anything
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: stocks
+  cancel-in-progress: false
+
+jobs:
+  pick:
+    # Pinned deliberately. GitHub migrates `ubuntu-latest` to Ubuntu 26 from 19 October 2026, and an
+    # image change arriving on its own schedule would break the daily builds at a moment nobody chose.
+    # Both runners are free for public repositories, so this costs nothing.
+    runs-on: ubuntu-24.04
+    outputs:
+      changed: ${{ steps.commit.outputs.changed }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the secrets exist
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
+        run: |
+          missing=""
+          [ -n "$MASSIVE_API_KEY" ] || missing="$missing MASSIVE_API_KEY"
+          [ -n "$SEC_CONTACT" ] || missing="$missing SEC_CONTACT"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing repository secret(s):$missing"
+            echo "MASSIVE_API_KEY is a free Massive (Polygon.io) \"Stocks Basic\" key."
+            echo "SEC_CONTACT is a working email address. The SEC refuses automated requests that do not"
+            echo "declare a contact, and a false one would misrepresent who is asking."
+            exit 1
+          fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+
+      - name: Choose the stock
+        env:
+          MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+          SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
+        # The quarterly data sets are large, so the parse needs more heap than Node's default.
+        run: |
+          node --max-old-space-size=6144 scripts/build-stocks.mjs \
+            ${{ inputs.dry_run == true && '--dry-run' || '' }} \
+            --backfill "${{ inputs.backfill || '0' }}" \
+            --max-companyfacts "${{ inputs.max_companyfacts || '300' }}"
+
+      - name: Commit data
+        id: commit
+        if: inputs.dry_run != true
+        run: |
+          git config user.name "brooklyn-morning-bot"
+          git config user.email "actions@users.noreply.github.com"
+          # `state/bars` is append-only: one small object per trading day, never rewritten.
+          git add public/data/stock.json state
+          if git diff --cached --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "Nothing new to publish."
+          else
+            git commit -m "Stock $(TZ=America/New_York date +%F' '%H:%M)"
+            # A delayed run may land after another push: rebase once, then push.
+            git pull --rebase --autostash origin main || true
+            git push
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: pick
+    if: needs.pick.outputs.changed == 'true'
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      pages: write
+      id-token: write

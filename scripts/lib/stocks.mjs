@@ -1,6 +1,16 @@
-// "Stock in focus": a transparent, rules-based screen over the S&P 100. Not a recommendation.
-// Data: Yahoo Finance's public chart endpoint (no key). It is unofficial and may break; the builder then records
-// { kind: 'unavailable' } and the app says so instead of showing stale or invented numbers.
+// Version 1 of "Stock in Focus". **Frozen on 6 October 2026. It no longer picks anything.**
+//
+// This file is kept so the eleven picks version 1 published can still be reproduced and explained. Its
+// scoring functions are untouched; what has been removed is the network call, because the data source
+// was not ours to use. Yahoo Finance's robots.txt is `User-agent: * / Disallow: /`, the chart endpoint
+// was undocumented, and version 2's universe would have taken it from 104 requests a day to about
+// 5,000. Prices now come from Massive (see `prices.mjs`), and version 1's still-open positions are
+// tracked to the end of a uniform five-session hold with that feed.
+//
+// What version 1 actually did, stated plainly because the record should be readable: it ranked 104
+// tickers chosen by hand, mostly on their five-day return, stated no holding period, used unadjusted
+// closes, measured itself against no benchmark, and had no tests. Its published −2.85% averaged five
+// positions held 5, 4, 3, 2 and 1 sessions as though they were comparable.
 
 export const UNIVERSE = [
   ['AAPL', 'Apple'], ['MSFT', 'Microsoft'], ['NVDA', 'Nvidia'], ['AMZN', 'Amazon'], ['GOOGL', 'Alphabet'], ['META', 'Meta Platforms'],
@@ -26,35 +36,6 @@ export const RULE_TEXT =
   'Universe: S&P 100. Keep stocks above their 20-day average with a positive 5-day return. Rank by 5-day return, 20-day return, ' +
   'volume vs. 20-day average, and mentions in today\'s finance and AI headlines. Skip anything featured in the last 10 trading days. ' +
   'Mechanical, backward-looking, and not a recommendation.';
-
-const UA = 'Mozilla/5.0 (compatible; BrooklynMorning/0.1; personal RSS reader)';
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-
-/** Daily bars for one symbol: [{date:'YYYY-MM-DD', open, close, volume}], oldest first. */
-export async function fetchBars(symbol, range = '3mo', attempt = 0) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=${range}&interval=1d`;
-  try {
-    const r = await fetch(url, { headers: { 'user-agent': UA, accept: 'application/json' }, signal: AbortSignal.timeout(12_000) });
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const j = await r.json();
-    const res = j.chart?.result?.[0];
-    if (!res) throw new Error(j.chart?.error?.description ?? 'empty result');
-    const q = res.indicators.quote[0];
-    const tz = res.meta.exchangeTimezoneName ?? 'America/New_York';
-    const bars = [];
-    res.timestamp.forEach((t, i) => {
-      if (q.close[i] == null || q.open[i] == null) return;
-      bars.push({ date: new Date(t * 1000).toLocaleDateString('en-CA', { timeZone: tz }), open: q.open[i], close: q.close[i], volume: q.volume[i] ?? 0 });
-    });
-    return bars;
-  } catch (e) {
-    if (attempt < 1) {
-      await sleep(1500);
-      return fetchBars(symbol, range, attempt + 1);
-    }
-    throw e;
-  }
-}
 
 /** Pure: compute screen metrics from bars. Returns null if not enough history. */
 export function metricsFor(bars) {

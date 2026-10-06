@@ -61,7 +61,19 @@ Paolo wants one installable phone app used every day for three jobs: read a cura
 | Images | OFF image URLs hotlinked at runtime, cached by service worker; placeholder on error; attribution in Settings (CC BY-SA) | No image hosting |
 | Fonts/icons | Fontsource, Lucide, bundled | OFL / ISC |
 
-Why nothing here can bill: GitHub Free with no payment method blocks when quota is exhausted (verified in docs); public repos have unlimited standard Actions minutes and free Pages. Open Food Facts is a non-profit open database with no paid tier. No other services.
+| Stock build | GitHub Actions cron (own schedule, off the edition's critical path) → Node script reads Nasdaq Trader, SEC and Massive, writes `public/data/stock.json` + caches in `state/` | All free; Massive's free plan has no payment method and blocks rather than bills |
+
+Why nothing here can bill: GitHub Free with no payment method blocks when quota is exhausted (verified in docs); public repos have unlimited standard Actions minutes and free Pages. Open Food Facts is a non-profit open database with no paid tier. The SEC publishes its data with an access policy and no paid tier. Nasdaq Trader's symbol directory is a public file. Massive (Polygon.io) "Stocks Basic" is free, needs no payment method, and refuses requests rather than charging when the allowance is spent. No other services.
+
+### Stock in focus — sources and permissions (verified 2026-10-06)
+| Source | Permission | Account | What it gives |
+|---|---|---|---|
+| SEC `data.sec.gov`, EDGAR, Financial Statement Data Sets | Published access policy: declare a contact, ≤10 req/s | none, but `SEC_CONTACT` is required | Point-in-time fundamentals, SIC sector, filing index, 8-K item 2.02 |
+| Nasdaq Trader `nasdaqtraded.txt` | No robots restriction | none | 13,289 rows → 5,051 US common stocks |
+| Massive (Polygon.io) "Stocks Basic" | Free plan, no payment method | free key (`MASSIVE_API_KEY`) | Grouped daily bars, splits, dividends; ~2 years, end of day, 5 req/min |
+| Yahoo `query1/query2.finance.yahoo.com` | **`User-agent: * / Disallow: /`** | — | **Not permitted. Removed 2026-10-06.** |
+| Stooq, api.nasdaq.com, data.nasdaq.com, Twelve Data | `Disallow: /` | — | Not used |
+| Alpha Vantage (25 req/day), Tiingo (500 symbols/mo) | Allowed | free key | Too small for a universe |
 
 ### Edition pipeline details
 - Cron at `50 9 * * *` and `50 10 * * *` UTC (= 5:50 EDT / 5:50 EST respectively); script computes NY date, exits if today's edition exists ⇒ DST handled, no duplicates. Third run `20 12 * * *` UTC as bounded retry. `workflow_dispatch` for manual runs.

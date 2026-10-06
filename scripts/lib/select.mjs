@@ -198,7 +198,18 @@ export function companyFigures(candidate, { asOf, close }) {
 
   const assets = chooseInstantTag(facts, TAGS.assets, { asOf });
   const equity = chooseInstantTag(facts, TAGS.equity, { asOf });
-  const shares = chooseInstantTag(facts, TAGS.shares, { asOf, uom: 'shares' });
+  let shares = chooseInstantTag(facts, TAGS.shares, { asOf, uom: 'shares' });
+  if (!shares) {
+    // No share count on a date, so fall back to the weighted average over the latest quarter. It is an
+    // average rather than a count, which is why it is last; a company with several share classes often
+    // reports its per-class counts in a way this project filters out as non-consolidated, and without
+    // this fallback a third of the market would have no valuation signals at all.
+    const weighted = chooseQuarterlyTag(facts, TAGS.sharesWeighted, { asOf, uom: 'shares', quarters: 1 });
+    if (weighted) {
+      const point = weighted.series.get(weighted.end);
+      shares = { tag: weighted.tag, series: weighted.series, end: weighted.end, fact: point };
+    }
+  }
   const cash = chooseInstantTag(facts, TAGS.cash, { asOf });
   if (assets) tags.assets = assets.tag;
   if (equity) tags.equity = equity.tag;

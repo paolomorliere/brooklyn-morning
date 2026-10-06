@@ -11,7 +11,7 @@ import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
 import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, PER_TOPIC, SLOT_RULES, SUBJECTS } from './feeds.config.mjs';
 import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
-import { UNIVERSE, RULE_TEXT, fetchBars, metricsFor, pickStock, countMentions, scoreboard } from './lib/stocks.mjs';
+import { stockCardFor } from './lib/strategy.mjs';
 
 const UA = 'Mozilla/5.0 (compatible; BrooklynMorning/0.1; personal RSS reader; +https://github.com)';
 const args = process.argv.slice(2);
@@ -159,54 +159,25 @@ async function quoteFor(dateYMD) {
   }
 }
 
-/** Stock in focus (Mon–Fri) or the week's scoreboard (Sat–Sun). Never throws; returns { kind: 'unavailable' } on failure. */
-async function stockBlock(dateYMD, headlines) {
-  let log = { picks: [] };
-  try { log = JSON.parse(await readFile('state/stocks.json', 'utf8')); } catch { /* first run */ }
-  const dow = new Date(`${dateYMD}T12:00:00Z`).getUTCDay(); // 0 Sun .. 6 Sat
-  const isWeekend = dow === 0 || dow === 6;
+/**
+ * The stock card, read from whatever `scripts/build-stocks.mjs` last published.
+ *
+ * This build no longer fetches a single price. It used to make 104 requests to an undocumented Yahoo
+ * Finance endpoint inline, which put a third-party feed on the critical path of a build that has to
+ * finish before 6 AM, and meant a permanently broken feed produced green builds for weeks. Worse, that
+ * endpoint was not ours to use: Yahoo's robots.txt disallows every automated client.
+ *
+ * The decision of what to show, including the rule that yesterday's pick is never shown as today's,
+ * lives in `stockCardFor` so it can be tested on its own.
+ */
+async function stockBlock(dateYMD) {
+  let feed = null;
   try {
-    if (isWeekend) {
-      const monday = new Date(`${dateYMD}T12:00:00Z`);
-      monday.setUTCDate(monday.getUTCDate() - ((dow + 6) % 7));
-      const weekOf = monday.toISOString().slice(0, 10);
-      const picks = log.picks.filter((p) => p.date >= weekOf && p.date <= dateYMD);
-      if (!picks.length) return { kind: 'scoreboard', weekOf, rows: [], combinedPct: null, counted: 0, note: 'No picks were recorded this week.', rule: RULE_TEXT };
-      const barsByTicker = {};
-      for (const p of picks) {
-        barsByTicker[p.ticker] = await fetchBars(p.ticker, '1mo');
-        await sleep(200);
-      }
-      const sb = scoreboard(picks, barsByTicker);
-      const best = [...sb.rows].filter((r) => r.changePct != null).sort((a, b) => b.changePct - a.changePct);
-      return { kind: 'scoreboard', weekOf, ...sb, best: best[0]?.ticker ?? null, worst: best[best.length - 1]?.ticker ?? null, rule: RULE_TEXT,
-        note: 'Hypothetical: buy at the open on the day featured, hold to the latest close, equal amounts, no fees or taxes. Five stocks over one week is mostly noise; judge the rule over months, not days.' };
-    }
-    if (log.picks.some((p) => p.date === dateYMD)) {
-      const p = log.picks.find((x) => x.date === dateYMD);
-      return { kind: 'pick', ...p, rule: RULE_TEXT };
-    }
-    const rows = [];
-    for (const [ticker, name] of UNIVERSE) {
-      try {
-        rows.push({ ticker, name, m: metricsFor(await fetchBars(ticker)) });
-      } catch { rows.push({ ticker, name, m: null }); }
-      await sleep(120);
-    }
-    const ok = rows.filter((r) => r.m).length;
-    if (ok < UNIVERSE.length * 0.7) return { kind: 'unavailable', reason: `Only ${ok} of ${UNIVERSE.length} stocks returned data`, rule: RULE_TEXT };
-    const recent = new Set(log.picks.slice(-10).map((p) => p.ticker));
-    const mentions = countMentions(headlines);
-    const pick = pickStock(rows, { recent, mentions });
-    if (!pick) return { kind: 'unavailable', reason: 'No stock met the rule today', rule: RULE_TEXT };
-    const rec = { date: dateYMD, ticker: pick.ticker, name: pick.name, lastClose: pick.m.last, asOf: pick.m.lastDate, r5: pick.m.r5, r20: pick.m.r20, volRatio: pick.m.volRatio, pctOfHigh60: pick.m.pctOfHigh60, mentions: mentions[pick.ticker] ?? 0 };
-    log.picks.push(rec);
-    log.picks = log.picks.slice(-120);
-    await writeFile('state/stocks.json', JSON.stringify(log, null, 1));
-    return { kind: 'pick', ...rec, rule: RULE_TEXT, scanned: ok };
-  } catch (e) {
-    return { kind: 'unavailable', reason: String(e.message ?? e).slice(0, 120), rule: RULE_TEXT };
+    feed = JSON.parse(await readFile('public/data/stock.json', 'utf8'));
+  } catch {
+    /* nothing published yet: `stockCardFor` says so */
   }
+  return stockCardFor(feed, dateYMD);
 }
 
 async function main() {
@@ -319,7 +290,9 @@ async function main() {
   }));
 
   const quote = await quoteFor(today);
-  const stock = args.includes('--no-stock') ? { kind: 'unavailable', reason: 'skipped', rule: RULE_TEXT } : await stockBlock(today, items.filter((i) => i.topic === 'finance' || i.topic === 'ai').map((i) => i.title));
+  const stock = args.includes('--no-stock')
+    ? { kind: 'unavailable', strategyVersion: 2, reason: 'skipped', rule: '', lastPublishedFor: null }
+    : await stockBlock(today);
 
   const edition = {
     schemaVersion: 1,

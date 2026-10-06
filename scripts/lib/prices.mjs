@@ -263,7 +263,7 @@ async function pageThrough(path, parse, opts, { maxPages = 20 } = {}) {
   let next = path;
   for (let page = 0; page < maxPages && next; page++) {
     const json = await getJson(next, opts);
-    out.push(...parse(json));
+    for (const row of parse(json)) out.push(row);
     const url = json?.next_url ? new URL(json.next_url) : null;
     next = url ? `${url.pathname}${url.search}` : null;
   }

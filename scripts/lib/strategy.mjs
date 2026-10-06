@@ -13,14 +13,34 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 
-const PATH = new URL('../strategy-v2.json', import.meta.url);
+/**
+ * Where the rule file is.
+ *
+ * Resolved from this module's own location when that is a real file path, which it is under Node. The
+ * test runner transforms modules and `import.meta.url` is not a `file:` URL there, so the repository
+ * path is the fallback — the file is at a fixed place either way.
+ */
+const PATHS = [
+  import.meta.url.startsWith('file:') ? new URL('../strategy-v2.json', import.meta.url) : null,
+  'scripts/strategy-v2.json',
+].filter(Boolean);
 
 let cached = null;
 
 /** The rules, with the hash of the exact bytes that were read. */
 export async function loadStrategy() {
   if (cached) return cached;
-  const raw = await readFile(PATH, 'utf8');
+  let raw = null;
+  let lastError = null;
+  for (const path of PATHS) {
+    try {
+      raw = await readFile(path, 'utf8');
+      break;
+    } catch (err) {
+      lastError = err;
+    }
+  }
+  if (raw == null) throw new Error(`the frozen rule file could not be read: ${lastError?.message ?? 'unknown error'}`);
   cached = { rules: JSON.parse(raw), hash: createHash('sha256').update(raw).digest('hex').slice(0, 16) };
   return cached;
 }
@@ -56,4 +76,29 @@ export function validationNote(rules) {
     );
   }
   return rules.validation?.note ?? 'No validation statement is recorded.';
+}
+
+/**
+ * Pure: the stock card an edition dated `date` should carry, given the published feed.
+ *
+ * The rule this exists to enforce: **a pick belongs to the session it was made in.** If the stocks
+ * build last published for yesterday, yesterday's pick is not shown as today's — the card says there
+ * is nothing for today and names the date of the last one. A feed that silently repeats itself is how
+ * a broken price source produces weeks of confident, wrong cards without anything failing.
+ */
+export function stockCardFor(feed, date) {
+  const rule = typeof feed?.block?.rule === 'string' ? feed.block.rule : '';
+  if (!feed || typeof feed !== 'object') {
+    return { kind: 'unavailable', strategyVersion: 2, reason: 'The stock build has not published anything yet.', rule: '', lastPublishedFor: null };
+  }
+  if (feed.decidedFor === date && feed.block) return feed.block;
+  return {
+    kind: 'unavailable',
+    strategyVersion: 2,
+    reason: feed.decidedFor
+      ? `The stock build last published for ${feed.decidedFor}, not today. A pick belongs to the session it was made in, so it is not repeated here.`
+      : 'The stock build has not published a dated card.',
+    rule,
+    lastPublishedFor: feed.decidedFor ?? null,
+  };
 }
