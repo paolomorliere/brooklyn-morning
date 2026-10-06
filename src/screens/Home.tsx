@@ -680,13 +680,22 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
             Every figure below is read off an SEC filing, from single quarters only so no year-to-date total is counted twice.
             Figures are stated as filed; the periods and filing dates are shown so each can be checked.
           </p>
-          <table class="stock-table">
+          {/*
+            Three columns, not four. The period and the filing date are one thing — where the figure came
+            from — and splitting them left four columns fighting over about 310 points on the narrowest
+            phone, which squeezed the figure's name into a shredded column of broken XBRL tag.
+          */}
+          <table class="stock-table stock-evidence">
+            <colgroup>
+              <col class="stock-col-figure" />
+              <col class="stock-col-value" />
+              <col class="stock-col-source" />
+            </colgroup>
             <thead>
               <tr>
                 <th scope="col">Figure</th>
                 <th scope="col" class="num">Value</th>
-                <th scope="col">Period</th>
-                <th scope="col">Filed</th>
+                <th scope="col">Period and filing</th>
               </tr>
             </thead>
             <tbody>
@@ -697,8 +706,10 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
                     {e.tag && <span class="stock-tag">{e.tag}</span>}
                   </td>
                   <td class="num">{e.value}</td>
-                  <td>{e.period ?? '—'}</td>
-                  <td>{e.filed ?? '—'}</td>
+                  <td>
+                    {e.period ?? '—'}
+                    {e.filed && <span class="stock-filed">filed {e.filed}</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -737,7 +748,12 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
             <>
               <h3>Peers</h3>
               <p class="small faint">{pick.peerBasis ?? 'The same method, the same source, the same periods.'}</p>
-              <table class="stock-table">
+              {/*
+                Six columns will not fit a phone, so this one scrolls inside its own box rather than
+                squeezing every number into forty points or pushing the whole page sideways.
+              */}
+              <div class="stock-scroller">
+              <table class="stock-table stock-peers">
                 <thead>
                   <tr>
                     <th scope="col">&nbsp;</th>
@@ -761,6 +777,7 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
                   ))}
                 </tbody>
               </table>
+              </div>
             </>
           )}
 

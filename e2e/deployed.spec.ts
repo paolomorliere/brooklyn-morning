@@ -169,3 +169,42 @@ test('the deployed To Do screen reorders a task by press and hold', async ({ pag
   }
   await expect(page.locator('li.task', { hasText: 'zz-check-' })).toHaveCount(0);
 });
+
+test('the deployed stock card is labelled for the rule that made it', async ({ page }) => {
+  await page.goto('/#/home');
+  const card = page.locator('section.stock');
+  await expect(card).toBeVisible({ timeout: 20_000 });
+  const eyebrow = (await card.locator('.eyebrow').innerText()).toLowerCase();
+  expect(eyebrow).toContain('not a recommendation');
+
+  if (await card.locator('.stock-score').count()) {
+    // Version 2. Everything the plan requires the card to carry, checked against the live site.
+    await expect(card.locator('.stock-horizon')).toContainText('21-session horizon');
+    await expect(card.locator('.stock-score-k')).toContainText('ranking position');
+    await expect(card.locator('.stock-score-k')).toContainText('chance of profit');
+    await expect(card.getByRole('heading', { name: 'The strongest counterargument' })).toBeVisible();
+    await expect(card.getByRole('heading', { name: 'What would show this was wrong' })).toBeVisible();
+    await expect(card.getByRole('heading', { name: 'Timing and risk' })).toBeVisible();
+    await expect(card.locator('.stock-validation')).not.toBeEmpty();
+
+    await card.getByRole('button', { name: 'The evidence' }).click();
+    const detail = card.locator('.stock-detail');
+    await expect(detail).toBeVisible();
+    // Every figure states the period it covers, and the sources are named.
+    const periods = await detail.locator('.stock-table').first().locator('tbody tr td:nth-child(3)').allInnerTexts();
+    expect(periods.length).toBeGreaterThan(2);
+    expect(periods.filter((p) => p.trim() && p.trim() !== '—').length).toBeGreaterThan(2);
+    await expect(detail.getByRole('heading', { name: 'Sources' })).toBeVisible();
+    await expect(detail).toContainText('SEC');
+    await expect(card.locator('.stock-disclaimer')).toContainText('Not investment advice');
+  } else if (await card.locator('.stock-metrics').count()) {
+    // Version 1's card, still on screen until the version 2 feed is configured. It has to say what it
+    // is: a frozen rule whose record is never merged with the current process.
+    await expect(card.locator('.stock-frozen')).toContainText('stopped picking');
+    await expect(card.locator('.stock-frozen')).toContainText('never merged with the current process');
+  } else {
+    // No card today. The reason has to be the test that actually bound, not a softened summary.
+    await expect(card.getByRole('heading', { name: 'No qualifying pick today' })).toBeVisible();
+    await expect(card.locator('p.muted.small')).not.toBeEmpty();
+  }
+});

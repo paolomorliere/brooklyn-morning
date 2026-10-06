@@ -58,7 +58,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # A scheduled run warns and stops; a run someone asked for fails. Asking for 18 red runs a day
+      # until the secrets exist would teach us to ignore red, and the app already says the honest thing
+      # on its own: with nothing published, the card reads "the stock build has not published anything
+      # yet". The alarm belongs on the card, not in a cron nobody is watching.
       - name: Check the secrets exist
+        id: secrets
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
@@ -66,21 +71,40 @@ jobs:
           missing=""
           [ -n "$MASSIVE_API_KEY" ] || missing="$missing MASSIVE_API_KEY"
           [ -n "$SEC_CONTACT" ] || missing="$missing SEC_CONTACT"
-          if [ -n "$missing" ]; then
+          if [ -z "$missing" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "ready=false" >> "$GITHUB_OUTPUT"
+          {
+            echo "### Stock in focus is not set up yet"
+            echo ""
+            echo "Missing repository secret(s):\`$missing\`. Add them under"
+            echo "Settings -> Secrets and variables -> Actions:"
+            echo ""
+            echo "- \`MASSIVE_API_KEY\` — a free Massive (Polygon.io) \"Stocks Basic\" key. No payment"
+            echo "  method; it blocks rather than bills when the free allowance is spent."
+            echo "- \`SEC_CONTACT\` — a working email address. The SEC refuses automated requests that do"
+            echo "  not declare a contact, and a false one would misrepresent who is asking."
+            echo ""
+            echo "Until then nothing is published and the card says so."
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "::error::Missing repository secret(s):$missing"
-            echo "MASSIVE_API_KEY is a free Massive (Polygon.io) \"Stocks Basic\" key."
-            echo "SEC_CONTACT is a working email address. The SEC refuses automated requests that do not"
-            echo "declare a contact, and a false one would misrepresent who is asking."
             exit 1
           fi
+          echo "::warning::Stock in focus is not set up yet — missing$missing. Nothing published."
 
       - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.ready == 'true'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
+        if: steps.secrets.outputs.ready == 'true'
 
       - name: Choose the stock
+        if: steps.secrets.outputs.ready == 'true'
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
@@ -93,7 +117,7 @@ jobs:
 
       - name: Commit data
         id: commit
-        if: inputs.dry_run != true
+        if: steps.secrets.outputs.ready == 'true' && inputs.dry_run != true
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
