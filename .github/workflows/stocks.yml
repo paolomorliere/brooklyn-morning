@@ -120,9 +120,13 @@ jobs:
             --backfill "${{ inputs.backfill || '0' }}" \
             --max-companyfacts "${{ inputs.max_companyfacts || '300' }}"
 
+      # `always()`, because the bar cache is append-only — one small file per trading day, never
+      # rewritten. A backfill that stops half way is still 300 good sessions, and the next run continues
+      # from the last one cached. Throwing them away because the run ended badly would mean starting a
+      # two-hour fetch from nothing every time.
       - name: Commit data
         id: commit
-        if: steps.secrets.outputs.ready == 'true' && inputs.dry_run != true && inputs.check_only != true
+        if: always() && steps.secrets.outputs.ready == 'true' && inputs.dry_run != true && inputs.check_only != true
         run: |
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"

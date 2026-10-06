@@ -208,10 +208,10 @@ function candidateSessions(from, to, limit) {
  * success here is about the key or the plan, not about the date. A 200 with no rows is still a success:
  * it just means the session has not closed yet.
  */
-async function checkConnection(apiKey) {
+async function checkConnection(apiKey, limiter) {
   const probe = lastCompletedSession(TODAY);
   try {
-    const got = await fetchGroupedBars(probe, { apiKey, limiter: new RateLimiter() });
+    const got = await fetchGroupedBars(probe, { apiKey, limiter });
     log(`prices: the key works — ${probe} returned ${got.rows.length} rows${got.traded ? '' : ' (the market was shut that day)'}`);
     return got;
   } catch (err) {
@@ -257,7 +257,7 @@ async function cachedSessionDates(root = 'state/bars') {
  * trading day rather than a fresh copy of the whole history, and if the free plan ever ends the history
  * already committed is still there.
  */
-async function ensurePrices(apiKey, { limit }) {
+async function ensurePrices(apiKey, { limit, limiter }) {
   const cached = await cachedSessionDates();
   // The free plan serves two years. Where the backfill starts is computed from that, not written down:
   // the boundary moves every day, and a date one week past it is refused in a way that looks exactly
@@ -270,15 +270,15 @@ async function ensurePrices(apiKey, { limit }) {
   const last = cached.length ? cached[cached.length - 1] : null;
   const from = last && last >= floor ? last : addDays(floor, -1);
   const wanted = candidateSessions(from, ceiling, limit);
-  if (wanted.length > 5) await checkConnection(apiKey);
+  if (wanted.length > 5) await checkConnection(apiKey, limiter);
   if (!cached.length && limit < LIMITS.minSessions) {
     log(`prices: nothing cached yet, and only ${limit} sessions would be fetched. Run this workflow once with`);
     log(`prices: backfill set to about ${LIMITS.minSessions + 270} to fill the history the formulas need.`);
   }
-  if (wanted.length === 0) return { cached, fetched: 0, closedDays: [] };
-  const limiter = new RateLimiter();
+  if (wanted.length === 0) return { cached, fetched: 0, closedDays: [], stopped: false };
   let fetched = 0;
   let refused = 0;
+  let stopped = false;
   const closedDays = [];
   log(`prices: ${cached.length} sessions cached, ${wanted.length} to try (${wanted[0]} … ${wanted[wanted.length - 1]}); the plan serves ${floor} to ${ceiling}`);
   for (const date of wanted) {
@@ -286,6 +286,15 @@ async function ensurePrices(apiKey, { limit }) {
     try {
       got = await fetchGroupedBars(date, { apiKey, limiter });
     } catch (err) {
+      if (err instanceof AllowanceExhausted) {
+        // Stop fetching, keep every session already written, and let the run carry on to say plainly
+        // that the history is short. The cache is one file per session and is never rewritten, so the
+        // next run picks up exactly where this one stopped.
+        log(`prices: the request allowance ran out at ${date} — ${err.message}`);
+        log(`prices: keeping the ${fetched} sessions fetched so far; run this workflow again to continue.`);
+        stopped = true;
+        break;
+      }
       if (err instanceof OutsideEntitlement) {
         // One session the plan will not serve. Skip it rather than abandoning the run — but if the
         // oldest several in a row are refused, the window has moved and there is no point reaching
@@ -312,15 +321,14 @@ async function ensurePrices(apiKey, { limit }) {
   }
   cached.sort();
   log(`prices: ${fetched} new sessions, ${closedDays.length} days the market was shut`);
-  return { cached, fetched, closedDays };
+  return { cached, fetched, closedDays, stopped };
 }
 
 /** Splits and dividends, market-wide and weekly. Per-ticker calls are not affordable at five a minute. */
-async function ensureActions(apiKey, since) {
+async function ensureActions(apiKey, since, limiter) {
   const cached = await readJson('state/corporate-actions.json', null);
   if (cached && daysSince(cached.fetchedAt) < 7 && cached.since <= since) return cached;
   log('actions: fetching splits and dividends');
-  const limiter = new RateLimiter();
   const splits = await fetchSplits(since, { apiKey, limiter });
   const dividends = await fetchDividends(since, { apiKey, limiter });
   const out = { fetchedAt: new Date().toISOString(), since, splits, dividends };
@@ -653,8 +661,13 @@ async function main() {
   // stale fundamentals, which is precisely the failure this project refuses to have.
   secUserAgent();
 
+  // One pacer for the whole run. Three separate ones meant the connection check and the backfill each
+  // believed they were the only caller, so six requests went out in the first minute against a limit of
+  // five, and the run was cut off after fifty seconds.
+  const limiter = new RateLimiter();
+
   if (CHECK_ONLY) {
-    await checkConnection(apiKey);
+    await checkConnection(apiKey, limiter);
     log('--check: the price key and the SEC contact are both accepted. Nothing else was done.');
     return;
   }
@@ -682,18 +695,26 @@ async function main() {
     sessions = await cachedSessionDates();
     log(`prices: skipped, using the ${sessions.length} sessions already cached`);
   } else {
-    ({ cached: sessions } = await ensurePrices(apiKey, { limit: BACKFILL > 0 ? BACKFILL : 10 }));
+    ({ cached: sessions } = await ensurePrices(apiKey, { limit: BACKFILL > 0 ? BACKFILL : 10, limiter }));
   }
 
   const log2 = await readJson('state/stocks-v2.json', { strategyVersion: 2, picks: [] });
   const log1 = await readJson('state/stocks.json', { picks: [] });
 
+  // One position per session. If today's pick has already been published, it stands — a later run on the
+  // same day re-screens against a changed book and could reach a different answer, and a card that
+  // changes its mind during the morning is not a record of a decision. The recaps are still refreshed.
+  const published = await readJson('public/data/stock.json', null);
+  const alreadyPicked = published?.decidedFor === TODAY && published?.block?.kind === 'pick' ? published.block : null;
+
   if (sessions.length < LIMITS.minSessions) {
-    const reason = `The price history holds ${sessions.length} sessions, and ${LIMITS.minSessions} are needed before any candidate can be measured. Run with --backfill to fill it in.`;
+    const reason = `The price history holds ${sessions.length} sessions, and ${LIMITS.minSessions} are needed before any candidate can be measured. Run this workflow again with a backfill to continue filling it in.`;
     log(`stock: ${reason}`);
     await publish(unavailable(reason), { hash, recaps: [] });
     return;
   }
+
+  if (alreadyPicked) log(`stock: ${alreadyPicked.ticker} was already published for ${TODAY}; keeping it and refreshing the record`);
 
   const window = sessions.slice(-HISTORY_SESSIONS);
   const loaded = [];
@@ -709,7 +730,7 @@ async function main() {
 
   const actions = NO_PRICES
     ? ((await readJson('state/corporate-actions.json', null)) ?? { splits: [], dividends: [] })
-    : await ensureActions(apiKey, calendar[0]);
+    : await ensureActions(apiKey, calendar[0], limiter);
   const splitsBy = new Map();
   for (const s of actions.splits) {
     if (!splitsBy.has(s.ticker)) splitsBy.set(s.ticker, []);
@@ -784,6 +805,14 @@ async function main() {
   for (const [major, rs] of byMajor) {
     rs.sort((a, b) => a - b);
     sectorReturns[major] = rs[rs.length >> 1];
+  }
+
+  if (alreadyPicked) {
+    await publish(alreadyPicked, {
+      hash,
+      recaps: await buildRecaps({ log1, log2, calendar, series, dividendsFor, benchmarks, T }),
+    });
+    return;
   }
 
   /* ---- Stage A and Stage B ---- */

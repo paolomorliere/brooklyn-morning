@@ -3,6 +3,7 @@ import {
   AllowanceExhausted,
   FREE_HISTORY_DAYS,
   FREE_REQUESTS_PER_MINUTE,
+  SAFE_REQUESTS_PER_MINUTE,
   KeyRejected,
   OutsideEntitlement,
   earliestAvailableSession,
@@ -152,8 +153,14 @@ describe('prices — the two-year history limit', () => {
 });
 
 describe('prices — staying inside the free allowance', () => {
-  it('paces requests at the plan\'s documented rate', async () => {
+  it('paces below the plan\'s ceiling rather than on it', async () => {
+    // Pacing at exactly five a minute put every request on the edge of the window. The feed's counter
+    // and this one need only disagree by a fraction of a second, and the first backfill was cut off
+    // after five requests with "You've exceeded the maximum requests per minute". One spare request a
+    // minute costs twenty-five minutes on a two-year backfill and buys a run that finishes.
     expect(FREE_REQUESTS_PER_MINUTE).toBe(5);
+    expect(SAFE_REQUESTS_PER_MINUTE).toBe(4);
+    expect(new RateLimiter().intervalMs).toBe(15_000);
     const limiter = new RateLimiter({ perMinute: 60_000 }); // 1 ms apart, so the test is instant
     expect(limiter.intervalMs).toBe(1);
     const started = Date.now();
@@ -161,7 +168,6 @@ describe('prices — staying inside the free allowance', () => {
     await limiter.wait();
     await limiter.wait();
     expect(Date.now() - started).toBeLessThan(500);
-    expect(new RateLimiter().intervalMs).toBe(12_000);
   });
 
   it('tells the three refusals apart, because each needs a different response', () => {

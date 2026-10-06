@@ -90,4 +90,15 @@ describe('strategy — which card an edition carries', () => {
     const published = { kind: 'unavailable', strategyVersion: 2, reason: 'No candidate qualified today. …', rule: 'r' };
     expect(stockCardFor(feed({ block: published }), '2026-10-06')).toBe(published);
   });
+
+  it('does not blank a live card when a later run the same day finds nothing', () => {
+    // While the price history is still being filled in, each run publishes "not enough sessions yet".
+    // That is true, but it should not take today's card off the screen partway through the morning.
+    // `existing` is only ever this edition's own card, so a new day still never inherits yesterday's.
+    const onScreen = { kind: 'pick', ticker: 'NVDA', name: 'Nvidia', rule: 'v1 rule' };
+    const emptyToday = { kind: 'unavailable', strategyVersion: 2, reason: 'The price history holds 120 sessions…', rule: 'r' };
+    expect(stockCardFor(feed({ block: emptyToday }), '2026-10-06', { existing: onScreen })).toBe(onScreen);
+    // With nothing already on screen, the honest message is what shows.
+    expect(stockCardFor(feed({ block: emptyToday }), '2026-10-06')).toBe(emptyToday);
+  });
 });

@@ -35,8 +35,18 @@ import { dirname } from 'node:path';
 /** Overridable so a host change needs one environment variable, not a code change. */
 export const API_BASE = process.env.MASSIVE_BASE_URL ?? 'https://api.polygon.io';
 
-/** The free plan's documented ceiling. One spare request a minute, deliberately. */
+/** The free plan's documented ceiling. */
 export const FREE_REQUESTS_PER_MINUTE = 5;
+
+/**
+ * The rate this project actually uses: four a minute, not five.
+ *
+ * Pacing at exactly the documented ceiling means every request lands on the edge of the window, and the
+ * feed's counter and this one need only disagree by a fraction of a second for a refusal. The first
+ * backfill did exactly that and was cut off after five requests. One spare request a minute costs
+ * twenty-five minutes on a two-year backfill and buys a run that finishes.
+ */
+export const SAFE_REQUESTS_PER_MINUTE = 4;
 
 /**
  * How far back the free plan will answer for.
@@ -58,7 +68,7 @@ const USER_AGENT = 'BrooklynMorning/0.2 (personal morning edition; contact via r
  * the next request may be sent.
  */
 export class RateLimiter {
-  constructor({ perMinute = FREE_REQUESTS_PER_MINUTE } = {}) {
+  constructor({ perMinute = SAFE_REQUESTS_PER_MINUTE } = {}) {
     this.intervalMs = Math.ceil(60_000 / perMinute);
     this.next = 0;
   }
@@ -129,7 +139,15 @@ export async function getJson(path, { apiKey, limiter, attempt = 0, timeoutMs = 
       if (/not entitled|entitlement|upgrade|plan|subscription|date/i.test(body)) throw new OutsideEntitlement(where);
       throw new KeyRejected(where);
     }
-    if (res.status === 429) throw new AllowanceExhausted(where);
+    if (res.status === 429) {
+      // A rate-limit refusal is worth waiting out, not dying on. On a two-year backfill one unlucky
+      // moment would otherwise throw away an hour of fetching.
+      if (attempt < 3) {
+        await new Promise((r) => setTimeout(r, 65_000));
+        return getJson(path, { apiKey, limiter, attempt: attempt + 1, timeoutMs });
+      }
+      throw new AllowanceExhausted(where);
+    }
     if (res.status >= 500 && attempt < 2) return getJson(path, { apiKey, limiter, attempt: attempt + 1, timeoutMs });
     throw new Error(where);
   }

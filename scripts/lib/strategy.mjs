@@ -97,7 +97,12 @@ export function stockCardFor(feed, date, { existing = null } = {}) {
     return { kind: 'unavailable', strategyVersion: 2, reason, rule, lastPublishedFor };
   };
   if (!feed || typeof feed !== 'object') return nothing('The stock build has not published anything yet.');
-  if (feed.decidedFor === date && feed.block) return feed.block;
+  if (feed.decidedFor === date && feed.block) {
+    // Today's own card, from today's own feed — unless it says nothing and the edition already carries
+    // something. `existing` is only ever this edition's own card, so a new day never inherits.
+    if (feed.block.kind === 'unavailable' && existing && existing.kind !== 'unavailable') return existing;
+    return feed.block;
+  }
   return feed.decidedFor
     ? nothing(
         `The stock build last published for ${feed.decidedFor}, not today. A pick belongs to the session it was made in, so it is not repeated here.`,

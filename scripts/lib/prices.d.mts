@@ -12,6 +12,7 @@ export interface SessionBars { date: string; rows: GroupedRow[] }
 
 export const API_BASE: string;
 export const FREE_REQUESTS_PER_MINUTE: number;
+export const SAFE_REQUESTS_PER_MINUTE: number;
 
 export class RateLimiter {
   constructor(opts?: { perMinute?: number });
