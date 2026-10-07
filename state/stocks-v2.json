@@ -14,6 +14,20 @@
    "rankScore": 100,
    "composite": 1.6198366132131505,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-07",
+   "publishedAt": "2026-10-07T11:10:46.517Z",
+   "ticker": "VCTR",
+   "name": "Victory Capital Holdings, Inc.",
+   "cik": "1570827",
+   "sic": "6282",
+   "division": "Finance, Insurance and Real Estate",
+   "decisionSession": "2026-10-06",
+   "referenceClose": 113.85,
+   "rankScore": 100,
+   "composite": 1.5270272407710381,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
