@@ -7,8 +7,15 @@ export const TOPICS = ['ai', 'world', 'finance', 'waterpolo', 'soccer'];
 
 export const FEEDS = [
   // 1) AI, data & analytics
-  { id: 'mit-tr', name: 'MIT Technology Review', topic: 'ai', url: 'https://www.technologyreview.com/feed/', weight: 1.0, lead: true },
-  { id: 'ars-tech', name: 'Ars Technica', topic: 'ai', url: 'https://feeds.arstechnica.com/arstechnica/technology-lab', weight: 0.9, lead: true },
+  //
+  // Both of these used to be the publisher's general-interest feed, and the section was only as
+  // on-topic as those publishers' front pages happened to be. On 7 October 2026 MIT Technology
+  // Review's main feed carried ten items of climate tech and biotech and not one about AI, and
+  // `technology-lab` was security, space and hardware. The topic feeds below are AI-only at source.
+  // (`technologyreview.com/topic/data/feed/` answers 200 with no items, so there is no data-topic
+  // equivalent; the data side of this section comes from Power BI and Real Python, plus TOPIC_KEYWORDS.)
+  { id: 'mit-tr', name: 'MIT Technology Review', topic: 'ai', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', weight: 1.0, lead: true },
+  { id: 'ars-tech', name: 'Ars Technica', topic: 'ai', url: 'https://arstechnica.com/ai/feed/', weight: 0.9, lead: true },
   { id: 'verge-ai', name: 'The Verge', topic: 'ai', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', weight: 0.8, lead: true },
   { id: 'willison', name: 'Simon Willison', topic: 'ai', url: 'https://simonwillison.net/atom/entries/', weight: 0.6, lead: true },
   { id: 'powerbi', name: 'Power BI Blog', topic: 'ai', url: 'https://powerbi.microsoft.com/en-us/blog/feed/', weight: 0.8, lead: true, sub: 'data' },
@@ -142,10 +149,22 @@ export const SUBJECTS = {
     ['macron', /\b(macron|élysée|elysee)\b/i],
     ['zemmour', /\bzemmour\b/i],
   ],
+  // Three keys used to be the whole water polo list, which is why 7 October 2026 ran two write-ups of
+  // the same four Champions League results next to each other: one matched `cl-quali`, the other
+  // matched nothing, and a story with no subject can never collide with one that has a subject. These
+  // cover the competitions and the recurring CWPA notices. The real safety net is `sameStory` in
+  // rank.mjs, which needs no hand-written pattern at all — this list only orders the top three.
   waterpolo: [
-    ['liu', /\b(liu|sharks)\b/i],
-    ['cl-quali', /\b(champions league)\b.*\b(qualif|group stage|berth)\b/i],
-    ['usawp-junior', /\b(junior national team|roster)\b/i],
+    ['liu', /\b(liu|long island university|sharks)\b/i],
+    ['champions-league', /\b(champions league|len champions)\b/i],
+    ['euro-cup', /\b(euro cup)\b/i],
+    ['national-team', /\b(junior national team|national team|team usa|panam|pan am|world championship|olympic)\b/i],
+    ['cwpa-schedule', /\bcollegiate water polo association\b.*\b(schedule|division)\b/i],
+    ['cwpa-scores', /\b(varsity scores|week \d+\/)\b/i],
+    ['poll', /\b(top 20|poll|rank(ing|ings)?)\b.*\b(water polo|varsity)\b/i],
+    ['awards', /\b(cutino|award|player of the week|all-american|watch list|hall of fame)\b/i],
+    ['coaching', /\b(head coach|assistant coach|seeks .*coach|named .*coach)\b/i],
+    ['ncaa-game', /\b(defeat|beat|upset|win|wins|falls|loss|overtime|\d+-\d+)\b/i],
   ],
   ai: [
     ['doom', /\b(extinction|kill us all|doom)\b/i],
@@ -183,3 +202,70 @@ export const MAX_AGE_HOURS = { ai: 48, world: 36, finance: 36, waterpolo: 7 * 24
 
 /** How many stories to keep per topic in the file (the app shows 1–6 based on the reading-length setting). */
 export const PER_TOPIC = 6;
+
+/**
+ * The near-duplicate thresholds, published rather than buried, because they decide what Paolo does not
+ * get to read.
+ *
+ * Two stories are the same story when they share at least `minShared` proper nouns that are rare in the
+ * topic's candidate pool, and those shared names make up at least `minOverlap` of the shorter story's
+ * rare vocabulary. A name counts as rare when it appears in no more than `maxShare` of the pool (never
+ * fewer than two items, since a shared name is in at least two by definition).
+ *
+ * These three numbers were chosen by running every setting over 21 hand-labelled pairs taken from the
+ * fourteen archived editions — 16 real duplicates and 5 pairs that merely share a section's vocabulary —
+ * at the pool sizes the live build actually sees. At these values 15 of the 16 duplicates are caught and
+ * none of the 5 look-alikes are. `scripts/replay-rules.mjs` re-runs that measurement at any time.
+ *
+ * The one miss is "Man City rule breaches not my concern — Mancini" against "Mancini refers to 'double'
+ * Manchester City contract": in a soccer pool, "Manchester" and "City" are too common to count, which
+ * leaves only "Mancini" — one name, and one name is not evidence. `SUBJECTS.soccer` has a `mancity` key
+ * that separates those two anyway.
+ */
+export const NEAR_DUPLICATE = { maxShare: 0.15, minShared: 2, minOverlap: 0.25 };
+
+/**
+ * Categories that mean "this is an advertisement", matched against the labels the publisher puts on its
+ * own item. Dropped from every topic, not just AI.
+ *
+ * This is the no-advertising rule, enforced where the advertising actually arrives. MIT Technology
+ * Review's AI feed is 40% `sponsored` — four of ten items on 7 October 2026 — and until the parser
+ * started reading `<category>` all four were ordinary candidates for the edition.
+ */
+export const SPONSORED_CATEGORIES = [
+  /^sponsored$/,
+  /^sponsor(ed)? content$/,
+  /^paid (post|content|programme?|program)$/,
+  /^partner content$/,
+  /^advertorial$/,
+  /^promoted$/,
+  /^brand(ed)? (content|post)$/,
+  /^in partnership with\b/,
+  /^presented by\b/,
+];
+
+/**
+ * A topic's own vocabulary: an item has to look like it belongs before it can fill a slot.
+ *
+ * Only `ai` has one, because only `ai` has the problem. Its topic is assigned per *feed*, and two of
+ * its six feeds were general-interest, so "AI & Data" meant "whatever those publishers posted". Swapping
+ * in the AI-only feeds fixes today; this gate is what stops a publisher reorganising its feeds from
+ * quietly refilling the section with biotech again tomorrow.
+ *
+ * The vocabulary deliberately covers the data and analytics side as well as AI, because that is half of
+ * what the section is for: Power BI, DAX, SQL, Python and Excel are the tools Paolo actually works in.
+ * Matched case-insensitively against the title, the excerpt and the publisher's own categories — so an
+ * item the publisher filed under "Artificial intelligence" passes on that alone.
+ */
+export const TOPIC_KEYWORDS = {
+  ai: [
+    /\b(a\.?i\.?|artificial intelligence|machine learning|deep learning|neural net)/i,
+    /\b(llm|llms|gpt|chatgpt|claude|gemini|copilot|transformer|diffusion model|embedding)/i,
+    /\b(openai|anthropic|deepmind|hugging face|mistral|nvidia|cuda)\b/i,
+    /\b(agent|agentic|chatbot|prompt|fine-?tun|inference|token|training data|model weights)/i,
+    /\b(algorithm|automation|robot|autonomous|computer vision|speech recognition)/i,
+    /\b(data|dataset|database|analytics|statistic|dashboard|visuali[sz]ation|metric)/i,
+    /\b(python|pandas|numpy|jupyter|notebook|\bsql\b|\bdax\b|power bi|power query|excel|spreadsheet|tableau)/i,
+    /\b(data (science|engineer|warehouse|lake|pipeline|model)|business intelligence|\bETL\b|\bBI\b)/i,
+  ],
+};

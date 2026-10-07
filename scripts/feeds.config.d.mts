@@ -8,3 +8,6 @@ export const MATCH_REPORT: RegExp[];
 export const MATCH_REPORT_PENALTY: Record<string, number>;
 export const MAX_AGE_HOURS: Record<string, number>;
 export const PER_TOPIC: number;
+export const NEAR_DUPLICATE: { maxShare: number; minShared: number; minOverlap: number };
+export const SPONSORED_CATEGORIES: RegExp[];
+export const TOPIC_KEYWORDS: Record<string, RegExp[]>;

@@ -84,9 +84,9 @@ import { adjustedDividends, trailingReturn } from './lib/signals.mjs';
 import {
   HORIZON_SESSIONS,
   calendarFrom,
-  exitSession,
+  entrySession,
   measurePick,
-  projectSessions,
+  plannedWindow,
   sessionIndexAtOrBefore,
   summarise,
 } from './lib/portfolio.mjs';
@@ -710,7 +710,7 @@ async function main() {
   if (sessions.length < LIMITS.minSessions) {
     const reason = `The price history holds ${sessions.length} sessions, and ${LIMITS.minSessions} are needed before any candidate can be measured. Run this workflow again with a backfill to continue filling it in.`;
     log(`stock: ${reason}`);
-    await publish(unavailable(reason), { hash, recaps: [] });
+    await publish(unavailable(reason), { hash, recaps: [], outcome: 'incomplete' });
     return;
   }
 
@@ -811,15 +811,26 @@ async function main() {
     await publish(alreadyPicked, {
       hash,
       recaps: await buildRecaps({ log1, log2, calendar, series, dividendsFor, benchmarks, T }),
+      outcome: 'pick',
     });
     return;
   }
 
   /* ---- Stage A and Stage B ---- */
   const open = openPositionsFrom(log2, { calendar, T, sicMap });
-  const projected = projectSessions(calendar, HORIZON_SESSIONS + 2);
-  const plannedEntry = projected[0] ?? null;
-  const plannedExit = plannedEntry ? exitSession([...calendar, ...projected], plannedEntry, HORIZON_SESSIONS) : null;
+
+  // The publication instant is fixed here, before anything is screened, because the session the pick
+  // will be bought in depends on it and the earnings-inside-window test depends on that session.
+  //
+  // It used to be stamped at the very end, after the pick had been assembled, and `plannedEntry` was
+  // simply the first projected weekday after the last cached bar. That is a look-ahead: a pick
+  // published at 18:20 ET on a trading day was booked into the open of a session that had already
+  // happened nine hours earlier (ATEX, 6 October 2026). `entrySession` is the rule — before 09:30 ET
+  // on a trading day the buy is that morning's open, otherwise it is the next session's — and it is
+  // the same function `measurePick` uses, so the card and the recap can no longer disagree.
+  const publishedAt = new Date().toISOString();
+  const { entry: plannedEntry, exit: plannedExit } = plannedWindow(calendar, publishedAt, HORIZON_SESSIONS);
+  log(`stock: published ${publishedAt}, so the entry session is ${plannedEntry ?? '(not yet known)'}`);
   const ctx = {
     T,
     asOf: T,
@@ -863,6 +874,7 @@ async function main() {
     await publish(unavailable(reason, { lastPublishedFor: log2.picks.at(-1)?.date ?? null }), {
       hash,
       recaps: await buildRecaps({ log1, log2, calendar, series, dividendsFor, benchmarks, T }),
+      outcome: 'none-qualified',
     });
     return;
   }
@@ -909,13 +921,13 @@ async function main() {
     await publish(unavailable(reason, { lastPublishedFor: log2.picks.at(-1)?.date ?? null }), {
       hash,
       recaps: await buildRecaps({ log1, log2, calendar, series, dividendsFor, benchmarks, T }),
+      outcome: 'none-qualified',
     });
     return;
   }
 
   const row = chosen.candidate;
   const risk = chosen.risk ?? { inWindow: false, nearWindow: false, estimate: chosen.estimate };
-  const publishedAt = new Date().toISOString();
   const pick = {
     kind: 'pick',
     strategyVersion: 2,
@@ -973,6 +985,12 @@ async function main() {
     sic: row.sic,
     division: row.division,
     decisionSession: T,
+    // The session the pick *expects* to be bought in, and named as a plan rather than a fact. It is
+    // read off a weekday projection, because the session has not traded yet and so is not on the real
+    // calendar; a public holiday inside the projection moves it. Nothing measures a position from this
+    // field — `measurePick` recomputes the entry from `publishedAt` against the sessions that really
+    // traded, which is the only version that can be right about holidays.
+    plannedEntry,
     referenceClose: row.metrics.close,
     rankScore: pick.rankScore,
     composite: pick.composite,
@@ -981,18 +999,33 @@ async function main() {
   await writeJson('state/stocks-v2.json', { strategyVersion: 2, picks: log2.picks });
 
   const recaps = await buildRecaps({ log1, log2, calendar, series, dividendsFor, benchmarks, T });
-  await publish(pick, { hash, recaps });
+  await publish(pick, { hash, recaps, outcome: 'pick' });
   log(`stock: ${row.ticker} — ${row.name}, score ${pick.rankScore}/100, entry ${plannedEntry} → exit ${plannedExit}`);
 }
 
-/** Positions still inside their horizon, with the SIC division the concentration cap counts. */
+/**
+ * Positions still inside their horizon, with the SIC division the concentration cap counts.
+ *
+ * The hold is counted from the session the position was actually bought in, recomputed from the pick's
+ * own publication time against the sessions that really traded. It used to be counted from `p.date`,
+ * the edition date — so a pick published after Monday's close was treated as having been held since
+ * Monday's open, and it left the book a session early.
+ *
+ * A pick made after the close has an entry session that has not traded yet. Nothing has been bought,
+ * but the next session will buy it, and a second pick in the same stock or the same division would
+ * double the exposure — so it counts as open with zero sessions held.
+ */
 function openPositionsFrom(log2, { calendar, T, sicMap }) {
   const out = [];
   for (const p of log2.picks ?? []) {
-    const entry = p.entryDate ?? p.date;
-    const i = calendar.indexOf(entry);
-    if (i < 0) continue;
-    const held = sessionIndexAtOrBefore(calendar, T) - i + 1;
+    const entry = p.publishedAt ? entrySession(calendar, p.publishedAt) : null;
+    let held;
+    if (entry) {
+      held = sessionIndexAtOrBefore(calendar, T) - calendar.indexOf(entry) + 1;
+    } else if (p.publishedAt) {
+      // `entrySession` returns null when the calendar does not reach the buy yet: committed, unbought.
+      held = 0;
+    } else continue; // a version 1 record with no publication time
     if (held >= HORIZON_SESSIONS) continue;
     out.push({ ticker: p.ticker, division: p.division ?? sicDivision(sicMap.get(String(Number(p.cik ?? 0))) ?? '') });
   }
@@ -1079,11 +1112,27 @@ function countBy(rows) {
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
 
-/** The published feed. `decidedFor` is the edition date, so a stale card can say that it is stale. */
-async function publish(block, { hash, recaps }) {
+/**
+ * The published feed. `decidedFor` is the edition date, so a stale card can say that it is stale.
+ *
+ * `outcome` says *why* the feed looks the way it does, and exists so that a later run can tell two
+ * very different events apart. Both used to write `decidedFor: TODAY` and nothing else:
+ *
+ *   * `pick`           — a candidate was chosen. Today's answer is final.
+ *   * `none-qualified` — the screen ran to the end and nothing passed. Also final: thresholds are
+ *                        never relaxed to fill a card, so running again would only waste a slot.
+ *   * `incomplete`     — the run could not reach a decision (too little price history, a rate limit,
+ *                        a source that did not answer). **This one is worth retrying**, and
+ *                        `scripts/stock-needed.mjs` does retry it on the next slot.
+ *
+ * A run that throws writes nothing at all, which leaves yesterday's file in place. That is also
+ * retried, because the file's `decidedFor` is not today.
+ */
+async function publish(block, { hash, recaps, outcome }) {
   const feed = {
     builtAt: new Date().toISOString(),
     decidedFor: TODAY,
+    outcome,
     strategyVersion: 2,
     strategyHash: hash,
     block,

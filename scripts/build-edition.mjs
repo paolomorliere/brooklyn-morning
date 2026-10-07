@@ -1,5 +1,5 @@
 // Build today's morning edition from public RSS/Atom feeds.
-// Usage: node scripts/build-edition.mjs [--force] [--no-leads] [--date YYYY-MM-DD]
+// Usage: node scripts/build-edition.mjs [--force] [--refresh] [--no-leads] [--no-stock] [--stock-only] [--date YYYY-MM-DD]
 // Writes public/data/edition.json, public/data/editions/<date>.json, public/data/editions/index.json, state/seen.json.
 // Honesty rules: excerpts are the publisher's own text; leads are the article's first paragraphs extracted verbatim;
 // nothing is rewritten or generated. A failed feed is recorded in `sources[]`, never papered over.
@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
-import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, PER_TOPIC, SLOT_RULES, SUBJECTS } from './feeds.config.mjs';
+import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, NEAR_DUPLICATE, PER_TOPIC, SLOT_RULES, SPONSORED_CATEGORIES, SUBJECTS, TOPIC_KEYWORDS } from './feeds.config.mjs';
 import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
 import { stockCardFor } from './lib/strategy.mjs';
 
@@ -20,6 +20,9 @@ const FORCE = args.includes('--force');
 // Used when a delayed scheduled run finally lands and the existing edition is hours old.
 const REFRESH = args.includes('--refresh');
 const NO_LEADS = args.includes('--no-leads');
+// Recompute only `edition.stock`, fetch nothing, and leave `preparedAt` where it is. Run by the stocks
+// workflow right after it publishes a pick, so the card does not have to wait for the next edition slot.
+const STOCK_ONLY = args.includes('--stock-only');
 const DATE_ARG = args[args.indexOf('--date') + 1];
 const TZ = 'America/New_York';
 const MAX_LEADS = 20;
@@ -80,6 +83,24 @@ function imageFrom(it) {
   return u && /^https?:\/\//.test(u) ? u : null;
 }
 
+/**
+ * The categories a feed puts on an item, lower-cased.
+ *
+ * RSS writes `<category>text</category>`, sometimes repeated; Atom writes `<category term="..."/>`.
+ * Nothing read these until now, which is why four of the ten items in MIT Technology Review's AI feed —
+ * every one of them labelled `sponsored` by the publisher itself — were eligible for the edition. The
+ * project does not carry advertising, so the label has to be read before it can be honoured.
+ */
+function categoriesFrom(it) {
+  const out = [];
+  for (const c of [].concat(it?.category ?? [])) {
+    const v = typeof c === 'object' ? (c['@_term'] ?? text(cd(c))) : c;
+    const s = clean(String(v ?? '')).toLowerCase();
+    if (s) out.push(s);
+  }
+  return out;
+}
+
 function parseFeed(xml) {
   const x = parser.parse(xml);
   if (x.rss?.channel) {
@@ -89,6 +110,7 @@ function parseFeed(xml) {
       url: text(cd(it.link)) || text(it.guid),
       publishedAt: it.pubDate ?? it['dc:date'] ?? null,
       excerpt: clean(text(cd(it.description)) || text(cd(it['content:encoded'])) || text(cd(it.summary))),
+      categories: categoriesFrom(it),
       imageUrl: imageFrom(it),
     }));
   }
@@ -102,12 +124,13 @@ function parseFeed(xml) {
         url: alt?.['@_href'] ?? text(alt) ?? '',
         publishedAt: e.published ?? e.updated ?? null,
         excerpt: clean(text(cd(e.summary)) || text(cd(e.content))),
+        categories: categoriesFrom(e),
         imageUrl: imageFrom({ ...e, description: e.content }),
       };
     });
   }
   if (x['rdf:RDF']) {
-    return [].concat(x['rdf:RDF'].item ?? []).map((it) => ({ title: clean(text(it.title)), url: text(it.link), publishedAt: it['dc:date'] ?? null, excerpt: clean(text(it.description)) }));
+    return [].concat(x['rdf:RDF'].item ?? []).map((it) => ({ title: clean(text(it.title)), url: text(it.link), publishedAt: it['dc:date'] ?? null, excerpt: clean(text(it.description)), categories: categoriesFrom(it) }));
   }
   throw new Error('Unrecognized feed format');
 }
@@ -189,9 +212,50 @@ async function stockBlock(dateYMD) {
   return stockCardFor(feed, dateYMD, { existing });
 }
 
+/**
+ * Patch only the stock card of the edition that is already on disk, fetching nothing.
+ *
+ * Why this exists. The stories and the stock pick are built by two workflows, and GitHub starts
+ * scheduled runs three to six hours late, so they land in whichever order they happen to. On
+ * 7 October 2026 the edition was built at 07:00 and the pick published at 07:10 — ten minutes too
+ * late — and because the edition reads `stock.json` once and the refresh window closed at 09:00, the
+ * card stayed empty for the rest of the day with a perfectly good pick sitting in the file beside it.
+ *
+ * So after the stocks build publishes, it runs this, and the card catches up in seconds.
+ *
+ * `preparedAt` is deliberately not touched. It means "when the stories were prepared", the refresh
+ * pre-check uses it as the staleness clock, and moving it would make a stock patch look like a fresh
+ * edition and suppress the morning refresh. `stockUpdatedAt` is the separate field the app watches.
+ */
+async function patchStockOnly() {
+  let edition;
+  try {
+    edition = JSON.parse(await readFile('public/data/edition.json', 'utf8'));
+  } catch {
+    console.log('--stock-only: there is no edition to patch yet; nothing to do.');
+    return;
+  }
+  const before = JSON.stringify(edition.stock ?? null);
+  const stock = await stockBlock(edition.date);
+  if (JSON.stringify(stock) === before) {
+    console.log(`--stock-only: the ${edition.date} card is already ${stock?.kind ?? 'empty'}${stock?.ticker ? ` (${stock.ticker})` : ''}; nothing written.`);
+    return;
+  }
+  edition.stock = stock;
+  edition.stockUpdatedAt = new Date().toISOString();
+  await writeFile('public/data/edition.json', JSON.stringify(edition));
+  await writeFile(`public/data/editions/${edition.date}.json`, JSON.stringify(edition));
+  const was = JSON.parse(before || 'null');
+  console.log(
+    `--stock-only: the ${edition.date} card is now ${stock.kind}${stock.ticker ? ` (${stock.ticker})` : ''}, was ${was?.kind ?? 'empty'}${was?.ticker ? ` (${was.ticker})` : ''}. preparedAt unchanged at ${edition.preparedAt}.`,
+  );
+}
+
 async function main() {
   await mkdir('public/data/editions', { recursive: true });
   await mkdir('state', { recursive: true });
+
+  if (STOCK_ONLY) return patchStockOnly();
 
   let refreshing = false;
   try {
@@ -219,6 +283,9 @@ async function main() {
   // 1) Fetch all feeds in parallel (each with its own timeout/retries). Partial success is fine.
   const sources = [];
   const items = [];
+  // Every item a rule removes, with the rule that removed it. Printed at the end of the run: a filter
+  // that quietly throws away good stories is worse than no filter, so it has to be readable.
+  const dropped = [];
   await Promise.all(
     FEEDS.map(async (feed) => {
       const t0 = Date.now();
@@ -229,6 +296,21 @@ async function main() {
         for (const raw of parsed) {
           if (!raw.title || !raw.url) continue;
           if (feed.requireKeyword && !feed.requireKeyword.test(`${raw.title} ${raw.excerpt}`)) continue;
+          const categories = raw.categories ?? [];
+          // The publisher's own label. Dropped before anything else looks at the item.
+          const ad = categories.find((c) => SPONSORED_CATEGORIES.some((re) => re.test(c)));
+          if (ad) {
+            dropped.push({ rule: 'sponsored', topic: feed.topic, title: raw.title, publisher: feed.name, detail: `the publisher categorised it "${ad}"` });
+            continue;
+          }
+          // The topic's own vocabulary, where the topic has one. A feed's topic is a property of the
+          // feed, so a publisher that files an off-topic piece into a topic feed would otherwise land
+          // it in the section unchallenged — which is exactly what happened to "AI & Data".
+          const vocabulary = TOPIC_KEYWORDS[feed.topic];
+          if (vocabulary && !vocabulary.some((re) => re.test(`${raw.title} ${raw.excerpt} ${categories.join(' ')}`))) {
+            dropped.push({ rule: 'off-topic', topic: feed.topic, title: raw.title, publisher: feed.name, detail: `nothing in it matches the ${feed.topic} vocabulary` });
+            continue;
+          }
           const publishedAt = raw.publishedAt ? new Date(raw.publishedAt) : null;
           if (!publishedAt || Number.isNaN(publishedAt.getTime())) continue;
           const item = {
@@ -256,7 +338,17 @@ async function main() {
   );
 
   // 2) Select per topic.
-  const perTopic = selectPerTopic(items, { perTopic: PER_TOPIC, maxAgeHours: MAX_AGE_HOURS, seen, now, topics: TOPICS, slotRules: SLOT_RULES, subjects: SUBJECTS });
+  const perTopic = selectPerTopic(items, {
+    perTopic: PER_TOPIC,
+    maxAgeHours: MAX_AGE_HOURS,
+    seen,
+    now,
+    topics: TOPICS,
+    slotRules: SLOT_RULES,
+    subjects: SUBJECTS,
+    nearDuplicate: NEAR_DUPLICATE,
+    onDrop: (d) => dropped.push(d),
+  });
   let stories = TOPICS.flatMap((t) => perTopic[t]);
 
   // 3) Extract opening paragraphs for allow-listed publishers, best-effort, bounded.
@@ -307,6 +399,7 @@ async function main() {
     schemaVersion: 1,
     date: today,
     preparedAt: new Date().toISOString(),
+    stockUpdatedAt: null,
     quote,
     stock,
     stories,
@@ -326,6 +419,32 @@ async function main() {
   const failed = sources.filter((s) => !s.ok);
   console.log(`Edition ${today}: ${stories.length} stories`, edition.counts, `| leads ${leadsGot}/${leadsTried} | images ${stories.filter((x) => x.imageUrl).length} | feeds ok ${sources.length - failed.length}/${sources.length} | stock: ${stock.kind}${stock.ticker ? ' ' + stock.ticker : ''}${stock.reason ? ' (' + stock.reason + ')' : ''}`);
   for (const f of failed) console.log(`  FAILED ${f.name} (${f.id}): ${f.error}`);
+  reportDrops(dropped);
+}
+
+/**
+ * What the rules removed, by rule and by title.
+ *
+ * A content filter is only trustworthy if you can see what it threw away. Three rules can remove a
+ * story that a feed offered — the publisher's `sponsored` label, the topic's own vocabulary, and the
+ * near-duplicate test — and all three are capable of being wrong. This prints every one of them, so a
+ * rule that starts eating legitimate stories shows up in the build log rather than as a thinner section.
+ */
+function reportDrops(dropped) {
+  if (!dropped.length) return;
+  const byRule = new Map();
+  for (const d of dropped) {
+    if (!byRule.has(d.rule)) byRule.set(d.rule, []);
+    byRule.get(d.rule).push(d);
+  }
+  console.log(`Dropped ${dropped.length} item${dropped.length === 1 ? '' : 's'} by rule:`);
+  for (const [rule, list] of [...byRule.entries()].sort((a, b) => b[1].length - a[1].length)) {
+    console.log(`  ${rule} (${list.length})`);
+    for (const d of list) {
+      console.log(`    [${d.topic ?? '?'}] ${truncate(d.title, 90)}${d.publisher ? ` — ${d.publisher}` : ''}`);
+      console.log(`      ${d.detail}`);
+    }
+  }
 }
 
 main().catch((e) => {

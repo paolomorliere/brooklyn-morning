@@ -79,34 +79,89 @@ export function validationNote(rules) {
 }
 
 /**
+ * The session a 21-session hold that started at `plannedEntry` has not yet passed, by calendar date.
+ *
+ * Deliberately generous and deliberately approximate. The exact exit is a count of trading sessions and
+ * can only be known from the real calendar, which this function does not have — it runs in the edition
+ * build and in the browser. All it has to decide is whether a pick is old enough that calling it "open"
+ * would be wrong, so it compares against `plannedExit` when the pick recorded one and otherwise allows
+ * the longest a 21-session hold can take in calendar days.
+ */
+function horizonIsLive(pick, date) {
+  if (!pick || pick.kind !== 'pick') return false;
+  const start = pick.plannedEntry ?? pick.date;
+  if (typeof start !== 'string' || typeof date !== 'string' || date < start) return false;
+  if (typeof pick.plannedExit === 'string') return date <= pick.plannedExit;
+  // 21 sessions is five calendar weeks at worst, with holidays.
+  const days = (Date.parse(`${date}T00:00:00Z`) - Date.parse(`${start}T00:00:00Z`)) / 86_400_000;
+  return Number.isFinite(days) && days <= 37;
+}
+
+/**
  * Pure: the stock card an edition dated `date` should carry, given the published feed.
  *
  * The rule this exists to enforce: **a pick belongs to the session it was made in.** If the stocks
- * build last published for yesterday, yesterday's pick is not shown as today's — the card says there
- * is nothing for today and names the date of the last one. A feed that silently repeats itself is how
- * a broken price source produces weeks of confident, wrong cards without anything failing.
+ * build last published for yesterday, yesterday's pick is not shown as today's — a feed that silently
+ * repeats itself is how a broken price source produces weeks of confident, wrong cards without anything
+ * failing.
+ *
+ * What that rule does not require is an empty card. A pick whose 21-session hold is still running is a
+ * position Paolo still holds, and saying so is a true statement about today. So an earlier pick inside
+ * its horizon comes back as `open-position`: the pick untouched, dated, labelled, and explicitly not
+ * presented as today's decision. `unavailable` is kept for the cases where there is genuinely nothing to
+ * say — nothing ever published, or every hold expired, or today's screen ran and found nothing.
  */
 export function stockCardFor(feed, date, { existing = null } = {}) {
   const rule = typeof feed?.block?.rule === 'string' ? feed.block.rule : '';
-  const nothing = (reason, lastPublishedFor = null) => {
+
+  /** The last pick on file, wherever it is: today's block, or the newest recapped one. */
+  const lastPick = () => {
+    if (feed?.block?.kind === 'pick') return feed.block;
+    if (feed?.block?.kind === 'open-position' && feed.block.pick?.kind === 'pick') return feed.block.pick;
+    if (existing?.kind === 'pick') return existing;
+    if (existing?.kind === 'open-position' && existing.pick?.kind === 'pick') return existing.pick;
+    return null;
+  };
+
+  /**
+   * The open-position card, when there is a hold to show. `reason` is the app's one line about why today
+   * has no pick of its own, written for someone looking at an open position — not the longer explanation
+   * the empty card gives.
+   */
+  const openPosition = (reason) => {
+    const held = lastPick();
+    if (!held || held.date === date || !horizonIsLive(held, date)) return null;
+    return { kind: 'open-position', strategyVersion: 2, date, heldSince: held.date, pick: held, reason };
+  };
+
+  const nothing = (reason, lastPublishedFor = null, openReason = reason) => {
     // A refresh rebuilds today's edition in place with the latest stories, and must not take away a
     // card the edition already published. Declining to destroy a real card is not the same as inventing
     // one: nothing here ever fabricates a pick, and a kept card carries its own `strategyVersion`, so
     // the app still labels it for the rule that made it.
     if (existing && existing.kind !== 'unavailable') return existing;
-    return { kind: 'unavailable', strategyVersion: 2, reason, rule, lastPublishedFor };
+    return openPosition(openReason) ?? { kind: 'unavailable', strategyVersion: 2, reason, rule, lastPublishedFor };
   };
+
   if (!feed || typeof feed !== 'object') return nothing('The stock build has not published anything yet.');
   if (feed.decidedFor === date && feed.block) {
     // Today's own card, from today's own feed — unless it says nothing and the edition already carries
     // something. `existing` is only ever this edition's own card, so a new day never inherits.
     if (feed.block.kind === 'unavailable' && existing && existing.kind !== 'unavailable') return existing;
+    if (feed.block.kind === 'unavailable') {
+      // Today's screen ran and found nothing, which is today's real answer and is published as written —
+      // the card names the test that bound, and that text is not rewritten here. An open hold is still a
+      // true thing to show, so it takes the card when there is one; otherwise the block passes through
+      // untouched, with every field the build put on it.
+      return openPosition(feed.block.reason ?? 'No pick was made today.') ?? feed.block;
+    }
     return feed.block;
   }
   return feed.decidedFor
     ? nothing(
         `The stock build last published for ${feed.decidedFor}, not today. A pick belongs to the session it was made in, so it is not repeated here.`,
         feed.decidedFor,
+        'Today’s pick has not been published yet.',
       )
     : nothing('The stock build has not published a dated card.');
 }

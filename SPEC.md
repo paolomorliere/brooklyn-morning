@@ -61,9 +61,19 @@ Paolo wants one installable phone app used every day for three jobs: read a cura
 | Images | OFF image URLs hotlinked at runtime, cached by service worker; placeholder on error; attribution in Settings (CC BY-SA) | No image hosting |
 | Fonts/icons | Fontsource, Lucide, bundled | OFL / ISC |
 
-| Stock build | GitHub Actions cron (own schedule, off the edition's critical path) → Node script reads Nasdaq Trader, SEC and Massive, writes `public/data/stock.json` + caches in `state/` | All free; Massive's free plan has no payment method and blocks rather than bills |
+| Stock build | GitHub Actions cron (own schedule, off the edition's critical path) → Node script reads Nasdaq Trader, SEC and Massive, writes `public/data/stock.json` + caches in `state/`, then patches `edition.json`'s card with `build-edition.mjs --stock-only` | All free; Massive's free plan has no payment method and blocks rather than bills |
 
 Why nothing here can bill: GitHub Free with no payment method blocks when quota is exhausted (verified in docs); public repos have unlimited standard Actions minutes and free Pages. Open Food Facts is a non-profit open database with no paid tier. The SEC publishes its data with an access policy and no paid tier. Nasdaq Trader's symbol directory is a public file. Massive (Polygon.io) "Stocks Basic" is free, needs no payment method, and refuses requests rather than charging when the allowance is spent. No other services.
+
+### Edition content rules (added 2026-10-08)
+| Rule | What it does | Where |
+|---|---|---|
+| Sponsored | Drops any item the publisher categorised `sponsored`, `paid post`, `partner content`, `presented by` … in every section. MIT Technology Review's AI feed was 4 of 10 sponsored. | `SPONSORED_CATEGORIES` |
+| Topic vocabulary | An item must match its topic's own vocabulary, not merely arrive in a feed filed under that topic. Only `ai` has one, because only `ai` had the problem. Covers AI *and* the data side (Python, pandas, SQL, DAX, Power BI, Excel, dashboards, analytics). | `TOPIC_KEYWORDS` |
+| Near-duplicate | Two items are one story when they share ≥2 proper nouns that are rare in the topic's candidate pool, and those names are ≥25% of the shorter item's rare vocabulary. Calibrated over 21 hand-labelled pairs from the archive: 15 of 16 real duplicates caught, 0 false positives. | `NEAR_DUPLICATE`, `sameStory` |
+| Drop log | Every removed item is printed with its title and the rule that removed it. `scripts/replay-rules.mjs` re-runs all three rules over the archive at any time. | `reportDrops` |
+
+AI feeds changed 2026-10-08: `technologyreview.com/feed/` → `/topic/artificial-intelligence/feed/` and `feeds.arstechnica.com/arstechnica/technology-lab` → `arstechnica.com/ai/feed/`. The old two were general-interest, so the section was only as on-topic as those front pages happened to be — on 2026-10-07 MIT TR's main feed carried ten items of climate tech and biotech and none about AI. Both new paths are permitted by the `User-agent: *` block of each robots.txt (re-checked 2026-10-07). `technologyreview.com/topic/data/feed/` answers 200 with no items, so there is no data-topic feed to add.
 
 ### Stock in focus — sources and permissions (verified 2026-10-06)
 | Source | Permission | Account | What it gives |

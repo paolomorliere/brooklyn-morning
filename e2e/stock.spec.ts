@@ -227,3 +227,48 @@ test('the card fits the phone it is read on', async ({ page }) => {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });
+
+/**
+ * The open-position card: an earlier pick, still inside its 21-session hold, shown on a day that has no
+ * pick of its own. The thing being checked is not that it renders — it reuses the brief — but that it is
+ * never readable as today's decision.
+ */
+const OPEN_POSITION = {
+  kind: 'open-position',
+  strategyVersion: 2,
+  date: '2026-10-08',
+  heldSince: '2026-10-06',
+  reason: 'Today’s pick has not been published yet.',
+  pick: PICK,
+};
+
+test('an open position is dated and labelled, never presented as today’s pick', async ({ page }) => {
+  await openWith(page, OPEN_POSITION);
+  const card = page.locator('section.stock');
+  // The frame says what it is, above anything else on the card.
+  await expect(card.locator('.eyebrow')).toContainText('open position');
+  await expect(card.locator('.eyebrow')).toContainText('not today’s decision');
+  await expect(card).toContainText('Held since Oct 6');
+  await expect(card).toContainText('has not been published yet');
+  // The pick itself is intact underneath, with its own dates and its own evidence.
+  await expect(card.getByRole('heading', { name: /Analog Devices/ })).toBeVisible();
+  await expect(card.locator('.stock-horizon')).toContainText('21-session horizon');
+  await expect(card.getByRole('heading', { name: 'What would show this was wrong' })).toBeVisible();
+  // And nothing claims it was decided today.
+  await expect(card).not.toContainText('Oct 8');
+});
+
+test('an empty card still says which test bound, when there is no open position either', async ({ page }) => {
+  await openWith(page, {
+    kind: 'unavailable',
+    strategyVersion: 2,
+    rule: 'Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American.',
+    reason: 'No candidate qualified today. The test that removed the most was trend: price below its 200-session average — 3,912 of 5,051 screened.',
+    lastPublishedFor: '2026-09-30',
+  });
+  const card = page.locator('section.stock');
+  await expect(card.getByRole('heading', { name: 'No qualifying pick today' })).toBeVisible();
+  await expect(card).toContainText('The test that removed the most was trend');
+  await expect(card).toContainText('3,912 of 5,051');
+  await expect(card).toContainText('belongs to the session it was made in');
+});

@@ -466,12 +466,34 @@ function StockSection({ stock, archived, onSave }: { stock: StockBlock; archived
           ? "Stocks · this week's scoreboard"
           : stock.kind === 'recap'
             ? 'Stocks · the record so far'
-            : version === 2
-              ? 'Stock in focus · research process, not a recommendation'
-              : 'Stock in focus · rules-based, not a recommendation'}
+            : stock.kind === 'open-position'
+              ? 'Stock in focus · open position, not today’s decision'
+              : version === 2
+                ? 'Stock in focus · research process, not a recommendation'
+                : 'Stock in focus · rules-based, not a recommendation'}
       </div>
 
       {stock.kind === 'pick' && version === 2 && <StockBrief pick={stock as StockPickV2} archived={archived} onSave={onSave} />}
+
+      {stock.kind === 'open-position' && (
+        <>
+          {/*
+            A pick from an earlier session whose 21-session hold is still running, on a day that has no
+            pick of its own — the minutes before today's lands, or a weekend or market holiday, when no
+            session closed and there was nothing to decide.
+
+            It renders through the same `StockBrief` as any other version 2 card, because it *is* that
+            card: the evidence, the thesis, the counterargument and the invalidation conditions are true
+            as of the day it was made, and rewriting any of them would be inventing work. What changes is
+            the frame around it — the eyebrow above says "open position, not today's decision", and this
+            line dates it before the card is read.
+          */}
+          <p class="small muted" style="margin-top:4px">
+            Held since {shortDate(`${stock.heldSince}T12:00:00`)}. {stock.reason}
+          </p>
+          <StockBrief pick={stock.pick} archived={archived} onSave={onSave} />
+        </>
+      )}
 
       {stock.kind === 'pick' && version === 1 && (
         <>

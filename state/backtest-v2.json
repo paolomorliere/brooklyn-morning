@@ -1,0 +1,436 @@
+{
+ "builtAt": "2026-10-07T16:43:39.828Z",
+ "strategyHash": "46527bc8ea38a026",
+ "horizonSessions": 21,
+ "sessionsCached": 494,
+ "decisionDays": 221,
+ "development": {
+  "from": "2025-10-20",
+  "to": "2026-04-29",
+  "n": 132
+ },
+ "heldOut": {
+  "from": "2026-04-30",
+  "to": "2026-09-04",
+  "n": 89,
+  "opened": false
+ },
+ "results": {
+  "development": {
+   "sessions": 132,
+   "from": "2025-10-20",
+   "to": "2026-04-29",
+   "strategies": {
+    "composite": {
+     "summary": {
+      "n": 132,
+      "skipped": 0,
+      "portfolio": 0.17005820760076995,
+      "meanNet": 0.02076602922584102,
+      "winRate": 0.553030303030303,
+      "averageGain": 0.11715559724532047,
+      "averageLoss": -0.09849563967961664,
+      "turnover": 1,
+      "concentration": {
+       "division": "Finance, Insurance and Real Estate",
+       "share": 0.1590909090909091
+      },
+      "uniqueNames": 78
+     },
+     "blocks": {
+      "blocks": [
+       {
+        "block": 0,
+        "n": 20,
+        "from": "2025-10-20",
+        "net": 0.028270110266498803,
+        "excessSpy": 0.02954212681867158,
+        "excessRsp": 0.022241927073331322
+       },
+       {
+        "block": 1,
+        "n": 21,
+        "from": "2025-11-18",
+        "net": 0.029921901549133344,
+        "excessSpy": 0.015114202894339993,
+        "excessRsp": 0.0035568336026307046
+       },
+       {
+        "block": 2,
+        "n": 21,
+        "from": "2025-12-18",
+        "net": 0.01895418278380549,
+        "excessSpy": 0.0179997657029609,
+        "excessRsp": -0.007472599465218454
+       },
+       {
+        "block": 3,
+        "n": 21,
+        "from": "2026-01-21",
+        "net": -0.043260541330328736,
+        "excessSpy": -0.026863569143949148,
+        "excessRsp": -0.03900137627814975
+       },
+       {
+        "block": 4,
+        "n": 21,
+        "from": "2026-02-20",
+        "net": 0.020125144265783945,
+        "excessSpy": 0.03073845602062765,
+        "excessRsp": 0.03941361326729122
+       },
+       {
+        "block": 5,
+        "n": 21,
+        "from": "2026-03-23",
+        "net": 0.06738233656376243,
+        "excessSpy": -0.015757118787652513,
+        "excessRsp": 0.030359911319337865
+       },
+       {
+        "block": 6,
+        "n": 7,
+        "from": "2026-04-22",
+        "net": 0.03144716457225048,
+        "excessSpy": -0.02067772404277409,
+        "excessRsp": 0.008136410948468384
+       }
+      ],
+      "n": 7,
+      "meanExcessSpy": 0.004299448494603481,
+      "tStat": 0.4619535137375474,
+      "neweyWest": 1.3878051824882804,
+      "maxDrawdown": -0.04326054133032886
+     }
+    },
+    "priceOnly": null,
+    "random": {
+     "summary": {
+      "n": 132,
+      "skipped": 0,
+      "portfolio": 0.15098562728315335,
+      "meanNet": 0.021243585597710297,
+      "winRate": 0.5833333333333334,
+      "averageGain": 0.098193090182072,
+      "averageLoss": -0.08648572082039607,
+      "turnover": 1,
+      "concentration": {
+       "division": "Mining",
+       "share": 0.20454545454545456
+      },
+      "uniqueNames": 112
+     },
+     "blocks": {
+      "blocks": [
+       {
+        "block": 0,
+        "n": 20,
+        "from": "2025-10-20",
+        "net": 0.008017828614000706,
+        "excessSpy": 0.009289845166173483,
+        "excessRsp": 0.001989645420833226
+       },
+       {
+        "block": 1,
+        "n": 21,
+        "from": "2025-11-18",
+        "net": 0.04086158028238192,
+        "excessSpy": 0.026053881627588565,
+        "excessRsp": 0.014496512335879279
+       },
+       {
+        "block": 2,
+        "n": 21,
+        "from": "2025-12-18",
+        "net": 0.05692918010834434,
+        "excessSpy": 0.05597476302749975,
+        "excessRsp": 0.0305023978593204
+       },
+       {
+        "block": 3,
+        "n": 21,
+        "from": "2026-01-21",
+        "net": 0.0011878862825162463,
+        "excessSpy": 0.017584858468895834,
+        "excessRsp": 0.005447051334695231
+       },
+       {
+        "block": 4,
+        "n": 21,
+        "from": "2026-02-20",
+        "net": -0.024793486780751682,
+        "excessSpy": -0.014180175025907975,
+        "excessRsp": -0.005505017779244413
+       },
+       {
+        "block": 5,
+        "n": 21,
+        "from": "2026-03-23",
+        "net": 0.01751496157649751,
+        "excessSpy": -0.06562449377491743,
+        "excessRsp": -0.019507463667927053
+       },
+       {
+        "block": 6,
+        "n": 7,
+        "from": "2026-04-22",
+        "net": 0.10258488225271281,
+        "excessSpy": 0.05045999363768824,
+        "excessRsp": 0.07927412862893071
+       }
+      ],
+      "n": 7,
+      "meanExcessSpy": 0.011365524732431496,
+      "tStat": 0.7237592620937681,
+      "neweyWest": 1.7222001077910916,
+      "maxDrawdown": -0.024793486780751772
+     }
+    },
+    "v1": {
+     "summary": {
+      "n": 132,
+      "skipped": 0,
+      "portfolio": 0.28788772724969824,
+      "meanNet": 0.038515609631023184,
+      "winRate": 0.49242424242424243,
+      "averageGain": 0.14050925093478112,
+      "averageLoss": -0.06043344536515979,
+      "turnover": 1,
+      "concentration": {
+       "division": "n/a",
+       "share": 1
+      },
+      "uniqueNames": 67
+     },
+     "blocks": {
+      "blocks": [
+       {
+        "block": 0,
+        "n": 20,
+        "from": "2025-10-20",
+        "net": -0.000016850829597242488,
+        "excessSpy": 0.0012551657225755351,
+        "excessRsp": -0.006045034022764722
+       },
+       {
+        "block": 1,
+        "n": 21,
+        "from": "2025-11-18",
+        "net": -0.002390805650355617,
+        "excessSpy": -0.01719850430514897,
+        "excessRsp": -0.028755873596858255
+       },
+       {
+        "block": 2,
+        "n": 21,
+        "from": "2025-12-18",
+        "net": 0.04756185467978148,
+        "excessSpy": 0.04660743759893689,
+        "excessRsp": 0.02113507243075754
+       },
+       {
+        "block": 3,
+        "n": 21,
+        "from": "2026-01-21",
+        "net": -0.023900500442323076,
+        "excessSpy": -0.0075035282559434875,
+        "excessRsp": -0.01964133539014409
+       },
+       {
+        "block": 4,
+        "n": 21,
+        "from": "2026-02-20",
+        "net": -0.028995803081043853,
+        "excessSpy": -0.018382491326200144,
+        "excessRsp": -0.009707334079536584
+       },
+       {
+        "block": 5,
+        "n": 21,
+        "from": "2026-03-23",
+        "net": 0.1687340791295197,
+        "excessSpy": 0.08559462377810477,
+        "excessRsp": 0.13171165388509515
+       },
+       {
+        "block": 6,
+        "n": 7,
+        "from": "2026-04-22",
+        "net": 0.24331602436283625,
+        "excessSpy": 0.19119113574781169,
+        "excessRsp": 0.22000527073905415
+       }
+      ],
+      "n": 7,
+      "meanExcessSpy": 0.04022340556573375,
+      "tStat": 1.385115963019256,
+      "neweyWest": 1.374462515743855,
+      "maxDrawdown": -0.05220328931900298
+     }
+    }
+   },
+   "fiveDayDeciles": {
+    "rows": [
+     {
+      "decile": 1,
+      "n": 1757,
+      "r5From": -0.19914049887446283,
+      "r5To": -0.04100455606178466,
+      "meanExcess": -0.007306524482796281
+     },
+     {
+      "decile": 2,
+      "n": 1757,
+      "r5From": -0.04100435354864829,
+      "r5To": -0.022595633632486845,
+      "meanExcess": 0.0030302240481403986
+     },
+     {
+      "decile": 3,
+      "n": 1757,
+      "r5From": -0.0225955832732182,
+      "r5To": -0.010647737355811815,
+      "meanExcess": 0.001367507583040363
+     },
+     {
+      "decile": 4,
+      "n": 1757,
+      "r5From": -0.01064495929868503,
+      "r5To": -0.0002947244326555465,
+      "meanExcess": 0.005250653000981176
+     },
+     {
+      "decile": 5,
+      "n": 1757,
+      "r5From": -0.00029469548133598256,
+      "r5To": 0.00959732943876479,
+      "meanExcess": 0.0016870558722037673
+     },
+     {
+      "decile": 6,
+      "n": 1757,
+      "r5From": 0.009598072935421031,
+      "r5To": 0.01971918570399933,
+      "meanExcess": 0.002179106809612339
+     },
+     {
+      "decile": 7,
+      "n": 1757,
+      "r5From": 0.019724889696340453,
+      "r5To": 0.03093333333333348,
+      "meanExcess": 0.0009674261072155062
+     },
+     {
+      "decile": 8,
+      "n": 1757,
+      "r5From": 0.030945137941886136,
+      "r5To": 0.04524103831891235,
+      "meanExcess": -0.0015711787509870827
+     },
+     {
+      "decile": 9,
+      "n": 1757,
+      "r5From": 0.04525006615506744,
+      "r5To": 0.06880252100840334,
+      "meanExcess": -0.0033409751273037244
+     },
+     {
+      "decile": 10,
+      "n": 1765,
+      "r5From": 0.06881243063263054,
+      "r5To": 0.39217252396166136,
+      "meanExcess": -0.0023781997261243712
+     }
+    ],
+    "observations": 17578,
+    "topDecileMinusRest": -0.0026296769550250895,
+    "note": "Observations overlap heavily — thousands share the same 21 sessions — so the differences are descriptive and no significance is claimed from them. A flat table means the five-session return stays out of the score."
+   },
+   "buyAndHoldSPY": 0.05935813313924854,
+   "buyAndHoldRSP": 0.055145117610839955
+  }
+ },
+ "fiveDayDeciles": {
+  "rows": [
+   {
+    "decile": 1,
+    "n": 1757,
+    "r5From": -0.19914049887446283,
+    "r5To": -0.04100455606178466,
+    "meanExcess": -0.007306524482796281
+   },
+   {
+    "decile": 2,
+    "n": 1757,
+    "r5From": -0.04100435354864829,
+    "r5To": -0.022595633632486845,
+    "meanExcess": 0.0030302240481403986
+   },
+   {
+    "decile": 3,
+    "n": 1757,
+    "r5From": -0.0225955832732182,
+    "r5To": -0.010647737355811815,
+    "meanExcess": 0.001367507583040363
+   },
+   {
+    "decile": 4,
+    "n": 1757,
+    "r5From": -0.01064495929868503,
+    "r5To": -0.0002947244326555465,
+    "meanExcess": 0.005250653000981176
+   },
+   {
+    "decile": 5,
+    "n": 1757,
+    "r5From": -0.00029469548133598256,
+    "r5To": 0.00959732943876479,
+    "meanExcess": 0.0016870558722037673
+   },
+   {
+    "decile": 6,
+    "n": 1757,
+    "r5From": 0.009598072935421031,
+    "r5To": 0.01971918570399933,
+    "meanExcess": 0.002179106809612339
+   },
+   {
+    "decile": 7,
+    "n": 1757,
+    "r5From": 0.019724889696340453,
+    "r5To": 0.03093333333333348,
+    "meanExcess": 0.0009674261072155062
+   },
+   {
+    "decile": 8,
+    "n": 1757,
+    "r5From": 0.030945137941886136,
+    "r5To": 0.04524103831891235,
+    "meanExcess": -0.0015711787509870827
+   },
+   {
+    "decile": 9,
+    "n": 1757,
+    "r5From": 0.04525006615506744,
+    "r5To": 0.06880252100840334,
+    "meanExcess": -0.0033409751273037244
+   },
+   {
+    "decile": 10,
+    "n": 1765,
+    "r5From": 0.06881243063263054,
+    "r5To": 0.39217252396166136,
+    "meanExcess": -0.0023781997261243712
+   }
+  ],
+  "observations": 17578,
+  "topDecileMinusRest": -0.0026296769550250895,
+  "note": "Observations overlap heavily — thousands share the same 21 sessions — so the differences are descriptive and no significance is claimed from them. A flat table means the five-session return stays out of the score."
+ },
+ "limitations": [
+  "The universe is the list of securities traded today, so no delisted company is ever bought. The result is biased upward and there is no free source of historical listings to correct it.",
+  "The quiet window uses the 10-Q or 10-K acceptance date, not the 8-K item 2.02 announcement, because a historical filing index per company per day is not cached.",
+  "Fundamentals come from twelve quarters of data sets, so decisions early in the window see fewer filings than decisions late in it.",
+  "About 10 non-overlapping blocks exist. That cannot establish an edge, and no claim of one is made."
+ ]
+}

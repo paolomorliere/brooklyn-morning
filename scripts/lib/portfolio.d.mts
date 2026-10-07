@@ -53,6 +53,11 @@ export function sessionIndexAtOrAfter(calendar: string[], date: string): number;
 export function sessionIndexAtOrBefore(calendar: string[], date: string): number;
 export function entrySession(calendar: string[], publishedAt: string): string | null;
 export function exitSession(calendar: string[], entryDate: string, horizon?: number): string | null;
+export function plannedWindow(
+  calendar: string[],
+  publishedAt: string,
+  horizon?: number,
+): { entry: string | null; exit: string | null; extended: string[] };
 export function sessionsHeld(calendar: string[], entryDate: string, asOf: string): number;
 export function positionReturn(opts: {
   bars: Bar[];

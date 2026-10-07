@@ -27,8 +27,11 @@ permissions:
   pages: write
   id-token: write
 
+# Shared with the stocks workflow, so the two never write `edition.json` at the same time. See the note
+# in stocks.yml: a skipped stock slot clears the queue in about ten seconds, and the one real pick a day
+# holds it for a few minutes at most. A manual backfill uses a different group and cannot block a morning.
 concurrency:
-  group: edition
+  group: brooklyn-data
   cancel-in-progress: false
 
 jobs:
@@ -37,6 +40,11 @@ jobs:
     # image change arriving on its own schedule would break the daily builds at a moment nobody chose.
     # Both runners are free for public repositories, so this costs nothing.
     runs-on: ubuntu-24.04
+    # At job level, not step level: a step's own `env:` block is not visible to that step's own `if:`,
+    # and the last-resort stock step has to be able to skip itself when the secrets are not configured.
+    env:
+      MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
+      SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
     steps:
@@ -57,6 +65,34 @@ jobs:
       - run: npm ci
         if: steps.check.outputs.action != 'skip'
 
+      # The last resort for the stock card, and the reason the card should never be empty again.
+      #
+      # Normally the pick is decided overnight by the stocks workflow and this does nothing. But that
+      # workflow is subject to the same 3.5–6 hour scheduling delay as this one, so on some mornings it
+      # will not have run yet. Building the pick here means `build-edition.mjs` reads a `stock.json`
+      # written moments earlier in the same job, and the ordering is correct by construction rather than
+      # by luck.
+      #
+      # Guarded so it can never cost Paolo an edition: it is skipped when the secrets are absent, it is
+      # bounded to twenty minutes, and `continue-on-error` means a failure here still produces the
+      # edition — with an open-position card, and a warning in the run summary.
+      - name: Decide the stock, if nothing has yet
+        id: stock
+        if: steps.check.outputs.action != 'skip' && env.MASSIVE_API_KEY != '' && env.SEC_CONTACT != ''
+        continue-on-error: true
+        timeout-minutes: 20
+        run: |
+          set -euo pipefail
+          # Only `pick` is worth doing here. `patch` means the decision already exists, and
+          # `build-edition.mjs` reads `stock.json` itself in the next step, so the card catches up anyway.
+          if ! node scripts/stock-needed.mjs | tee /dev/stderr | grep -q '^pick'; then
+            echo "ran=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "No decision for today yet — making one here so the card is not empty."
+          node --max-old-space-size=6144 scripts/build-stocks.mjs
+          echo "ran=true" >> "$GITHUB_OUTPUT"
+
       - name: Build edition
         if: steps.check.outputs.action != 'skip'
         run: |
@@ -66,25 +102,65 @@ jobs:
             *)       node scripts/build-edition.mjs ;;
           esac
 
+      # Say so when the card still has no pick of its own. The open-position fallback is a good card and
+      # it is deliberately not alarming to look at — which is exactly why a persistent failure to decide
+      # has to show up somewhere else. This is that somewhere.
+      - name: Report the state of the stock card
+        if: steps.check.outputs.action != 'skip'
+        run: |
+          kind=$(node -e "const e=require('./public/data/edition.json');console.log(e.stock?.kind??'none')")
+          outcome=$(node -e "try{console.log(require('./public/data/stock.json').outcome??'unknown')}catch{console.log('nothing published')}")
+          echo "stock card: $kind (feed outcome: $outcome)"
+          if [ "$kind" != "pick" ]; then
+            reason=$(node -e "const e=require('./public/data/edition.json');console.log(e.stock?.reason??'')")
+            echo "- Stock card is \`$kind\`, not a pick. Feed outcome: \`$outcome\`. $reason" >> "$GITHUB_STEP_SUMMARY"
+            if [ "$outcome" = "none-qualified" ]; then
+              echo "::notice::No candidate qualified today. Thresholds are not relaxed to fill the card."
+            else
+              echo "::warning::Today's edition has no stock pick of its own (card: $kind, outcome: $outcome)."
+            fi
+          fi
+
       - name: Commit data
         id: commit
         if: steps.check.outputs.action != 'skip'
         run: |
+          set -euo pipefail
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
           # `state/` always exists (the scripts create it); individual files inside may not, so add the directory.
-          git add public/data/edition.json public/data/editions state
+          # `public/data/stock.json` is staged too, because the last-resort step above may have written it.
+          git add public/data/edition.json public/data/editions public/data/stock.json state
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "No new edition."
-          else
-            verb=$([ "${{ steps.check.outputs.action }}" = "refresh" ] && echo "Refresh" || echo "Edition")
-            git commit -m "$verb $(TZ=America/New_York date +%F' '%H:%M)"
-            # A delayed run may land after another push: rebase once, then push.
-            git pull --rebase --autostash origin main || true
-            git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          verb=$([ "${{ steps.check.outputs.action }}" = "refresh" ] && echo "Refresh" || echo "Edition")
+          git commit -m "$verb $(TZ=America/New_York date +%F' '%H:%M)"
+          # The only file both workflows write is `edition.json`. On a conflict the resolution is fixed
+          # rather than arbitrary: keep this run's edition, because it has the newer stories, then
+          # re-apply the stock card from whatever `stock.json` upstream now holds. Five attempts, then
+          # the job fails loudly — a `|| true` here is how a finished edition quietly fails to ship.
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            if git push; then pushed=true; break; fi
+            echo "push rejected (attempt $attempt); rebasing onto origin/main, keeping this run's stories"
+            git fetch origin main
+            if ! git rebase -X theirs origin/main; then
+              git rebase --abort || true
+              echo "::error::Could not rebase onto origin/main."
+              exit 1
+            fi
+            node scripts/build-edition.mjs --stock-only
+            git add public/data/edition.json public/data/editions
+            git diff --cached --quiet || git commit --amend --no-edit
+          done
+          if [ "$pushed" != true ]; then
+            echo "::error::Could not push the edition after five attempts."
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
 
   deploy:
     needs: build-edition

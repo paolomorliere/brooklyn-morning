@@ -7,9 +7,23 @@
 # `public/data/stock.json` and the edition simply reads it — and says so when what it finds is not
 # today's.
 #
-# The schedule asks for a slot every 30 minutes from just after New York midnight. GitHub runs scheduled
-# workflows on a best-effort basis and on this repository they have started 3.5–6 hours late, so asking
-# once would be pointless; the run itself is cheap when there is nothing to do.
+# The schedule asks for a slot every 30 minutes from just after New York midnight through late morning —
+# 26 slots. GitHub runs scheduled workflows on a best-effort basis and on this repository they have
+# started 3.5–6 hours late, so asking once would be pointless, and `scripts/stock-needed.mjs` makes a
+# slot with nothing to do cost one checkout (about ten seconds) instead of a full install.
+#
+# Why so many slots, and why so early. The pick for day T is decided on data through session T−1, so it
+# can be made any time after New York midnight — hours before the edition needs it, and in the window
+# where the entry rule is trivially satisfied (published before 09:30 ET means the buy is that morning's
+# open, which is what the strategy intends). And if a run cannot reach a decision — a rate limit, a
+# source that does not answer — it publishes `outcome: incomplete` and the next slot tries again. That
+# retry is what makes "a new pick every trading day" something the system works at rather than hopes
+# for. It never relaxes a threshold to get one.
+#
+# After publishing, this workflow patches the day's edition card itself (`--stock-only`). On 7 October
+# 2026 the edition was built at 07:00 and the pick published at 07:10, and because the edition reads
+# `stock.json` once the card stayed empty all day with a good pick in the file beside it. Patching
+# closes that gap in seconds instead of waiting for a slot that may never come.
 #
 # Everything this uses is free and stays free:
 #   * Massive (Polygon.io) "Stocks Basic" — no payment method, five requests a minute, and it blocks
@@ -22,7 +36,7 @@ name: Stock in focus
 
 on:
   schedule:
-    - cron: '20,50 4-12 * * *'
+    - cron: '10,40 4-16 * * *'
   workflow_dispatch:
     inputs:
       backfill:
@@ -47,8 +61,15 @@ permissions:
   pages: write
   id-token: write
 
+# One group shared with the morning edition, so the two never write `edition.json` at the same time:
+# they queue instead of racing. A skipped slot leaves the queue in about ten seconds, and the one real
+# run a day takes a few minutes — the edition waits that long at most, and only once.
+#
+# A manual backfill is the exception. It can run for an hour or more, and it takes its own group so it
+# can never hold up a morning; it also skips the edition patch, because by the time it finishes the next
+# scheduled slot will carry the pick through.
 concurrency:
-  group: stocks
+  group: ${{ (github.event_name == 'workflow_dispatch' && inputs.backfill != '' && inputs.backfill != '0') && 'brooklyn-backfill' || 'brooklyn-data' }}
   cancel-in-progress: false
 
 jobs:
@@ -59,6 +80,7 @@ jobs:
     runs-on: ubuntu-24.04
     outputs:
       changed: ${{ steps.commit.outputs.changed }}
+      patched: ${{ steps.patch.outputs.patched }}
     steps:
       - uses: actions/checkout@v4
 
@@ -99,16 +121,31 @@ jobs:
           fi
           echo "::warning::Stock in focus is not set up yet — missing$missing. Nothing published."
 
-      - uses: actions/setup-node@v4
+      # Dependency-free, so it runs before `npm ci`. Most slots stop here. Three answers:
+      #   pick  – decide today's stock, then put it on the card
+      #   patch – the decision is already made but the card is not showing it; fetch nothing, just patch
+      #   skip  – nothing to do; this slot costs one checkout
+      - name: Decide whether a pick is needed
+        id: check
         if: steps.secrets.outputs.ready == 'true'
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "action=pick" >> "$GITHUB_OUTPUT"
+            echo "pick: manual run"
+            exit 0
+          fi
+          node scripts/stock-needed.mjs
+
+      - uses: actions/setup-node@v4
+        if: steps.secrets.outputs.ready == 'true' && steps.check.outputs.action != 'skip'
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-        if: steps.secrets.outputs.ready == 'true'
+        if: steps.secrets.outputs.ready == 'true' && steps.check.outputs.action != 'skip'
 
       - name: Choose the stock
-        if: steps.secrets.outputs.ready == 'true'
+        if: steps.secrets.outputs.ready == 'true' && steps.check.outputs.action == 'pick'
         env:
           MASSIVE_API_KEY: ${{ secrets.MASSIVE_API_KEY }}
           SEC_CONTACT: ${{ secrets.SEC_CONTACT }}
@@ -124,10 +161,15 @@ jobs:
       # rewritten. A backfill that stops half way is still 300 good sessions, and the next run continues
       # from the last one cached. Throwing them away because the run ended badly would mean starting a
       # two-hour fetch from nothing every time.
-      - name: Commit data
+      # `always()`, because the bar cache is append-only — one small file per trading day, never
+      # rewritten. A backfill that stops half way is still 300 good sessions, and the next run continues
+      # from the last one cached. Throwing them away because the run ended badly would mean starting a
+      # two-hour fetch from nothing every time.
+      - name: Commit the pick and the caches
         id: commit
-        if: always() && steps.secrets.outputs.ready == 'true' && inputs.dry_run != true && inputs.check_only != true
+        if: always() && steps.secrets.outputs.ready == 'true' && steps.check.outputs.action == 'pick' && inputs.dry_run != true && inputs.check_only != true
         run: |
+          set -euo pipefail
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
           # `state/bars` is append-only: one small object per trading day, never rewritten.
@@ -135,17 +177,64 @@ jobs:
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
             echo "Nothing new to publish."
-          else
-            git commit -m "Stock $(TZ=America/New_York date +%F' '%H:%M)"
-            # A delayed run may land after another push: rebase once, then push.
-            git pull --rebase --autostash origin main || true
-            git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+          git commit -m "Stock $(TZ=America/New_York date +%F' '%H:%M)"
+          # These paths have exactly one writer, so a rebase onto a newer main cannot conflict; the
+          # retry is for the plain race of two pushes arriving together. Five attempts, then the job
+          # fails loudly — a push that silently gave up is how a pick gets computed and then lost.
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            if git push; then pushed=true; break; fi
+            echo "push rejected (attempt $attempt); rebasing onto origin/main"
+            git pull --rebase --autostash origin main
+          done
+          if [ "$pushed" != true ]; then
+            echo "::error::Could not push the pick after five attempts."
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      # The gap this closes is the whole reason the card was empty on 7 October 2026. The pick is
+      # published; the edition on disk was built before it existed. Recompute just `edition.stock` and
+      # push that, leaving `preparedAt` alone so the morning refresh still sees the real story age.
+      #
+      # Each attempt starts from the newest main and recomputes the card from scratch, so there is never
+      # a conflict to resolve — if the edition workflow pushed a whole new edition in the meantime, this
+      # simply patches that one instead.
+      - name: Put the pick on today's edition
+        id: patch
+        if: |
+          steps.secrets.outputs.ready == 'true' && inputs.dry_run != true && inputs.check_only != true
+          && (steps.check.outputs.action == 'patch' || (steps.check.outputs.action == 'pick' && steps.commit.outputs.changed == 'true'))
+          && !(github.event_name == 'workflow_dispatch' && inputs.backfill != '' && inputs.backfill != '0')
+        timeout-minutes: 5
+        run: |
+          set -euo pipefail
+          git config user.name "brooklyn-morning-bot"
+          git config user.email "actions@users.noreply.github.com"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin main
+            git reset --hard origin/main
+            node scripts/build-edition.mjs --stock-only
+            git add public/data/edition.json public/data/editions
+            if git diff --cached --quiet; then
+              echo "The edition card already matches the published pick."
+              exit 0
+            fi
+            git commit -m "Stock card $(TZ=America/New_York date +%F' '%H:%M)"
+            if git push; then
+              echo "patched=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "push rejected (attempt $attempt); starting again from the newest main"
+          done
+          echo "::error::Could not patch the edition card after five attempts. The pick is published in stock.json; the card will catch up on the next edition run."
+          exit 1
 
   deploy:
     needs: pick
-    if: needs.pick.outputs.changed == 'true'
+    if: needs.pick.outputs.changed == 'true' || needs.pick.outputs.patched == 'true'
     uses: ./.github/workflows/deploy.yml
     permissions:
       contents: read

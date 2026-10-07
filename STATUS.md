@@ -283,11 +283,6 @@ cross-checked against ADI's own reported annual revenue. The card's *format* sta
   what the rule picked is the thing most worth being able to look back at.
 
 ### Not yet done, and why
-- **No version 2 pick has been published.** The price feed needs `MASSIVE_API_KEY`, which only Paolo can
-  create. Until then today's version 1 NVDA card stays on screen (a refresh keeps it), and from tomorrow
-  the card says the stock build has not published anything — which is true.
-- **The backtest has not been run.** It needs the price cache. `node scripts/backtest-stocks.mjs` refuses
-  to run without it and says what to do. Its output will be written into this file under `<!-- backtest -->`.
 - **12−1 momentum and the five-session return are computed but not in the score.**
   `candidateSignalsAdopted` is empty in the frozen rules and stays empty until the development window
   says otherwise. Adopting one is a visible edit with a new hash.
@@ -313,3 +308,199 @@ Two repository Actions secrets (Settings → Secrets and variables → Actions):
 
 Then run the **Stock in focus** workflow once with `backfill` set to about `520` to fill the price cache
 (~500 grouped-bars calls, paced at five a minute, roughly 1h45m), and `max_companyfacts` at `300`.
+
+## 2026-10-08 — four defects from the 7 October edition, and a pick every trading day
+
+Paolo opened the 2026-10-07 edition and reported three problems. Investigating found a fourth he could
+not have seen, which was the most serious. Deployment 2 itself works — 494 sessions cached, 5,051 names
+scanned, 488 eligible, a real VCTR pick for 2026-10-07. These were defects in working code.
+
+### 1. The stock card was empty although a good pick existed
+
+The edition was committed at 07:00 and the pick at 07:10. `build-edition.mjs` reads `stock.json` once,
+and `edition-needed.mjs` only refreshes between 04:00 and 09:00 NY, so nothing looked again: the card
+stayed empty all day with VCTR sitting in the file beside it.
+
+Four changes, each removing one way the card can be empty:
+
+- **Decide overnight.** `stocks.yml` now asks for a slot every 30 minutes from just after NY midnight
+  through late morning (`10,40 4-16 * * *`, 26 slots). The pick for day T uses data through session T−1,
+  so it can be made at 02:00 — hours before the edition needs it, and in the window where the entry rule
+  is trivially satisfied.
+- **A pre-check, so 26 slots cost almost nothing.** New `scripts/stock-needed.mjs`, dependency-free, runs
+  before `npm ci`. A skipped slot is one checkout, about ten seconds.
+- **`outcome` on the published feed**, so a run that *could not decide* is distinguishable from a screen
+  that ran to the end and found nothing. `incomplete` is retried on the next slot; `none-qualified` is
+  final, because thresholds are never relaxed to fill a card. **This retry is the mechanism behind "a new
+  pick every trading day"** — the system keeps trying until it has one instead of giving up at 09:00.
+- **A third pre-check answer, `patch`.** The decision exists but the edition card is not showing it:
+  nothing is fetched and nothing is re-decided, the card just catches up. This is what leaves no way for
+  a published pick to stay off the card — if the patch that should have followed the decision did not
+  land, the next slot notices and does it.
+- **The stocks workflow patches the card itself.** `build-edition.mjs --stock-only` recomputes only
+  `edition.stock`, fetches nothing, and leaves `preparedAt` alone — that field means "when the stories
+  were prepared" and the refresh pre-check uses it as a staleness clock. The app watches the new optional
+  `stockUpdatedAt` instead, so a patched file is still downloaded. **Run against today's edition, this
+  repaired the card Paolo reported: it now carries the VCTR pick.**
+- **The edition is the last resort.** `edition.yml` runs the stock build itself when `stock.json` is not
+  today's — `continue-on-error`, 20-minute timeout, skipped without secrets — so `build-edition.mjs` reads
+  a file written moments earlier in the same job and the ordering is right by construction.
+- **An alarm.** When the card is still not a pick, the run emits `::warning::` and a step-summary line
+  naming the reason. `none-qualified` is a `::notice::`, because that one is a legitimate answer.
+- **The fallback.** A pick still inside its 21-session hold now shows as `kind: 'open-position'` — the
+  pick untouched, under a muted dated header and an eyebrow reading "open position, not today's
+  decision". On a weekend or market holiday this is the *correct* card, not a fallback: no session closed,
+  so there was nothing to decide. `unavailable` survives for the real cases.
+
+Both workflows now share `concurrency.group: brooklyn-data`, so they queue instead of racing; a manual
+backfill takes `brooklyn-backfill` so a long run cannot block a morning. Both push steps retry five times
+and then **fail loudly** instead of `|| true`. The edition's conflict resolution is fixed rather than
+arbitrary: keep this run's stories, then re-apply the card with `--stock-only`.
+
+### 2. `plannedEntry` ignored the publication time — a look-ahead (found here, not reported)
+
+`portfolio.mjs` had `entrySession(calendar, publishedAt)`, correct and unit-tested at the 09:30 ET
+boundary. **`build-stocks.mjs` never called it.** It used the first projected weekday after the last
+cached bar, which knows nothing about when the pick was published, and `publishedAt` was not even created
+until 100 lines later.
+
+ATEX, published 2026-10-06 at **18:20 ET**, was recorded as entering the open of **2026-10-06** — a
+session that had closed nine hours before the pick existed. That is exactly the look-ahead acceptance
+test 8 forbids. The library test passed the whole time.
+
+- `publishedAt` is now computed once, before anything is screened, and the window comes from a new
+  `plannedWindow(calendar, publishedAt, horizon)` in `portfolio.mjs` — the function the build actually
+  calls, so `tests/stocks-entry.test.ts` tests the shipped path rather than a library in isolation. This
+  also fixes the window handed to `earningsRiskInWindow`, which had been one session early.
+- **ATEX's record is corrected.** `state/stocks-v2.json` now records `plannedEntry: 2026-10-07` for it,
+  recomputed from its own `publishedAt`. The card was never displayed, so nothing Paolo saw is rewritten —
+  but leaving it would have credited the strategy with a price from before the pick existed. ATEX and
+  VCTR therefore both enter at the 2026-10-07 open; that is a consequence of the delayed run, not of the
+  rule.
+- The log field is named `plannedEntry`, not `entryDate`, and nothing measures a position from it. A
+  projected weekday is a guess that a market holiday makes wrong, so `measurePick` and
+  `openPositionsFrom` both recompute the real entry from `publishedAt` against the sessions that traded.
+  `openPositionsFrom` had been counting the hold from `p.date`, the edition date, which let a position
+  leave the book a session early.
+
+### 3. Two water polo stories about the same four results
+
+Measured on the real items: title similarity **0.211**, far under the 0.5 dedupe threshold, and
+`SUBJECTS.waterpolo` had only three keys so one story matched `cl-quali` and the other matched nothing —
+the top-three diversity rule had nothing to compare. There were in fact **two** duplicate pairs that day;
+the second (Ilija Duretic / PanAm gold, told twice) Paolo did not mention.
+
+New in `rank.mjs`: `properNouns`, `documentFrequency`, `distinctiveTokens`, `sharedDistinctive`,
+`sameStory`, wired into `selectPerTopic` against **every** pick in a section, not just the first three.
+Two items are one story when they share ≥2 proper nouns that are rare in the topic's candidate pool *and*
+those names are ≥25% of the shorter item's rare vocabulary.
+
+**The thresholds were calibrated, not chosen.** `scripts/replay-rules.mjs` replays all the new rules over
+the archive; a parameter sweep over 21 hand-labelled pairs (16 real duplicates, 5 that merely share a
+section's vocabulary) at production pool sizes picked `maxShare 0.15 / minShared 2 / minOverlap 0.25`:
+**15 of 16 duplicates caught, 0 false positives.** Two findings came out of doing it this way:
+
+- A *single* shared rare name is not evidence. The one miss is "Man City rule breaches not my concern —
+  Mancini" against "Mancini refers to 'double' Manchester City contract": in a soccer pool "Manchester"
+  and "City" are too common to count, leaving only "Mancini". `SUBJECTS.soccer` separates those anyway.
+- Document frequency has to come from the **whole candidate pool**, not the six stories selected. At a
+  pool of six, "Men", "Club", "Division", "Water" and "Polo" look distinctive and tie unrelated CWPA
+  notices together — 6 false positives, measured. At the ~42 the live build ranks, they do not.
+- The publisher's own name is excluded: several feeds sign their excerpts ("…Total Waterpolo"), which made
+  every pair from one publisher look related.
+
+`SUBJECTS.waterpolo` also goes from 3 keys to 10. It only orders the top three; `sameStory` is the net.
+
+### 4. "AI & Data" was "whatever those tech publishers posted"
+
+The topic was a property of the *feed*, never checked against the item, and two of six feeds were
+general-interest. On 2026-10-07 MIT Technology Review's main feed carried **zero** AI items — ten pieces
+of climate tech and biotech — and `technology-lab` was security, space and hardware. Three of six stories
+were off-topic.
+
+- Feeds swapped to `technologyreview.com/topic/artificial-intelligence/feed/` and
+  `arstechnica.com/ai/feed/`. Both re-checked against each robots.txt `User-agent: *` block on 2026-10-07.
+  `technologyreview.com/topic/data/feed/` answers 200 with no items, so there is no data-topic feed.
+- **A latent rule violation found while probing this.** MIT TR's AI feed is **40% `<category>sponsored</category>`**
+  — 4 of 10 items — and `parseFeed` read no categories at all, so all four were ordinary candidates for
+  the edition. The project forbids advertising. `parseFeed` now extracts categories from RSS, Atom and
+  RDF, and `SPONSORED_CATEGORIES` drops them from **every** topic. Verified on a live run: all four
+  dropped, by name, in the log.
+- `TOPIC_KEYWORDS` is a backstop so a publisher reorganising its feeds cannot quietly refill the section
+  with biotech again. It covers the data side too — Python, pandas, SQL, DAX, Power BI, Excel, dashboards,
+  analytics — because that is half of what the section is for.
+- Every dropped item is logged with its title and the rule that dropped it (`reportDrops`).
+
+Verified on a live build: the AI section came back as six genuine AI/data stories (SynthID, an AI
+"virtual cell" investment, Python IDEs, Gemini pricing, a pandas tutorial, Apple Intelligence removal),
+no sponsored item, and no duplicate in any section.
+
+### The backtest was run — and it does not support the ranking
+
+`npm run backtest:stocks`, development window only (the held-out window stays closed). Full output under
+`<!-- backtest -->` below. The number that matters:
+
+| | mean excess vs SPY | win rate | t / Newey-West |
+|---|---|---|---|
+| composite (the live rule) | **+0.43%** | 55% | 0.46 / 1.39 |
+| random pick from the same eligible set | **+1.14%** | 58% | 0.72 / 1.72 |
+
+**On 132 overlapping decision days the composite ranking did worse than picking at random from the names
+it had already qualified.** The eligibility screens and the ranking are different things, and this says
+nothing good about the ranking. It is not evidence that the ranking is harmful either: t = 0.46, about ten
+non-overlapping blocks, and survivorship bias flatters every row equally. But it is the opposite of
+support, and the card's "not enough evidence yet" stays — now with a measurement behind it rather than an
+absence of one.
+
+The five-session-return decile table is flat (top decile less the rest: **−0.26%**), so that signal stays
+out of the score, which is what `candidateSignalsAdopted: []` already says.
+
+### Still open
+- **One real run has not been watched yet.** The overnight schedule, the pre-check, the `--stock-only`
+  patch and the retrying pushes have been exercised locally and in the shell, but not yet by GitHub's
+  scheduler. The first run's duration belongs in this file.
+- **Two write-ups of two *different* games between the same two schools in one week would collapse to
+  one.** Understood and accepted: no score is lost, because scores come from the water polo feed, not the
+  news section.
+- **`TOPIC_KEYWORDS` has only an `ai` entry.** The other sections have not shown the problem. Adding one
+  for a section that does not need it would risk dropping a legitimate story for nothing.
+
+## Backtest
+
+<!-- backtest -->
+### Backtest — strategy 46527bc8ea38a026, run 2026-10-07
+
+494 sessions cached · 221 decision days · development 2025-10-20 to 2026-04-29 (132) · held out 2026-04-30 to 2026-09-04 (89, not opened)
+
+**development** — 2025-10-20 to 2026-04-29, 132 decision days. Buy and hold: SPY +5.94%, RSP +5.51%.
+
+| strategy | portfolio | mean position | mean excess vs SPY | win rate | avg gain | avg loss | max drawdown | n | names | top division | t / Newey-West |
+|---|---|---|---|---|---|---|---|---|---|---|---|
+| composite | +17.01% | +2.08% | +0.43% | 55% | +11.72% | -9.85% | -4.33% | 132 | 78 | 16% Finance, Insurance and Real Estate | 0.46 / 1.39 |
+| priceOnly | no positions | | | | | | | | | | |
+| random | +15.10% | +2.12% | +1.14% | 58% | +9.82% | -8.65% | -2.48% | 132 | 112 | 20% Mining | 0.72 / 1.72 |
+| v1 | +28.79% | +3.85% | +4.02% | 49% | +14.05% | -6.04% | -5.22% | 132 | 67 | 100% n/a | 1.39 / 1.37 |
+
+**Forward 21-session excess return by five-session-return decile** — the reversal hypothesis, tested rather than assumed.
+
+| decile | five-session return | n | mean excess vs SPY |
+|---|---|---|---|
+| 1 | -19.91% to -4.10% | 1,757 | -0.73% |
+| 2 | -4.10% to -2.26% | 1,757 | +0.30% |
+| 3 | -2.26% to -1.06% | 1,757 | +0.14% |
+| 4 | -1.06% to -0.03% | 1,757 | +0.53% |
+| 5 | -0.03% to +0.96% | 1,757 | +0.17% |
+| 6 | +0.96% to +1.97% | 1,757 | +0.22% |
+| 7 | +1.97% to +3.09% | 1,757 | +0.10% |
+| 8 | +3.09% to +4.52% | 1,757 | -0.16% |
+| 9 | +4.53% to +6.88% | 1,757 | -0.33% |
+| 10 | +6.88% to +39.22% | 1,765 | -0.24% |
+
+Top decile less the rest: **-0.26%** over 17,578 overlapping observations. Observations overlap heavily — thousands share the same 21 sessions — so the differences are descriptive and no significance is claimed from them. A flat table means the five-session return stays out of the score.
+
+**Limitations**
+- The universe is the list of securities traded today, so no delisted company is ever bought. The result is biased upward and there is no free source of historical listings to correct it.
+- The quiet window uses the 10-Q or 10-K acceptance date, not the 8-K item 2.02 announcement, because a historical filing index per company per day is not cached.
+- Fundamentals come from twelve quarters of data sets, so decisions early in the window see fewer filings than decisions late in it.
+- About 10 non-overlapping blocks exist. That cannot establish an edge, and no claim of one is made.
+<!-- backtest -->

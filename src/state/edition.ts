@@ -55,7 +55,13 @@ export const editionActions = {
       const data: unknown = await r.json();
       if (!validEdition(data)) throw new Error('Edition file is malformed');
       const cur = editionStore.get().edition;
-      if (!cur || cur.preparedAt !== data.preparedAt) {
+      // `preparedAt` alone is not enough. The stock pick is published by a separate workflow that
+      // patches `edition.json` in place afterwards, deliberately leaving `preparedAt` where it is —
+      // it means "when the stories were prepared" and the build's refresh pre-check uses it as a
+      // staleness clock. Without comparing `stockUpdatedAt` the app would download the patched file,
+      // see the same `preparedAt`, and throw away the pick it came for.
+      const changed = !cur || cur.preparedAt !== data.preparedAt || (cur.stockUpdatedAt ?? null) !== (data.stockUpdatedAt ?? null);
+      if (changed) {
         await kvSet('edition:current', data);
         await kvSet(`edition:${data.date}`, data);
         const dates = [...new Set([data.date, ...editionStore.get().archiveDates])].sort().reverse().slice(0, KEEP);

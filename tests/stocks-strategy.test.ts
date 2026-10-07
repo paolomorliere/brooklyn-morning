@@ -102,3 +102,86 @@ describe('strategy — which card an edition carries', () => {
     expect(stockCardFor(feed({ block: emptyToday }), '2026-10-06')).toBe(emptyToday);
   });
 });
+
+/**
+ * The open-position card.
+ *
+ * Paolo's requirement is a new winner on the card every trading day, and the machinery that delivers it
+ * is the retrying schedule in `stock-needed.mjs`. This card covers the minutes before the day's pick
+ * lands, and the days — weekends, market holidays — when there was no session to decide on and an open
+ * position is simply the correct thing to show.
+ */
+const PICK = {
+  kind: 'pick',
+  strategyVersion: 2,
+  ticker: 'VCTR',
+  name: 'Victory Capital Holdings, Inc.',
+  rule: 'the rule',
+  date: '2026-10-07',
+  publishedAt: '2026-10-07T11:10:46.517Z',
+  decisionSession: '2026-10-06',
+  plannedEntry: '2026-10-07',
+  plannedExit: '2026-11-04',
+};
+
+describe('strategy — the open position shown on a day with no pick of its own', () => {
+  const stale = (over: Record<string, unknown> = {}) =>
+    feed({ decidedFor: '2026-10-07', block: PICK, ...over });
+
+  it('shows the open position when the hold is still running', () => {
+    const card = stockCardFor(stale(), '2026-10-08');
+    expect(card.kind).toBe('open-position');
+    expect(card.date).toBe('2026-10-08');
+    expect(card.heldSince).toBe('2026-10-07');
+    expect(card.pick).toBe(PICK); // the pick itself, untouched
+    expect(card.reason).toMatch(/has not been published yet/);
+  });
+
+  it('never dates it as today’s decision', () => {
+    const card = stockCardFor(stale(), '2026-10-08');
+    // The card's own date is the day it is shown on; the pick keeps the date it was made for. Nothing
+    // here restates an earlier decision as fresh work.
+    expect(card.date).not.toBe((card.pick as { date: string }).date);
+    expect((card.pick as { date: string }).date).toBe('2026-10-07');
+  });
+
+  it('goes back to an empty card once the horizon has passed', () => {
+    const card = stockCardFor(stale(), '2026-11-05');
+    expect(card.kind).toBe('unavailable');
+    expect(card.reason).toContain('belongs to the session it was made in');
+    expect(card.lastPublishedFor).toBe('2026-10-07');
+  });
+
+  it('uses plannedExit as the boundary, to the day', () => {
+    expect(stockCardFor(stale(), '2026-11-04').kind).toBe('open-position');
+    expect(stockCardFor(stale(), '2026-11-05').kind).toBe('unavailable');
+  });
+
+  it('falls back to five calendar weeks when the pick recorded no planned exit', () => {
+    const noExit = { ...PICK, plannedExit: null };
+    expect(stockCardFor(stale({ block: noExit }), '2026-10-30').kind).toBe('open-position');
+    expect(stockCardFor(stale({ block: noExit }), '2026-12-01').kind).toBe('unavailable');
+  });
+
+  it('shows the open position beside a screen that ran today and found nothing', () => {
+    // Today's answer is real and is not rewritten — but an unexpired hold is still true, so it takes the
+    // card and carries today's reason verbatim.
+    const empty = { kind: 'unavailable', strategyVersion: 2, rule: 'r', reason: 'No candidate qualified today. The test that removed the most was trend.' };
+    const card = stockCardFor(feed({ decidedFor: '2026-10-08', block: empty, recaps: [{ kind: 'recap' }] }), '2026-10-08', {
+      existing: { kind: 'open-position', date: '2026-10-08', heldSince: '2026-10-07', pick: PICK },
+    });
+    // An existing open-position card on the same edition is kept rather than rebuilt.
+    expect(card.kind).toBe('open-position');
+  });
+
+  it('says nothing at all when there is no pick anywhere and nothing published', () => {
+    const card = stockCardFor(null, '2026-10-08');
+    expect(card.kind).toBe('unavailable');
+    expect(card.reason).toMatch(/has not published anything yet/);
+  });
+
+  it('does not invent a position from a pick dated after the edition', () => {
+    const card = stockCardFor(stale(), '2026-10-06');
+    expect(card.kind).toBe('unavailable');
+  });
+});

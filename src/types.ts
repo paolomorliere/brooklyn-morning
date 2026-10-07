@@ -215,15 +215,49 @@ export interface StockScoreboard {
   rule: string;
 }
 
+/**
+ * A pick from an earlier session whose 21-session hold has not finished, shown on a day that has no new
+ * pick of its own.
+ *
+ * It carries the earlier pick untouched, so nothing is restated as today's work: the evidence, the
+ * thesis and the invalidation conditions are exactly as they were published on `pick.date`, and the card
+ * is dated and labelled as an open position rather than a decision. On a weekend or a market holiday
+ * this is the correct card and not a fallback — no session closed, so there was nothing to decide.
+ *
+ * It is never a substitute for a pick on a day the screen genuinely emptied: that is still
+ * `StockUnavailable`, which names the test that bound.
+ */
+export interface StockOpenPosition {
+  kind: 'open-position';
+  strategyVersion: 2;
+  /** The edition date this card is being shown on — never the date the pick was made. */
+  date: string;
+  /** The session the pick it holds was made for. */
+  heldSince: string;
+  pick: StockPickV2;
+  /** Why today has no pick of its own, in the app's own words. */
+  reason: string;
+}
+
 /** What the edition carries. `StockPick` stays an alias so v1 readers keep compiling. */
 export type StockPick = StockPickV1;
-export type StockBlock = StockPickV1 | StockPickV2 | StockScoreboard | StockRecap | StockUnavailable;
+export type StockBlock = StockPickV1 | StockPickV2 | StockScoreboard | StockRecap | StockUnavailable | StockOpenPosition;
+
+/**
+ * Why the published feed looks the way it does. Set from 8 October 2026; absent on older files.
+ *
+ *   * `pick`           — a candidate was chosen.
+ *   * `none-qualified` — the screen ran to the end and nothing passed. Final for the day.
+ *   * `incomplete`     — the run could not reach a decision. Retried on the next slot.
+ */
+export type StockOutcome = 'pick' | 'none-qualified' | 'incomplete';
 
 /** The published feed the stocks build writes, read by the edition build and by the app. */
 export interface StockFeed {
   builtAt: string;
   /** The edition date this file is for. A different date means the card is stale, and says so. */
   decidedFor: string;
+  outcome?: StockOutcome;
   strategyVersion: 2;
   strategyHash: string;
   block: StockBlock;
@@ -248,6 +282,17 @@ export interface Edition {
   schemaVersion: 1;
   date: string; // YYYY-MM-DD in America/New_York
   preparedAt: string; // ISO
+  /**
+   * When `stock` was last recomputed, if that happened after the stories were prepared.
+   *
+   * The stock pick and the stories are built by two different workflows, and GitHub starts scheduled
+   * runs hours late, so they land in whatever order they happen to. On 7 October 2026 the edition was
+   * built at 07:00 and the pick published at 07:10, and the card stayed empty all day. Now a later
+   * stock run patches the edition in place, and this field is what tells the app the file is worth
+   * downloading again — `preparedAt` must not move, because it means "when the stories were prepared"
+   * and the refresh pre-check uses it as the staleness clock.
+   */
+  stockUpdatedAt?: string | null;
   quote?: Quote | null;
   stock?: StockBlock | null;
   stories: Story[];

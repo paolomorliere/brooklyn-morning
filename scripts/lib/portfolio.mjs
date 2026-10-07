@@ -133,6 +133,29 @@ export function exitSession(calendar, entryDate, horizon = HORIZON_SESSIONS) {
   return j < calendar.length ? calendar[j] : null;
 }
 
+/**
+ * The holding window a pick published at `publishedAt` is planning on: entry, exit, and the extended
+ * calendar both were read off.
+ *
+ * This exists because the build used to plan its own window inline and got it wrong. It took the first
+ * projected weekday after the last cached bar as the entry, which knows nothing about the hour the pick
+ * was published, so a pick made at 18:20 ET on a trading day was booked into the open of a session that
+ * had already closed. That is a look-ahead, and it silently fed the earnings-inside-window test a window
+ * that began one session early as well.
+ *
+ * Both dates come from `entrySession` and `exitSession` — the same two functions `measurePick` uses when
+ * the sessions have really traded — so the card's plan and the recap's measurement cannot diverge.
+ * The exit is approximate in calendar terms: a public holiday inside the projection pushes it a day
+ * later, which is why the card says "to about".
+ */
+export function plannedWindow(calendar, publishedAt, horizon = HORIZON_SESSIONS) {
+  const projected = projectSessions(calendar, horizon + 2);
+  const extended = [...calendar, ...projected];
+  const entry = entrySession(extended, publishedAt);
+  const exit = entry ? exitSession(extended, entry, horizon) : null;
+  return { entry, exit, extended };
+}
+
 /** Sessions elapsed from the entry session through `asOf`, counting the entry session as 1. */
 export function sessionsHeld(calendar, entryDate, asOf) {
   const i = calendar.indexOf(entryDate);
