@@ -30,6 +30,21 @@
    "rankScore": 100,
    "composite": 1.5270272407710381,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-08",
+   "publishedAt": "2026-10-08T11:17:45.777Z",
+   "ticker": "AFRM",
+   "name": "Affirm Holdings, Inc.",
+   "cik": "1820953",
+   "sic": "6141",
+   "division": "Finance, Insurance and Real Estate",
+   "decisionSession": "2026-10-07",
+   "plannedEntry": "2026-10-08",
+   "referenceClose": 75.31,
+   "rankScore": 99,
+   "composite": 1.36599164781193,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
