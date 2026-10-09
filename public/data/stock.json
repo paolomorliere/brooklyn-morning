@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-10-08T11:17:46.541Z",
- "decidedFor": "2026-10-08",
+ "builtAt": "2026-10-09T11:16:18.578Z",
+ "decidedFor": "2026-10-09",
  "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
@@ -8,271 +8,295 @@
   "kind": "pick",
   "strategyVersion": 2,
   "strategyHash": "46527bc8ea38a026",
-  "date": "2026-10-08",
-  "publishedAt": "2026-10-08T11:17:45.777Z",
-  "decisionSession": "2026-10-07",
-  "ticker": "AFRM",
-  "name": "Affirm Holdings, Inc.",
-  "cik": "1820953",
-  "sic": "6141",
-  "sector": "Finance, Insurance and Real Estate",
-  "industry": "61",
-  "referenceClose": 75.31,
-  "referenceCloseDate": "2026-10-07",
+  "date": "2026-10-09",
+  "publishedAt": "2026-10-09T11:16:17.703Z",
+  "decisionSession": "2026-10-08",
+  "ticker": "HNGE",
+  "name": "Hinge Health, Inc.",
+  "cik": "1673743",
+  "sic": "7374",
+  "sector": "Services",
+  "industry": "73",
+  "referenceClose": 98,
+  "referenceCloseDate": "2026-10-08",
   "horizonSessions": 21,
-  "plannedEntry": "2026-10-08",
-  "plannedExit": "2026-11-05",
-  "thesis": "Ranked first among today's eligible candidates on earnings yield, valuation against its own industry, return on equity — revenue +32.2% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago.",
-  "rankScore": 99,
-  "composite": 1.36599164781193,
-  "scoredAgainst": "80 finance candidates",
+  "plannedEntry": "2026-10-09",
+  "plannedExit": "2026-11-06",
+  "thesis": "Ranked first among today's eligible candidates on operating margin trend, six-month return against its sector, six-month return against spy — revenue +49.8% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
+  "rankScore": 100,
+  "composite": 1.643671208409735,
+  "scoredAgainst": "362 operating candidates",
   "scanned": 5051,
-  "eligible": 476,
+  "eligible": 491,
   "signals": [
    {
     "key": "revenueGrowth",
     "label": "Revenue growth, trailing year",
-    "value": 0.32150637077395827,
-    "z": 1.3179528273655063,
-    "cohort": 80
+    "value": 0.49764972108636973,
+    "z": 3.020007364590501,
+    "cohort": 362
    },
    {
     "key": "growthAcceleration",
     "label": "Growth acceleration",
-    "value": 0.0039524563564361515,
-    "z": -0.08485488877962831,
-    "cohort": 80
+    "value": 0.05768328538531797,
+    "z": 0.5094085266578556,
+    "cohort": 362
    },
    {
-    "key": "returnOnEquity",
-    "label": "Return on equity",
-    "value": 0.35190644338695043,
-    "z": 1.539503381214532,
-    "cohort": 77
+    "key": "grossMarginTrend",
+    "label": "Gross margin trend",
+    "value": 0.06843025171463757,
+    "z": 2.4560026791078395,
+    "cohort": 196
    },
    {
-    "key": "equityToAssets",
-    "label": "Equity over assets",
-    "value": 0.3472940215633191,
-    "z": 0.3888478248246829,
-    "cohort": 78
+    "key": "operatingMarginTrend",
+    "label": "Operating margin trend",
+    "value": 1.2750055124728221,
+    "z": 3.938351156106785,
+    "cohort": 326
+   },
+   {
+    "key": "cashConversion",
+    "label": "Cash conversion",
+    "value": 2.666082938323447,
+    "z": 1.2208746397820824,
+    "cohort": 314
+   },
+   {
+    "key": "grossProfitability",
+    "label": "Gross profit over assets",
+    "value": 0.7353268922574142,
+    "z": 2.0139784612129334,
+    "cohort": 196
+   },
+   {
+    "key": "fcfYield",
+    "label": "Free cash flow yield",
+    "value": 0.03548641119278551,
+    "z": -0.44487387195998657,
+    "cohort": 320
    },
    {
     "key": "earningsYield",
     "label": "Earnings yield",
-    "value": 88.3331715907638,
-    "z": 3.1923796868592276,
-    "cohort": 80
+    "value": 0.013340872885402724,
+    "z": -0.5842449573081544,
+    "cohort": 342
    },
    {
     "key": "peerPercentile",
     "label": "Valuation against its own industry",
-    "value": 1,
-    "z": 1.6055378657412651,
-    "cohort": 80
+    "value": 0.3805309734513274,
+    "z": -0.6857558217178686,
+    "cohort": 320
    },
    {
     "key": "relativeStrengthSpy",
     "label": "Six-month return against SPY",
-    "value": 0.3622286723246062,
-    "z": 1.5196298078857602,
-    "cohort": 80
+    "value": 1.585452400515129,
+    "z": 3.3043341626980633,
+    "cohort": 362
    },
    {
     "key": "relativeStrengthSector",
     "label": "Six-month return against its sector",
-    "value": 0.4675831004397115,
-    "z": 1.4489366773840928,
-    "cohort": 80
+    "value": 1.4832954215011074,
+    "z": 3.332300953337034,
+    "cohort": 362
    }
   ],
-  "signalsDropped": [
-   {
-    "key": "grossMarginTrend",
-    "why": "gross profit is not reported"
-   }
-  ],
+  "signalsDropped": [],
   "evidence": [
    {
     "label": "Revenue, trailing year",
-    "value": "$4.3bn, +32.2%",
+    "value": "$720M, +49.8%",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-27",
-    "tag": "Revenues"
+    "filed": "2026-08-06",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Quarterly revenue, year on year",
-    "value": "+33.0%, against +32.6% the quarter before",
+    "value": "+53.0%, against +47.2% the quarter before",
     "period": "quarter to 2026-06-30",
-    "filed": "2026-08-27",
-    "tag": "Revenues"
+    "filed": "2026-08-06",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
+   },
+   {
+    "label": "Gross margin, trailing year",
+    "value": "84.5%, from 77.7%",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-06",
+    "tag": "GrossProfit"
    },
    {
     "label": "Operating margin, trailing year",
-    "value": "9.8%, from -2.7%",
+    "value": "13.0%, from -114.5%",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "OperatingIncomeLoss"
    },
    {
     "label": "Cash conversion (cash flow ÷ earnings)",
-    "value": "0.64×",
+    "value": "2.67×",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "NetCashProvidedByUsedInOperatingActivities"
    },
    {
     "label": "Free cash flow, trailing year",
-    "value": "$993M (23.3% of revenue)",
+    "value": "$290M (40.3% of revenue)",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
    },
    {
     "label": "Return on equity, trailing year",
-    "value": "35.2%",
+    "value": "31.7%",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Equity ÷ assets",
-    "value": "34.7%",
+    "value": "41.6%",
     "period": "at 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Earnings yield / free cash flow yield",
-    "value": "8833.3% / 4543.6%",
+    "value": "1.3% / 3.5%",
     "period": "trailing year against the reference close",
     "filed": null,
     "interpretation": true
    },
    {
     "label": "Share count",
-    "value": "290,091 (market cap $22M)",
+    "value": "83,424,000 (market cap $8.2bn)",
     "period": "at 2026-06-30",
-    "filed": "2026-08-27",
+    "filed": "2026-08-06",
     "tag": "WeightedAverageNumberOfDilutedSharesOutstanding"
    }
   ],
   "peers": [
    {
-    "ticker": "AFRM",
-    "name": "Affirm Holdings, Inc.",
-    "revenueTtm": 4261081000,
-    "revenueGrowth": 0.32150637077395827,
-    "quarterYoY": 0.3303712730355528,
-    "grossMargin": null,
-    "operatingMargin": 0.09785709307098363,
-    "cashConversion": 0.6378787776720094,
-    "freeCashFlowTtm": 992628000
+    "ticker": "HNGE",
+    "name": "Hinge Health, Inc.",
+    "revenueTtm": 720061000,
+    "revenueGrowth": 0.49764972108636973,
+    "quarterYoY": 0.5299788638226286,
+    "grossMargin": 0.8449395259568286,
+    "operatingMargin": 0.1300889785726487,
+    "cashConversion": 2.666082938323447,
+    "freeCashFlowTtm": 290121000
    },
    {
-    "ticker": "BFH",
-    "name": "Bread Financial Holdings, Inc.",
-    "revenueTtm": 3957000000,
-    "revenueGrowth": 0.03940110323089052,
-    "quarterYoY": 0.06889128094725505,
+    "ticker": "GOOGL",
+    "name": "Alphabet Inc.",
+    "revenueTtm": 445867000000,
+    "revenueGrowth": 0.20050673265140717,
+    "quarterYoY": 0.2423362508814868,
     "grossMargin": null,
-    "operatingMargin": null,
+    "operatingMargin": 0.3311032213642185,
+    "cashConversion": 0.7603243176839131,
+    "freeCashFlowTtm": 53273000000
+   },
+   {
+    "ticker": "MSFT",
+    "name": "Microsoft Corporation",
+    "revenueTtm": 331839000000,
+    "revenueGrowth": 0.17788686799846665,
+    "quarterYoY": 0.17747020577962092,
+    "grossMargin": 0.6794409337058032,
+    "operatingMargin": 0.4678081840892722,
+    "cashConversion": 1.367748543914347,
+    "freeCashFlowTtm": 66987000000
+   },
+   {
+    "ticker": "META",
+    "name": "Meta Platforms, Inc.",
+    "revenueTtm": 228247000000,
+    "revenueGrowth": 0.27652065949307625,
+    "quarterYoY": 0.27959003283104633,
+    "grossMargin": null,
+    "operatingMargin": 0.38084618855888575,
+    "cashConversion": 1.9134335810155951,
+    "freeCashFlowTtm": 40976000000
+   },
+   {
+    "ticker": "ACN",
+    "name": "Accenture plc",
+    "revenueTtm": 73100595000,
+    "revenueGrowth": 0.06743411196104065,
+    "quarterYoY": 0.055859668653951644,
+    "grossMargin": null,
+    "operatingMargin": 0.1448994225012806,
+    "cashConversion": 1.6922353882382906,
+    "freeCashFlowTtm": 12581688000
+   },
+   {
+    "ticker": "CRM",
+    "name": "Salesforce, Inc.",
+    "revenueTtm": 43938000000,
+    "revenueGrowth": 0.11229811148802593,
+    "quarterYoY": 0.1083431027745212,
+    "grossMargin": 0.772816241066958,
+    "operatingMargin": 0.1988028585734444,
+    "cashConversion": 1.630097288346098,
+    "freeCashFlowTtm": 15154000000
+   },
+   {
+    "ticker": "MELI",
+    "name": "MercadoLibre, Inc.",
+    "revenueTtm": 35182000000,
+    "revenueGrowth": 0.46007636122177953,
+    "quarterYoY": 0.4976435935198822,
+    "grossMargin": 0.426752316525496,
+    "operatingMargin": 0.08262747996134387,
     "cashConversion": 3,
-    "freeCashFlowTtm": null
-   },
-   {
-    "ticker": "ENVA",
-    "name": "Enova International, Inc.",
-    "revenueTtm": 3446138000,
-    "revenueGrowth": 0.17653417018912898,
-    "quarterYoY": 0.21580460785584066,
-    "grossMargin": 0.5976620785354504,
-    "operatingMargin": 0.24017465348166556,
-    "cashConversion": 3,
-    "freeCashFlowTtm": 1952781000
-   },
-   {
-    "ticker": "CHYM",
-    "name": "Chime Financial, Inc.",
-    "revenueTtm": 2457032000,
-    "revenueGrowth": 0.2639209537566307,
-    "quarterYoY": 0.2681421341326027,
-    "grossMargin": 0.8870678118966298,
-    "operatingMargin": -0.020753901455088906,
-    "cashConversion": null,
-    "freeCashFlowTtm": null
-   },
-   {
-    "ticker": "CACC",
-    "name": "Credit Acceptance Corporation",
-    "revenueTtm": 2329700000,
-    "revenueGrowth": 0.0258024745717933,
-    "quarterYoY": 0.006166495375128367,
-    "grossMargin": null,
-    "operatingMargin": null,
-    "cashConversion": 2.4407252440725244,
-    "freeCashFlowTtm": 1221100000
-   },
-   {
-    "ticker": "ECPG",
-    "name": "Encore Capital Group Inc",
-    "revenueTtm": 1901188000,
-    "revenueGrowth": 0.29545164954445635,
-    "quarterYoY": 0.11252550201075717,
-    "grossMargin": null,
-    "operatingMargin": 0.37737719783630025,
-    "cashConversion": 0.5018520422205937,
-    "freeCashFlowTtm": 125139000
-   },
-   {
-    "ticker": "PGY",
-    "name": "Pagaya Technologies Ltd.",
-    "revenueTtm": 1389959000,
-    "revenueGrowth": 0.2054994948027562,
-    "quarterYoY": 0.1857977070937935,
-    "grossMargin": null,
-    "operatingMargin": 0.24855193570457834,
-    "cashConversion": 2.0876443126616615,
-    "freeCashFlowTtm": 251779000
+    "freeCashFlowTtm": 12409000000
    }
   ],
-  "peerBasis": "11 candidates in SIC major group 61, compared on earnings yield, all from the same source and the same periods.",
+  "peerBasis": "113 candidates in SIC major group 73, compared on free cash flow yield, all from the same source and the same periods.",
   "runnersUp": [
-   {
-    "ticker": "SLDE",
-    "name": "Slide Insurance Holdings, Inc.",
-    "rankScore": 99,
-    "why": "its weakest signal was equity over assets (0.31)"
-   },
    {
     "ticker": "TVTX",
     "name": "Travere Therapeutics, Inc.",
     "rankScore": 99,
-    "why": "its weakest signal was growth acceleration (-1.37)"
+    "why": "its weakest signal was growth acceleration (-1.29)"
    },
    {
     "ticker": "OSCR",
     "name": "Oscar Health, Inc.",
     "rankScore": 99,
-    "why": "its weakest signal was valuation against its own industry (-1.07)"
+    "why": "its weakest signal was valuation against its own industry (-1.06)"
+   },
+   {
+    "ticker": "MSGS",
+    "name": "Madison Square Garden Sports Corp.",
+    "rankScore": 99,
+    "why": "its weakest signal was debt over operating cash flow (-1.27)"
    }
   ],
-  "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
+  "counterargument": "It is an expensive stock: 75.0× trailing earnings and a 3.5% free cash flow yield, so the growth is already in the price and one weak quarter would cost a lot.",
   "invalidation": [
-   "Quarterly revenue growth falling below +32.6%, the rate it was running at the quarter before.",
+   "Quarterly revenue growth falling below +47.2%, the rate it was running at the quarter before.",
+   "Gross margin falling back below 82.5%.",
    "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
-   "A close below the 200-session average, which stood at $66.80 on the decision date."
+   "A close below the 200-session average, which stood at $62.16 on the decision date."
   ],
   "risks": [
-   "The share count is from 2026-06-30, 99 days older than the price, so the market capitalisation carries that staleness.",
-   "The most recent filing covers a period ending 2026-06-30, 99 days before the decision date.",
+   "The share count is from 2026-06-30, 100 days older than the price, so the market capitalisation carries that staleness.",
+   "The most recent filing covers a period ending 2026-06-30, 100 days before the decision date.",
    "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
-   "Point-in-time fundamentals are built from filings accepted up to 2026-10-07."
+   "Point-in-time fundamentals are built from filings accepted up to 2026-10-08."
   ],
   "earnings": {
-   "estimate": "2026-11-05",
-   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-06) plus 364 days",
-   "spreadDays": 21,
+   "estimate": "2026-11-03",
+   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-04) plus 364 days",
+   "spreadDays": 7,
    "confirmed": false,
    "inWindow": true,
    "nearWindow": false
@@ -291,7 +315,7 @@
   {
    "kind": "recap",
    "strategyVersion": 2,
-   "asOf": "2026-10-07",
+   "asOf": "2026-10-08",
    "rows": [
     {
      "strategyVersion": 2,
@@ -302,14 +326,14 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 81.69,
-     "valueDate": "2026-10-07",
-     "valuePrice": 81.18,
-     "sessionsHeld": 1,
+     "valueDate": "2026-10-08",
+     "valuePrice": 76.44,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": -0.8228642455597845,
-     "grossPct": -0.6243114212265755,
-     "excessSpyPct": -0.9697085634848057,
-     "excessRspPct": -0.5083348605001592
+     "netPct": -6.61369478850199,
+     "grossPct": -6.426735218508995,
+     "excessSpyPct": -6.336613940057168,
+     "excessRspPct": -6.900307605156398
     },
     {
      "strategyVersion": 2,
@@ -320,20 +344,38 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 112.1,
-     "valueDate": "2026-10-07",
-     "valuePrice": 111.85,
-     "sessionsHeld": 1,
+     "valueDate": "2026-10-08",
+     "valuePrice": 111.72,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": -0.42236978008609594,
-     "grossPct": -0.2230151650312262,
-     "excessSpyPct": -0.5692140980111171,
-     "excessRspPct": -0.10784039502647058
+     "netPct": -0.5381059618347672,
+     "grossPct": -0.3389830508474523,
+     "excessSpyPct": -0.2610251133899455,
+     "excessRspPct": -0.8247187784891752
     },
     {
      "strategyVersion": 2,
      "date": "2026-10-08",
      "ticker": "AFRM",
      "name": "Affirm Holdings, Inc.",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-08",
+     "entryPrice": 74.66,
+     "valueDate": "2026-10-08",
+     "valuePrice": 77.15,
+     "sessionsHeld": 1,
+     "horizon": 21,
+     "netPct": 3.12865543243257,
+     "grossPct": 3.335119207072079,
+     "excessSpyPct": 3.2886211162955092,
+     "excessRspPct": 2.2689216738789986
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-10-09",
+     "ticker": "HNGE",
+     "name": "Hinge Health, Inc.",
      "status": "not-entered",
      "reason": "the market has not opened since publication",
      "entryDate": null,
@@ -349,21 +391,22 @@
     }
    ],
    "completed": 0,
-   "open": 2,
+   "open": 3,
    "meanNetPct": null,
    "meanExcessSpyPct": null,
    "meanExcessRspPct": null,
    "winRate": null,
-   "mixedHorizonMeanPct": -0.6226170128229402,
+   "mixedHorizonMeanPct": -1.3410484393013955,
    "horizonsSpanned": [
-    1
+    1,
+    2
    ],
    "note": "Each position is bought at the open of the first session after it was published and held 21 sessions. Costs of 10 basis points each way on the stock and 2 on the benchmark are deducted. Only completed positions enter the average; a position still running is listed with the sessions elapsed and counted nowhere else."
   },
   {
    "kind": "recap",
    "strategyVersion": 1,
-   "asOf": "2026-10-07",
+   "asOf": "2026-10-08",
    "rows": [
     {
      "strategyVersion": 1,
@@ -532,18 +575,18 @@
      "date": "2026-10-02",
      "ticker": "ACN",
      "name": "Accenture",
-     "status": "open",
+     "status": "complete",
      "reason": null,
      "entryDate": "2026-10-02",
      "entryPrice": 211.02,
-     "valueDate": "2026-10-07",
-     "valuePrice": 196.64,
-     "sessionsHeld": 4,
+     "valueDate": "2026-10-08",
+     "valuePrice": 208.36,
+     "sessionsHeld": 5,
      "horizon": 5,
-     "netPct": -7.00070472603882,
-     "grossPct": -6.814519950715581,
-     "excessSpyPct": -7.8220567161199295,
-     "excessRspPct": -7.16522718149446
+     "netPct": -1.4578256545842438,
+     "grossPct": -1.2605440242630994,
+     "excessSpyPct": -1.852397263245209,
+     "excessRspPct": -2.2263791808776134
     },
     {
      "strategyVersion": 1,
@@ -554,14 +597,14 @@
      "reason": null,
      "entryDate": "2026-10-05",
      "entryPrice": 417.85,
-     "valueDate": "2026-10-07",
-     "valuePrice": 410.08,
-     "sessionsHeld": 3,
+     "valueDate": "2026-10-08",
+     "valuePrice": 405.93,
+     "sessionsHeld": 4,
      "horizon": 5,
-     "netPct": -2.055603843326703,
-     "grossPct": -1.8595189661361866,
-     "excessSpyPct": -2.9935365389790913,
-     "excessRspPct": -2.3633071094586455
+     "netPct": -3.0467988395474266,
+     "grossPct": -2.8526983367237135,
+     "excessSpyPct": -3.5574576634920585,
+     "excessRspPct": -3.9593966125548996
     },
     {
      "strategyVersion": 1,
@@ -572,25 +615,24 @@
      "reason": null,
      "entryDate": "2026-10-06",
      "entryPrice": 242.1,
-     "valueDate": "2026-10-07",
-     "valuePrice": 237.47,
-     "sessionsHeld": 2,
+     "valueDate": "2026-10-08",
+     "valuePrice": 230.48,
+     "sessionsHeld": 3,
      "horizon": 5,
-     "netPct": -2.108412034062579,
-     "grossPct": -1.9124328789756229,
-     "excessSpyPct": -1.948953596122216,
-     "excessRspPct": -1.4973817921623334
+     "netPct": -4.989880008467362,
+     "grossPct": -4.7996695580338695,
+     "excessSpyPct": -4.407792994655068,
+     "excessRspPct": -4.978203952667714
     }
    ],
-   "completed": 9,
-   "open": 3,
-   "meanNetPct": -0.19027883812731744,
-   "meanExcessSpyPct": -0.394407465897173,
-   "meanExcessRspPct": 0.20504552531916842,
-   "winRate": 0.4444444444444444,
-   "mixedHorizonMeanPct": -1.0731025122144966,
+   "completed": 10,
+   "open": 2,
+   "meanNetPct": -0.3170335197730101,
+   "meanExcessSpyPct": -0.5402064456319766,
+   "meanExcessRspPct": -0.03809694530050978,
+   "winRate": 0.4,
+   "mixedHorizonMeanPct": -0.9339178371454074,
    "horizonsSpanned": [
-    2,
     3,
     4,
     5

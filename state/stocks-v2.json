@@ -45,6 +45,21 @@
    "rankScore": 99,
    "composite": 1.36599164781193,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-09",
+   "publishedAt": "2026-10-09T11:16:17.703Z",
+   "ticker": "HNGE",
+   "name": "Hinge Health, Inc.",
+   "cik": "1673743",
+   "sic": "7374",
+   "division": "Services",
+   "decisionSession": "2026-10-08",
+   "plannedEntry": "2026-10-09",
+   "referenceClose": 98,
+   "rankScore": 100,
+   "composite": 1.643671208409735,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
