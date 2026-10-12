@@ -1,9 +1,30 @@
 # Prepare the morning edition so it is ready before 6:00 AM New York time.
 #
-# GitHub runs scheduled workflows on a best-effort basis. On this repository they have started 3.5–6 hours
-# after the requested slot, so a single 5:50 AM cron is useless. Instead the workflow asks for a slot every
-# 30 minutes from just after New York midnight (04:05 UTC in EDT) through late morning, and a dependency-free
-# pre-check makes the runs that have nothing to do cost one checkout (~10 s) instead of a full install.
+# GitHub runs scheduled workflows on a best-effort basis, and on this repository "best effort" is poor.
+# Measured over 2026-10-05 to 10-11: this workflow asked for 18 slots a day and GitHub delivered
+# **exactly two, every single day**, the first between 10:32 and 11:21 UTC — about six and a half hours
+# after the first requested slot. On 2026-10-12 it delivered none at all before 07:42 New York, which is
+# the morning Paolo found no edition.
+#
+# Two things follow, and the schedule below is built on both.
+#
+# **Asking more often does not help.** Eighteen requests produced two runs; the water polo workflow asks
+# for eight across three separate cron expressions and gets four or five. So this now asks for eight,
+# spread over four expressions, at minutes nowhere near the top of the hour (GitHub's own documentation
+# names the start of the hour as its congested period). That is a bet on the shape of the throttle rather
+# than a proven mechanism, and the run counts in STATUS.md are the way to tell whether it paid off.
+#
+# **The first slot cannot move earlier than New York midnight.** The edition is dated in New York, so a run
+# before midnight there would build the wrong day. Midnight NY is 04:00 UTC in EDT, and with a six-and-a-half
+# hour lag that puts the earliest realistic edition at about 06:30 NY. That is the floor, and no arrangement
+# of crons beats it.
+#
+# So the schedule alone cannot guarantee a 6 AM edition. Two things cover the gap: the `workflow_run`
+# triggers below, which give the edition a free attempt whenever any other data workflow finishes (water
+# polo runs Monday at about 09:01 UTC, earlier than this workflow has ever managed), and the "Run it now"
+# link the Morning screen shows when the edition is stale.
+#
+# A dependency-free pre-check makes every run that has nothing to do cost one checkout, about ten seconds.
 #
 #   no edition for today's NY date        -> build it, commit, deploy
 #   today's edition older than 2.5 h and  -> refresh it in place (same date, same stock pick and quote,
@@ -13,7 +34,21 @@ name: Morning edition
 
 on:
   schedule:
-    - cron: '5,35 4-12 * * *'
+    # Just after New York midnight — 04:xx UTC in EDT, 05:xx in EST.
+    - cron: '7 4,5 * * *'
+    # About 02:20 New York.
+    - cron: '23 6,7 * * *'
+    # About 04:40 New York — the slot that most often produces the morning edition.
+    - cron: '41 8,9 * * *'
+    # About 07:10 New York — the catch-up, for a morning the earlier slots were dropped.
+    - cron: '13 11,12 * * *'
+  # A free extra attempt whenever another data workflow finishes. These cost one checkout each when there
+  # is nothing to do, and they are the only thing that runs the edition earlier than GitHub's own lag
+  # allows: the water polo workflow lands around 09:01 UTC on a Monday. No loop is possible — the edition
+  # does not trigger either of these.
+  workflow_run:
+    workflows: ['Water polo results', 'Stock in focus']
+    types: [completed]
   workflow_dispatch:
     inputs:
       mode:
@@ -53,8 +88,9 @@ jobs:
       - name: Decide what to do
         id: check
         run: |
-          if [ "${{ inputs.mode }}" = "force" ]; then echo "action=force" >> "$GITHUB_OUTPUT"; echo "force: manual run"; exit 0; fi
-          if [ "${{ inputs.mode }}" = "refresh" ]; then echo "action=refresh" >> "$GITHUB_OUTPUT"; echo "refresh: manual run"; exit 0; fi
+          # `inputs` is empty on a schedule or a workflow_run, so these only fire on a real dispatch.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "force" ]; then echo "action=force" >> "$GITHUB_OUTPUT"; echo "force: manual run"; exit 0; fi
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.mode }}" = "refresh" ]; then echo "action=refresh" >> "$GITHUB_OUTPUT"; echo "refresh: manual run"; exit 0; fi
           node scripts/edition-needed.mjs
 
       - uses: actions/setup-node@v4

@@ -465,6 +465,64 @@ out of the score, which is what `candidateSignalsAdopted: []` already says.
 - **`TOPIC_KEYWORDS` has only an `ai` entry.** The other sections have not shown the problem. Adding one
   for a section that does not need it would risk dropping a legitimate story for nothing.
 
+## 2026-10-12 — GitHub's scheduler is the bottleneck, measured
+
+Paolo found no edition at 07:42 New York. The cause is not the build and not the code changed on
+8 October: it is GitHub dropping scheduled runs.
+
+**The measurement** (Actions API, `event == 'schedule'`):
+
+| workflow | slots requested/day | runs delivered/day | first run of the day |
+|---|---|---|---|
+| Morning edition | 18 (`5,35 4-12`) | **exactly 2**, every day 10-05 → 10-11 | 10:32–11:21 UTC |
+| Stock in focus | 26 (`10,40 4-16`) | 2–3 | 10:33–11:17 UTC |
+| Water polo results | 8, across 3 cron expressions | 4–5 | — |
+
+On 10-12 the edition delivered **zero** runs before 07:42 NY. No run was cancelled and none failed to
+start for a repository reason: `conclusions` over 45 edition runs are 41 success / 4 failure, with no
+`cancelled`. The shared `brooklyn-data` concurrency group added on 7 October did not cause it either —
+delivery was 2.1 runs/day before and 2.0 after.
+
+**Two conclusions, and the schedule now reflects both.**
+
+1. *Asking more often does not work.* 18 requests produced 2 runs; water polo's 8 requests across three
+   separate cron expressions produce 4–5. Both workflows now ask for 8 slots across four expressions, at
+   minutes away from the top of the hour, which GitHub's own documentation names as its congested period.
+   **This is a bet on the shape of the throttle, not a proven mechanism** — the table above is the way to
+   tell whether it paid off, and it should be re-measured in a week.
+2. *The first slot cannot move earlier than New York midnight*, because the edition is dated in New York
+   and an earlier run would build the wrong day. Midnight NY is 04:00 UTC in EDT; with the observed
+   six-and-a-half-hour lag that puts the earliest realistic edition at about **06:30 NY**. No arrangement
+   of crons beats that floor.
+
+**So the cron alone cannot guarantee a morning edition, and two things now cover the gap.**
+
+- `workflow_run` triggers: the edition gets a free attempt whenever *Water polo results* or *Stock in
+  focus* finishes. Water polo lands about 09:01 UTC on a Monday — earlier than the edition workflow has
+  ever managed on its own. A run with nothing to do costs one checkout. No loop is possible, because the
+  edition triggers neither of them.
+- A **Build it now** link on the Morning screen, beside "Check again", shown whenever the edition on
+  screen is not today's. "Check again" only re-downloads, which cannot help when the build never ran.
+  The link opens the workflow page; it carries no key, because the authentication is Paolo's own GitHub
+  session. This is the same pattern the poll screen already uses (`POLL_RUN_URL`).
+
+**What is still true and cannot be fixed at zero cost:** GitHub Actions cron is best-effort, and some
+mornings it will simply not fire. The only guaranteed trigger is the manual one.
+
+### Near-duplicate threshold raised to three shared names
+
+`minShared: 2` was calibrated on 7 October against archived *selected* stories. On live pools it was too
+loose. Over the archive it made 11 drops, at least four plainly wrong — "Euro Cup Men: Teams set for
+qualification fight" against "Jadran wins Croatian CHL derby", and two unrelated CWPA notices sharing only
+"collegiate, association". At `minShared: 3` it makes 6 drops, none visibly wrong, and still catches both
+pairs Paolo reported on 7 October: Sabadell/Recco share four names, Duretic shares four.
+
+**A measured limitation, stated rather than papered over.** Today's World section carries three reports of
+the same French school shooting. The rule cannot catch them and no adjustment to it will: their headlines
+share no proper nouns at all — one contains only "french", another only "france". Catching
+same-subject-no-names stories needs a different mechanism, and the pools make it harder still (world and
+soccer hold about 12 candidates against water polo's 45, so almost any word looks rare).
+
 ## Backtest
 
 <!-- backtest -->

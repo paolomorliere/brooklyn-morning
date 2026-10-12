@@ -9,7 +9,7 @@ import { Sheet } from '@/ui/Sheet';
 import { LessonBody } from '@/ui/LessonBody';
 import { snapshotOfStory } from '@/lib/library-repair';
 import { onResume } from '@/state/store';
-import { editionActions, editionStore, type GlossaryTerm } from '@/state/edition';
+import { EDITION_RUN_URL, editionActions, editionStore, type GlossaryTerm } from '@/state/edition';
 import { lessonActions, lessonStore } from '@/state/lessons';
 import { dateFromYMD, type TodayLesson } from '@/lib/lessons';
 import { libraryActions, libraryStore } from '@/state/library';
@@ -138,6 +138,13 @@ export function Home() {
           <p class="small muted" style="margin-top:8px">
             Today's edition hasn't been published yet, so this is {formatDateLong(edition.preparedAt)}.{' '}
             <button class="btn btn--quiet" style="display:inline;padding:0;min-height:0;color:var(--terracotta-deep)" onClick={() => void editionActions.refresh(true)}>Check again</button>
+            {' · '}
+            {/*
+              "Check again" only re-downloads, which cannot help when the build never ran — and GitHub
+              skips whole mornings. This link opens the workflow so it can be started by hand. It carries
+              no key: the authentication is Paolo's own GitHub session.
+            */}
+            <a href={EDITION_RUN_URL} target="_blank" rel="noopener noreferrer" style="color:var(--terracotta-deep)">Build it now</a>
           </p>
         )}
         {ed.lastError && !viewingDate && <p class="small muted" style="margin-top:8px">{ed.lastError}</p>}

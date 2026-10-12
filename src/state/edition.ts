@@ -31,6 +31,17 @@ export const editionStore = createStore<EditionState>(
   }),
 );
 
+/**
+ * Where to go when the edition genuinely has not been built.
+ *
+ * "Check again" re-downloads, which is useless when GitHub never ran the build — and GitHub's scheduler
+ * does skip whole mornings: measured 2026-10-05 to 10-11, it delivered two of eighteen requested slots a
+ * day, and on 10-12 it delivered none before 07:42 New York. This is the one path that does not depend on
+ * that scheduler: open the workflow and press Run workflow. It needs no key in the browser, because the
+ * authentication is Paolo's own GitHub session, not anything this app holds.
+ */
+export const EDITION_RUN_URL = 'https://github.com/paolomorliere/brooklyn-morning/actions/workflows/edition.yml';
+
 const patch = (p: Partial<EditionState>) => editionStore.set({ ...editionStore.get(), ...p });
 
 function validEdition(e: unknown): e is Edition {

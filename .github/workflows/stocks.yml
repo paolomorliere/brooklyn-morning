@@ -36,7 +36,13 @@ name: Stock in focus
 
 on:
   schedule:
-    - cron: '10,40 4-16 * * *'
+    # Measured 2026-10-07 to 10-11: 26 requested slots a day produced two or three runs. Asking more often
+    # does not produce more runs on this repository, so this asks for eight across four expressions, at
+    # minutes away from the congested top of the hour. See the long note in edition.yml.
+    - cron: '9 4,5 * * *'
+    - cron: '27 6,7 * * *'
+    - cron: '47 8,9 * * *'
+    - cron: '19 11,12 * * *'
   workflow_dispatch:
     inputs:
       backfill:
