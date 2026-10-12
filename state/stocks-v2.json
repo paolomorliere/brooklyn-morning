@@ -60,6 +60,21 @@
    "rankScore": 100,
    "composite": 1.643671208409735,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-12",
+   "publishedAt": "2026-10-12T11:52:38.686Z",
+   "ticker": "TVTX",
+   "name": "Travere Therapeutics, Inc.",
+   "cik": "1438533",
+   "sic": "2834",
+   "division": "Manufacturing",
+   "decisionSession": "2026-10-09",
+   "plannedEntry": "2026-10-12",
+   "referenceClose": 52.125,
+   "rankScore": 99,
+   "composite": 1.2433246289774693,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
