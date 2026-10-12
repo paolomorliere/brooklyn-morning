@@ -222,7 +222,7 @@ export const PER_TOPIC = 6;
  * leaves only "Mancini" — one name, and one name is not evidence. `SUBJECTS.soccer` has a `mancity` key
  * that separates those two anyway.
  */
-export const NEAR_DUPLICATE = { maxShare: 0.15, minShared: 2, minOverlap: 0.25 };
+export const NEAR_DUPLICATE = { maxShare: 0.15, minShared: 3, minOverlap: 0.25 };
 
 /**
  * Categories that mean "this is an advertisement", matched against the labels the publisher puts on its
