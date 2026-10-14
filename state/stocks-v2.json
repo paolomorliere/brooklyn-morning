@@ -90,6 +90,21 @@
    "rankScore": 99,
    "composite": 1.2641385093547859,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-14",
+   "publishedAt": "2026-10-14T09:33:15.859Z",
+   "ticker": "SM",
+   "name": "SM Energy Company",
+   "cik": "893538",
+   "sic": "1311",
+   "division": "Mining",
+   "decisionSession": "2026-10-13",
+   "plannedEntry": "2026-10-14",
+   "referenceClose": 38.54,
+   "rankScore": 99,
+   "composite": 1.1314666976699639,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
