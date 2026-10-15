@@ -105,6 +105,21 @@
    "rankScore": 99,
    "composite": 1.1314666976699639,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-15",
+   "publishedAt": "2026-10-15T09:05:50.039Z",
+   "ticker": "LPG",
+   "name": "Dorian LPG Ltd.",
+   "cik": "1596993",
+   "sic": "4412",
+   "division": "Transportation, Communications and Utilities",
+   "decisionSession": "2026-10-14",
+   "plannedEntry": "2026-10-15",
+   "referenceClose": 55.2,
+   "rankScore": 99,
+   "composite": 1.7419676480875657,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
