@@ -120,6 +120,21 @@
    "rankScore": 99,
    "composite": 1.7419676480875657,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-16",
+   "publishedAt": "2026-10-16T08:58:10.231Z",
+   "ticker": "NRIX",
+   "name": "Nurix Therapeutics, Inc.",
+   "cik": "1549595",
+   "sic": "2834",
+   "division": "Manufacturing",
+   "decisionSession": "2026-10-15",
+   "plannedEntry": "2026-10-16",
+   "referenceClose": 24.95,
+   "rankScore": 100,
+   "composite": 2.080918175180155,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }

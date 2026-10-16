@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-10-15T09:05:50.695Z",
- "decidedFor": "2026-10-15",
+ "builtAt": "2026-10-16T08:58:10.814Z",
+ "decidedFor": "2026-10-16",
  "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
@@ -8,82 +8,89 @@
   "kind": "pick",
   "strategyVersion": 2,
   "strategyHash": "46527bc8ea38a026",
-  "date": "2026-10-15",
-  "publishedAt": "2026-10-15T09:05:50.039Z",
-  "decisionSession": "2026-10-14",
-  "ticker": "LPG",
-  "name": "Dorian LPG Ltd.",
-  "cik": "1596993",
-  "sic": "4412",
-  "sector": "Transportation, Communications and Utilities",
-  "industry": "44",
-  "referenceClose": 55.2,
-  "referenceCloseDate": "2026-10-14",
+  "date": "2026-10-16",
+  "publishedAt": "2026-10-16T08:58:10.231Z",
+  "decisionSession": "2026-10-15",
+  "ticker": "NRIX",
+  "name": "Nurix Therapeutics, Inc.",
+  "cik": "1549595",
+  "sic": "2834",
+  "sector": "Manufacturing",
+  "industry": "28",
+  "referenceClose": 24.95,
+  "referenceCloseDate": "2026-10-15",
   "horizonSessions": 21,
-  "plannedEntry": "2026-10-15",
-  "plannedExit": "2026-11-12",
-  "thesis": "Ranked first among today's eligible candidates on operating margin trend, revenue growth, trailing year, earnings yield — revenue +81.1% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago.",
-  "rankScore": 99,
-  "composite": 1.7419676480875657,
-  "scoredAgainst": "357 operating candidates",
+  "plannedEntry": "2026-10-16",
+  "plannedExit": "2026-11-13",
+  "thesis": "Ranked first among today's eligible candidates on operating margin trend, growth acceleration, revenue growth, trailing year — revenue +738.8% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
+  "rankScore": 100,
+  "composite": 2.080918175180155,
+  "scoredAgainst": "370 operating candidates",
   "scanned": 5045,
-  "eligible": 395,
+  "eligible": 406,
   "signals": [
    {
     "key": "revenueGrowth",
     "label": "Revenue growth, trailing year",
-    "value": 0.8105922022373735,
-    "z": 3.635106782946752,
-    "cohort": 357
+    "value": 7.387634877579552,
+    "z": 3.599810193810016,
+    "cohort": 370
    },
    {
     "key": "growthAcceleration",
     "label": "Growth acceleration",
-    "value": 0.2114028475620171,
-    "z": 2.8625305640762484,
-    "cohort": 357
+    "value": 85.057469702862,
+    "z": 3.8493401321267275,
+    "cohort": 370
    },
    {
     "key": "operatingMarginTrend",
     "label": "Operating margin trend",
-    "value": 0.3511787386766264,
-    "z": 4.177130484233165,
-    "cohort": 324
+    "value": 3.6058385566003577,
+    "z": 4.166496345629478,
+    "cohort": 333
    },
    {
     "key": "cashConversion",
     "label": "Cash conversion",
-    "value": 0.7450270071797628,
-    "z": -1.5225435820097657,
-    "cohort": 312
+    "value": 1.2863397280900173,
+    "z": -0.7413850771520024,
+    "cohort": 329
    },
    {
-    "key": "leverage",
-    "label": "Debt over operating cash flow",
-    "value": 2.1165215336121905,
-    "z": 0.07955446730769622,
-    "cohort": 257
+    "key": "fcfYield",
+    "label": "Free cash flow yield",
+    "value": 0.13567038135054135,
+    "z": 2.490536415226709,
+    "cohort": 332
    },
    {
     "key": "earningsYield",
     "label": "Earnings yield",
-    "value": 0.13629247545285905,
-    "z": 3.0770434091278234,
-    "cohort": 341
+    "value": 0.10818066413247844,
+    "z": 2.2026595013788786,
+    "cohort": 352
+   },
+   {
+    "key": "peerPercentile",
+    "label": "Valuation against its own industry",
+    "value": 0.9767441860465116,
+    "z": 1.5603051400347987,
+    "cohort": 332
    },
    {
     "key": "relativeStrengthSpy",
     "label": "Six-month return against SPY",
-    "value": 0.45016836848628916,
-    "z": 0.7960078707004391,
-    "cohort": 357
+    "value": 0.39495843691875265,
+    "z": 0.6462847700665283,
+    "cohort": 370
    },
    {
     "key": "relativeStrengthSector",
     "label": "Six-month return against its sector",
-    "value": 0.48390715493868663,
-    "z": 0.8309111883181673,
-    "cohort": 357
+    "value": 0.49649605295521215,
+    "z": 0.9542161555002614,
+    "cohort": 370
    }
   ],
   "signalsDropped": [
@@ -94,172 +101,190 @@
    {
     "key": "grossProfitability",
     "why": "gross profit or total assets is not reported"
-   },
-   {
-    "key": "fcfYield",
-    "why": "capital expenditure is not reported"
    }
   ],
   "evidence": [
    {
     "label": "Revenue, trailing year",
-    "value": "$585M, +81.1%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-05",
-    "tag": "Revenues"
+    "value": "$702M, +738.8%",
+    "period": "4 qtrs to 2026-08-31",
+    "filed": "2026-10-13",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Quarterly revenue, year on year",
-    "value": "+123.1%, against +102.0% the quarter before",
-    "period": "quarter to 2026-06-30",
-    "filed": "2026-08-05",
-    "tag": "Revenues"
+    "value": "+8426.3%, against -79.5% the quarter before",
+    "period": "quarter to 2026-08-31",
+    "filed": "2026-10-13",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Operating margin, trailing year",
-    "value": "57.6%, from 22.5%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-05",
+    "value": "41.3%, from -319.3%",
+    "period": "4 qtrs to 2026-08-31",
+    "filed": "2026-10-13",
     "tag": "OperatingIncomeLoss"
    },
    {
     "label": "Cash conversion (cash flow ÷ earnings)",
-    "value": "0.75×",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-05",
+    "value": "1.29×",
+    "period": "4 qtrs to 2026-08-31",
+    "filed": "2026-10-13",
     "tag": "NetCashProvidedByUsedInOperatingActivities"
    },
    {
-    "label": "Debt ÷ trailing operating cash flow",
-    "value": "2.12× (net 0.69×)",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-05",
-    "tag": "LongTermDebtNoncurrent + LongTermDebtCurrent"
+    "label": "Free cash flow, trailing year",
+    "value": "$370M (52.7% of revenue)",
+    "period": "4 qtrs to 2026-08-31",
+    "filed": "2026-10-13",
+    "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
    },
    {
     "label": "Return on equity, trailing year",
-    "value": "26.0%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-05",
+    "value": "30.5%",
+    "period": "4 qtrs to 2026-08-31",
+    "filed": "2026-10-13",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Equity ÷ assets",
-    "value": "65.0%",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-05",
+    "value": "81.0%",
+    "period": "at 2026-08-31",
+    "filed": "2026-10-13",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Earnings yield / free cash flow yield",
-    "value": "13.6% / —",
+    "value": "10.8% / 13.6%",
     "period": "trailing year against the reference close",
     "filed": null,
     "interpretation": true
    },
    {
     "label": "Share count",
-    "value": "42,782,681 (market cap $2.4bn)",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-05",
-    "tag": "CommonStockSharesOutstanding"
+    "value": "109,249,814 (market cap $2.7bn)",
+    "period": "at 2026-09-30",
+    "filed": "2026-10-13",
+    "tag": "EntityCommonStockSharesOutstanding"
    }
   ],
   "peers": [
    {
-    "ticker": "LPG",
-    "name": "Dorian LPG Ltd.",
-    "revenueTtm": 585184124,
-    "revenueGrowth": 0.8105922022373735,
-    "quarterYoY": 1.2310944266519082,
+    "ticker": "NRIX",
+    "name": "Nurix Therapeutics, Inc.",
+    "revenueTtm": 701936000,
+    "revenueGrowth": 7.387634877579552,
+    "quarterYoY": 84.26273118824423,
     "grossMargin": null,
-    "operatingMargin": 0.5763118635118679,
-    "cashConversion": 0.7450270071797628,
-    "freeCashFlowTtm": null
+    "operatingMargin": 0.4126544300335073,
+    "cashConversion": 1.2863397280900173,
+    "freeCashFlowTtm": 369808000
    },
    {
-    "ticker": "KEX",
-    "name": "Kirby Corporation",
-    "revenueTtm": 3489434000,
-    "revenueGrowth": 0.06561334010061759,
-    "quarterYoY": 0.07825543132017465,
-    "grossMargin": null,
-    "operatingMargin": 0.14011498712971787,
-    "cashConversion": 1.9977282452031349,
-    "freeCashFlowTtm": 475580000
+    "ticker": "JNJ",
+    "name": "Johnson & Johnson",
+    "revenueTtm": 97929000000,
+    "revenueGrowth": 0.0805720149624285,
+    "quarterYoY": 0.06599839952828201,
+    "grossMargin": 0.6790736145574855,
+    "operatingMargin": null,
+    "cashConversion": 1.3123544231591957,
+    "freeCashFlowTtm": 22244000000
    },
    {
-    "ticker": "MATX",
-    "name": "Matson, Inc.",
-    "revenueTtm": 3459200000,
-    "revenueGrowth": -0.0016162549064880904,
-    "quarterYoY": 0.1672486453943407,
+    "ticker": "PG",
+    "name": "Procter & Gamble Company (The)",
+    "revenueTtm": 87033000000,
+    "revenueGrowth": 0.03261591761188365,
+    "quarterYoY": 0.01507970702283501,
     "grossMargin": null,
-    "operatingMargin": 0.15176919518963922,
-    "cashConversion": 1.259379042690815,
-    "freeCashFlowTtm": null
+    "operatingMargin": 0.22690243930463158,
+    "cashConversion": 1.218822062947959,
+    "freeCashFlowTtm": 15147000000
    },
    {
-    "ticker": "TDW",
-    "name": "Tidewater Inc.",
-    "revenueTtm": 1346420000,
-    "revenueGrowth": -0.010215273509978529,
-    "quarterYoY": 0.0025070951378169948,
+    "ticker": "LLY",
+    "name": "Eli Lilly and Company",
+    "revenueTtm": 79665800000,
+    "revenueGrowth": 0.4958129299726619,
+    "quarterYoY": 0.4766679521789432,
     "grossMargin": null,
-    "operatingMargin": 0.184295390739888,
-    "cashConversion": 1.2607785158781595,
-    "freeCashFlowTtm": 271184000
+    "operatingMargin": null,
+    "cashConversion": 1.0513567342537962,
+    "freeCashFlowTtm": 18190000000
    },
    {
-    "ticker": "INSW",
-    "name": "International Seaways, Inc.",
-    "revenueTtm": 1257030000,
-    "revenueGrowth": 0.5735731149494641,
-    "quarterYoY": 1.38849218722047,
+    "ticker": "MRK",
+    "name": "Merck & Company, Inc.",
+    "revenueTtm": 66569000000,
+    "revenueGrowth": 0.04641913983903412,
+    "quarterYoY": 0.050676958117170656,
     "grossMargin": null,
-    "operatingMargin": 0.6417969340429425,
-    "cashConversion": 0.8125418742732167,
-    "freeCashFlowTtm": 631792000
+    "operatingMargin": null,
+    "cashConversion": 3,
+    "freeCashFlowTtm": 16063000000
+   },
+   {
+    "ticker": "ABBV",
+    "name": "AbbVie Inc.",
+    "revenueTtm": 64386000000,
+    "revenueGrowth": 0.10386092442737627,
+    "quarterYoY": 0.10160150424690406,
+    "grossMargin": null,
+    "operatingMargin": 0.26201348119156337,
+    "cashConversion": 3,
+    "freeCashFlowTtm": 18210000000
+   },
+   {
+    "ticker": "PFE",
+    "name": "Pfizer, Inc.",
+    "revenueTtm": 63696000000,
+    "revenueGrowth": -0.0021462253066595327,
+    "quarterYoY": 0.026001501399030902,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 3,
+    "freeCashFlowTtm": 10985000000
    }
   ],
-  "peerBasis": null,
+  "peerBasis": "43 candidates in SIC major group 28, compared on free cash flow yield, all from the same source and the same periods.",
   "runnersUp": [
-   {
-    "ticker": "NRIX",
-    "name": "NRIX",
-    "rankScore": 0,
-    "why": "set aside because it announced results on 2026-10-13, inside the quiet window"
-   },
    {
     "ticker": "MSGS",
     "name": "Madison Square Garden Sports Corp.",
     "rankScore": 99,
-    "why": "its weakest signal was debt over operating cash flow (-1.26)"
+    "why": "its weakest signal was debt over operating cash flow (-1.23)"
    },
    {
     "ticker": "NTNX",
     "name": "Nutanix, Inc.",
     "rankScore": 99,
-    "why": "its weakest signal was cash conversion (-1.60)"
+    "why": "its weakest signal was cash conversion (-1.61)"
+   },
+   {
+    "ticker": "PTON",
+    "name": "Peloton Interactive, Inc.",
+    "rankScore": 99,
+    "why": "its weakest signal was revenue growth, trailing year (-1.18)"
    }
   ],
   "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
   "invalidation": [
-   "Quarterly revenue growth falling below +102.0%, the rate it was running at the quarter before.",
+   "Quarterly revenue growth falling below -79.5%, the rate it was running at the quarter before.",
    "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
-   "A close below the 200-session average, which stood at $40.42 on the decision date."
+   "A close below the 200-session average, which stood at $19.77 on the decision date."
   ],
   "risks": [
-   "The share count is from 2026-06-30, 106 days older than the price, so the market capitalisation carries that staleness.",
-   "The most recent filing covers a period ending 2026-06-30, 106 days before the decision date.",
-   "Point-in-time fundamentals are built from filings accepted up to 2026-10-14."
+   "The most recent filing covers a period ending 2026-09-30, 15 days before the decision date.",
+   "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
+   "Point-in-time fundamentals are built from filings accepted up to 2026-10-15."
   ],
   "earnings": {
-   "estimate": "2026-11-05",
-   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-06) plus 364 days",
-   "spreadDays": 49,
+   "estimate": "2027-01-27",
+   "basis": "the same fiscal quarter's announcement a year earlier (2026-01-28) plus 364 days",
+   "spreadDays": 48,
    "confirmed": false,
-   "inWindow": true,
+   "inWindow": false,
    "nearWindow": false
   },
   "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
@@ -276,7 +301,7 @@
   {
    "kind": "recap",
    "strategyVersion": 2,
-   "asOf": "2026-10-14",
+   "asOf": "2026-10-15",
    "rows": [
     {
      "strategyVersion": 2,
@@ -287,14 +312,14 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 81.69,
-     "valueDate": "2026-10-14",
-     "valuePrice": 83.26,
-     "sessionsHeld": 6,
+     "valueDate": "2026-10-15",
+     "valuePrice": 84.48,
+     "sessionsHeld": 7,
      "horizon": 21,
-     "netPct": 1.718259705773506,
-     "grossPct": 1.9218998653446118,
-     "excessSpyPct": 2.553272460109346,
-     "excessRspPct": 1.327512019530852
+     "netPct": 3.2087266387670565,
+     "grossPct": 3.4153507161219343,
+     "excessSpyPct": 3.7615521243035244,
+     "excessRspPct": 1.4405586320615615
     },
     {
      "strategyVersion": 2,
@@ -305,14 +330,14 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 112.1,
-     "valueDate": "2026-10-14",
-     "valuePrice": 106.11,
-     "sessionsHeld": 6,
+     "valueDate": "2026-10-15",
+     "valuePrice": 109.3,
+     "sessionsHeld": 7,
      "horizon": 21,
-     "netPct": -5.532567343450467,
-     "grossPct": -5.34344335414808,
-     "excessSpyPct": -4.6975545891146275,
-     "excessRspPct": -5.923315029693121
+     "netPct": -2.6925794990023233,
+     "grossPct": -2.4977698483496846,
+     "excessSpyPct": -2.1397540134658555,
+     "excessRspPct": -4.460747505707818
     },
     {
      "strategyVersion": 2,
@@ -323,14 +348,14 @@
      "reason": null,
      "entryDate": "2026-10-08",
      "entryPrice": 74.66,
-     "valueDate": "2026-10-14",
-     "valuePrice": 70.51,
-     "sessionsHeld": 5,
+     "valueDate": "2026-10-15",
+     "valuePrice": 75.92,
+     "sessionsHeld": 6,
      "horizon": 21,
-     "netPct": -5.7472262535214425,
-     "grossPct": -5.558532011786754,
-     "excessSpyPct": -5.0286734253575105,
-     "excessRspPct": -6.711689994738346
+     "netPct": 1.4844785538597582,
+     "grossPct": 1.6876506830967086,
+     "excessSpyPct": 1.920512710887623,
+     "excessRspPct": -0.8652772307676804
     },
     {
      "strategyVersion": 2,
@@ -341,14 +366,14 @@
      "reason": null,
      "entryDate": "2026-10-09",
      "entryPrice": 98.6,
-     "valueDate": "2026-10-14",
-     "valuePrice": 105,
-     "sessionsHeld": 4,
+     "valueDate": "2026-10-15",
+     "valuePrice": 104.96,
+     "sessionsHeld": 5,
      "horizon": 21,
-     "netPct": 6.278103235506904,
-     "grossPct": 6.490872210953347,
-     "excessSpyPct": 7.173158687984371,
-     "excessRspPct": 6.501568519859669
+     "netPct": 6.237616339036212,
+     "grossPct": 6.450304259634887,
+     "excessSpyPct": 6.850655382263337,
+     "excessRspPct": 5.092088667462091
     },
     {
      "strategyVersion": 2,
@@ -359,14 +384,14 @@
      "reason": null,
      "entryDate": "2026-10-12",
      "entryPrice": 51.74,
-     "valueDate": "2026-10-14",
-     "valuePrice": 53.27,
-     "sessionsHeld": 3,
+     "valueDate": "2026-10-15",
+     "valuePrice": 52.79,
+     "sessionsHeld": 4,
      "horizon": 21,
-     "netPct": 2.7513846802598385,
-     "grossPct": 2.9570931580981785,
-     "excessSpyPct": 3.9696720585067236,
-     "excessRspPct": 3.3630855082532607
+     "netPct": 1.825522757103748,
+     "grossPct": 2.029377657518361,
+     "excessSpyPct": 2.762713525889049,
+     "excessRspPct": 1.073557450010476
     },
     {
      "strategyVersion": 2,
@@ -377,14 +402,14 @@
      "reason": null,
      "entryDate": "2026-10-13",
      "entryPrice": 34.5,
-     "valueDate": "2026-10-14",
-     "valuePrice": 34.32,
-     "sessionsHeld": 2,
+     "valueDate": "2026-10-15",
+     "valuePrice": 33.47,
+     "sessionsHeld": 3,
      "horizon": 21,
-     "netPct": -0.7204968944099277,
-     "grossPct": -0.521739130434784,
-     "excessSpyPct": 0.3148002013668272,
-     "excessRspPct": 0.026141231148479882
+     "netPct": -3.1793423967336865,
+     "grossPct": -2.9855072463768173,
+     "excessSpyPct": -2.42566263380547,
+     "excessRspPct": -3.7945189868838214
     },
     {
      "strategyVersion": 2,
@@ -395,20 +420,38 @@
      "reason": null,
      "entryDate": "2026-10-14",
      "entryPrice": 38.945,
-     "valueDate": "2026-10-14",
-     "valuePrice": 38.22,
-     "sessionsHeld": 1,
+     "valueDate": "2026-10-15",
+     "valuePrice": 37.52,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": -2.0576804117695136,
-     "grossPct": -1.8615996918731614,
-     "excessSpyPct": -1.3314404845110817,
-     "excessRspPct": -1.7896248849235796
+     "netPct": -3.8514957888433177,
+     "grossPct": -3.6590062909230947,
+     "excessSpyPct": -3.4077526580496675,
+     "excessRspPct": -4.951821413474944
     },
     {
      "strategyVersion": 2,
      "date": "2026-10-15",
      "ticker": "LPG",
      "name": "Dorian LPG Ltd.",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-15",
+     "entryPrice": 53.41,
+     "valueDate": "2026-10-15",
+     "valuePrice": 53.68,
+     "sessionsHeld": 1,
+     "horizon": 21,
+     "netPct": 0.3047130738574433,
+     "grossPct": 0.5055233102415402,
+     "excessSpyPct": -0.3780074130402822,
+     "excessRspPct": -0.5962551162693952
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-10-16",
+     "ticker": "NRIX",
+     "name": "Nurix Therapeutics, Inc.",
      "status": "not-entered",
      "reason": "the market has not opened since publication",
      "entryDate": null,
@@ -424,26 +467,27 @@
     }
    ],
    "completed": 0,
-   "open": 7,
+   "open": 8,
    "meanNetPct": null,
    "meanExcessSpyPct": null,
    "meanExcessRspPct": null,
    "winRate": null,
-   "mixedHorizonMeanPct": -0.47288904023015743,
+   "mixedHorizonMeanPct": 0.4172049597556113,
    "horizonsSpanned": [
     1,
     2,
     3,
     4,
     5,
-    6
+    6,
+    7
    ],
    "note": "Each position is bought at the open of the first session after it was published and held 21 sessions. Costs of 10 basis points each way on the stock and 2 on the benchmark are deducted. Only completed positions enter the average; a position still running is listed with the sessions elapsed and counted nowhere else."
   },
   {
    "kind": "recap",
    "strategyVersion": 1,
-   "asOf": "2026-10-14",
+   "asOf": "2026-10-15",
    "rows": [
     {
      "strategyVersion": 1,
