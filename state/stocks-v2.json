@@ -135,6 +135,21 @@
    "rankScore": 100,
    "composite": 2.080918175180155,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-19",
+   "publishedAt": "2026-10-19T07:40:43.472Z",
+   "ticker": "INSW",
+   "name": "International Seaways, Inc.",
+   "cik": "1679049",
+   "sic": "4400",
+   "division": "Transportation, Communications and Utilities",
+   "decisionSession": "2026-10-16",
+   "plannedEntry": "2026-10-19",
+   "referenceClose": 109.99,
+   "rankScore": 100,
+   "composite": 1.9056321667262914,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
