@@ -150,6 +150,21 @@
    "rankScore": 100,
    "composite": 1.9056321667262914,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-20",
+   "publishedAt": "2026-10-20T09:22:24.004Z",
+   "ticker": "MSGS",
+   "name": "Madison Square Garden Sports Corp.",
+   "cik": "1636519",
+   "sic": "7990",
+   "division": "Services",
+   "decisionSession": "2026-10-19",
+   "plannedEntry": "2026-10-20",
+   "referenceClose": 400,
+   "rankScore": 100,
+   "composite": 1.092760900359834,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
