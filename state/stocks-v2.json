@@ -165,6 +165,21 @@
    "rankScore": 100,
    "composite": 1.092760900359834,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-21",
+   "publishedAt": "2026-10-21T09:18:51.375Z",
+   "ticker": "MSGE",
+   "name": "Madison Square Garden Entertainment Corp.",
+   "cik": "1952073",
+   "sic": "7990",
+   "division": "Services",
+   "decisionSession": "2026-10-20",
+   "plannedEntry": "2026-10-21",
+   "referenceClose": 80.68,
+   "rankScore": 100,
+   "composite": 1.0899480642263932,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }

@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-10-20T09:22:24.772Z",
- "decidedFor": "2026-10-20",
+ "builtAt": "2026-10-21T09:18:51.944Z",
+ "decidedFor": "2026-10-21",
  "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
@@ -8,96 +8,82 @@
   "kind": "pick",
   "strategyVersion": 2,
   "strategyHash": "46527bc8ea38a026",
-  "date": "2026-10-20",
-  "publishedAt": "2026-10-20T09:22:24.004Z",
-  "decisionSession": "2026-10-19",
-  "ticker": "MSGS",
-  "name": "Madison Square Garden Sports Corp.",
-  "cik": "1636519",
+  "date": "2026-10-21",
+  "publishedAt": "2026-10-21T09:18:51.375Z",
+  "decisionSession": "2026-10-20",
+  "ticker": "MSGE",
+  "name": "Madison Square Garden Entertainment Corp.",
+  "cik": "1952073",
   "sic": "7990",
   "sector": "Services",
   "industry": "79",
-  "referenceClose": 400,
-  "referenceCloseDate": "2026-10-19",
+  "referenceClose": 80.68,
+  "referenceCloseDate": "2026-10-20",
   "horizonSessions": 21,
-  "plannedEntry": "2026-10-20",
-  "plannedExit": "2026-11-17",
-  "thesis": "Ranked first among today's eligible candidates on growth acceleration, earnings yield, free cash flow yield — revenue +11.0% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
+  "plannedEntry": "2026-10-21",
+  "plannedExit": "2026-11-18",
+  "thesis": "Ranked first among today's eligible candidates on growth acceleration, earnings yield, cash conversion — revenue +12.5% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
   "rankScore": 100,
-  "composite": 1.092760900359834,
-  "scoredAgainst": "337 operating candidates",
+  "composite": 1.0899480642263932,
+  "scoredAgainst": "353 operating candidates",
   "scanned": 5045,
-  "eligible": 365,
+  "eligible": 380,
   "signals": [
    {
     "key": "revenueGrowth",
     "label": "Revenue growth, trailing year",
-    "value": 0.1102769384730855,
-    "z": -0.08870489111073127,
-    "cohort": 337
+    "value": 0.12522090006300823,
+    "z": 0.054033045106640046,
+    "cohort": 353
    },
    {
     "key": "growthAcceleration",
     "label": "Growth acceleration",
-    "value": 0.3478212576865993,
-    "z": 3.256122272810371,
-    "cohort": 337
+    "value": 0.1814918049534351,
+    "z": 3.306775095249982,
+    "cohort": 353
    },
    {
     "key": "operatingMarginTrend",
     "label": "Operating margin trend",
-    "value": 0.010770308674206721,
-    "z": -0.10139784998764088,
-    "cohort": 306
+    "value": 0.0039174137897132755,
+    "z": -0.2702964613484751,
+    "cohort": 319
    },
    {
     "key": "cashConversion",
     "label": "Cash conversion",
     "value": 3,
-    "z": 1.7654160968131214,
-    "cohort": 297
+    "z": 1.757289997806474,
+    "cohort": 314
    },
    {
     "key": "leverage",
     "label": "Debt over operating cash flow",
-    "value": 4.125241370505721,
-    "z": -1.2269244395541286,
-    "cohort": 247
-   },
-   {
-    "key": "fcfYield",
-    "label": "Free cash flow yield",
-    "value": 1.4867961165048544,
-    "z": 2.9121851603746776,
-    "cohort": 304
+    "value": 1.624206467767866,
+    "z": 0.4550212558381609,
+    "cohort": 260
    },
    {
     "key": "earningsYield",
     "label": "Earnings yield",
-    "value": 0.1883252427184466,
-    "z": 3.0853852672399698,
-    "cohort": 321
-   },
-   {
-    "key": "peerPercentile",
-    "label": "Valuation against its own industry",
-    "value": 0.9944289693593314,
-    "z": 1.602107389979194,
-    "cohort": 304
+    "value": 7.526165210390579,
+    "z": 2.9991918095368058,
+    "cohort": 336
    },
    {
     "key": "relativeStrengthSpy",
     "label": "Six-month return against SPY",
-    "value": 0.11345823975346891,
-    "z": -0.2632005301363125,
-    "cohort": 337
+    "value": 0.22130219302141874,
+    "z": 0.10134677127972025,
+    "cohort": 353
    },
    {
     "key": "relativeStrengthSector",
     "label": "Six-month return against its sector",
-    "value": 0.2148073023328103,
-    "z": -0.01337947283018122,
-    "cohort": 337
+    "value": 0.300095492812428,
+    "z": 0.31622300034183703,
+    "cohort": 353
    }
   ],
   "signalsDropped": [
@@ -108,84 +94,88 @@
    {
     "key": "grossProfitability",
     "why": "gross profit or total assets is not reported"
+   },
+   {
+    "key": "fcfYield",
+    "why": "capital expenditure is not reported"
    }
   ],
   "evidence": [
    {
     "label": "Revenue, trailing year",
-    "value": "$1.2bn, +11.0%",
+    "value": "$1.1bn, +12.5%",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Quarterly revenue, year on year",
-    "value": "+36.7%, against +1.9% the quarter before",
+    "value": "+20.5%, against +2.3% the quarter before",
     "period": "quarter to 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Operating margin, trailing year",
-    "value": "2.5%, from 1.4%",
+    "value": "13.3%, from 13.0%",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "OperatingIncomeLoss"
    },
    {
     "label": "Cash conversion (cash flow ÷ earnings)",
     "value": "3.00×",
     "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "NetCashProvidedByUsedInOperatingActivities"
    },
    {
-    "label": "Free cash flow, trailing year",
-    "value": "$61M (5.3% of revenue)",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-13",
-    "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
+    "label": "Debt ÷ trailing operating cash flow",
+    "value": "1.62× (net 0.79×)",
+    "period": "at 2026-06-30",
+    "filed": "2026-08-12",
+    "tag": "LongTermDebtNoncurrent + LongTermDebtCurrent"
    },
    {
-    "label": "Debt ÷ trailing operating cash flow",
-    "value": "4.13× (net 1.50×)",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-13",
-    "tag": "LongTermDebtNoncurrent + ShortTermBorrowings"
+    "label": "Return on equity, trailing year",
+    "value": "144.6%",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-12",
+    "tag": "StockholdersEquity"
    },
    {
     "label": "Equity ÷ assets",
-    "value": "-17.1%",
+    "value": "2.4%",
     "period": "at 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Earnings yield / free cash flow yield",
-    "value": "18.8% / 148.7%",
+    "value": "752.6% / —",
     "period": "trailing year against the reference close",
     "filed": null,
     "interpretation": true
    },
    {
     "label": "Share count",
-    "value": "103,000 (market cap $41M)",
+    "value": "109,000 (market cap $9M)",
     "period": "at 2026-06-30",
-    "filed": "2026-08-13",
+    "filed": "2026-08-12",
     "tag": "WeightedAverageNumberOfDilutedSharesOutstanding"
    }
   ],
   "peers": [
    {
-    "ticker": "MSGS",
-    "name": "Madison Square Garden Sports Corp.",
-    "revenueTtm": 1153822000,
-    "revenueGrowth": 0.1102769384730855,
-    "quarterYoY": 0.36668513461170726,
+    "ticker": "MSGE",
+    "name": "Madison Square Garden Entertainment Corp.",
+    "revenueTtm": 1060784000,
+    "revenueGrowth": 0.12522090006300823,
+    "quarterYoY": 0.20453303356008878,
     "grossMargin": null,
-    "operatingMargin": 0.02501945707396808,
+    "operatingMargin": 0.1334258435270517,
     "cashConversion": 3,
-    "freeCashFlowTtm": 61256000
+    "freeCashFlowTtm": null
    },
    {
     "ticker": "DIS",
@@ -230,56 +220,45 @@
     "operatingMargin": 0.17273438847727263,
     "cashConversion": 2.1676520850456633,
     "freeCashFlowTtm": -150951000
-   },
-   {
-    "ticker": "MSGE",
-    "name": "Madison Square Garden Entertainment Corp.",
-    "revenueTtm": 1060784000,
-    "revenueGrowth": 0.12522090006300823,
-    "quarterYoY": 0.20453303356008878,
-    "grossMargin": null,
-    "operatingMargin": 0.1334258435270517,
-    "cashConversion": 3,
-    "freeCashFlowTtm": null
    }
   ],
-  "peerBasis": "359 candidates in all operating candidates, compared on free cash flow yield, all from the same source and the same periods.",
+  "peerBasis": null,
   "runnersUp": [
    {
-    "ticker": "MSGE",
-    "name": "Madison Square Garden Entertainment Corp.",
+    "ticker": "XMTR",
+    "name": "Xometry, Inc.",
     "rankScore": 99,
-    "why": "its weakest signal was operating margin trend (-0.23)"
+    "why": "its weakest signal was gross profit over assets (-0.54)"
    },
    {
-    "ticker": "AMD",
-    "name": "Advanced Micro Devices, Inc.",
+    "ticker": "KNSA",
+    "name": "Kiniksa Pharmaceuticals International, plc",
     "rankScore": 99,
-    "why": "its weakest signal was free cash flow yield (-1.32)"
+    "why": "its weakest signal was free cash flow yield (-0.81)"
    },
    {
-    "ticker": "RNG",
-    "name": "RingCentral, Inc.",
+    "ticker": "PTON",
+    "name": "Peloton Interactive, Inc.",
     "rankScore": 99,
-    "why": "its weakest signal was revenue growth, trailing year (-0.61)"
+    "why": "its weakest signal was revenue growth, trailing year (-1.25)"
    }
   ],
-  "counterargument": "Debt is 4.13× trailing operating cash flow, which leaves less room if conditions turn.",
+  "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
   "invalidation": [
-   "Quarterly revenue growth falling below +1.9%, the rate it was running at the quarter before.",
+   "Quarterly revenue growth falling below +2.3%, the rate it was running at the quarter before.",
    "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
-   "A close below the 200-session average, which stood at $353.58 on the decision date."
+   "A close below the 200-session average, which stood at $69.58 on the decision date."
   ],
   "risks": [
-   "The share count is from 2026-06-30, 111 days older than the price, so the market capitalisation carries that staleness.",
-   "The most recent filing covers a period ending 2026-06-30, 111 days before the decision date.",
+   "The share count is from 2026-06-30, 112 days older than the price, so the market capitalisation carries that staleness.",
+   "The most recent filing covers a period ending 2026-06-30, 112 days before the decision date.",
    "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
-   "Point-in-time fundamentals are built from filings accepted up to 2026-10-19."
+   "Point-in-time fundamentals are built from filings accepted up to 2026-10-20."
   ],
   "earnings": {
-   "estimate": "2026-10-30",
-   "basis": "the same fiscal quarter's announcement a year earlier (2025-10-31) plus 364 days",
-   "spreadDays": 11,
+   "estimate": "2026-11-05",
+   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-06) plus 364 days",
+   "spreadDays": 8,
    "confirmed": false,
    "inWindow": true,
    "nearWindow": false
@@ -298,7 +277,7 @@
   {
    "kind": "recap",
    "strategyVersion": 2,
-   "asOf": "2026-10-19",
+   "asOf": "2026-10-20",
    "rows": [
     {
      "strategyVersion": 2,
@@ -309,14 +288,14 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 81.69,
-     "valueDate": "2026-10-19",
-     "valuePrice": 77.87,
-     "sessionsHeld": 9,
+     "valueDate": "2026-10-20",
+     "valuePrice": 79.44,
+     "sessionsHeld": 10,
      "horizon": 21,
-     "netPct": -4.866672071960343,
-     "grossPct": -4.676214958991299,
-     "excessSpyPct": -3.6296390990610106,
-     "excessRspPct": -5.877495572569447
+     "netPct": -2.948612166386677,
+     "grossPct": -2.7543150936467087,
+     "excessSpyPct": -2.0427304632655963,
+     "excessRspPct": -5.123852845119014
     },
     {
      "strategyVersion": 2,
@@ -327,14 +306,14 @@
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 112.1,
-     "valueDate": "2026-10-19",
-     "valuePrice": 107.705,
-     "sessionsHeld": 9,
+     "valueDate": "2026-10-20",
+     "valuePrice": 108.45,
+     "sessionsHeld": 10,
      "horizon": 21,
-     "netPct": -4.112573421226385,
-     "grossPct": -3.920606601248877,
-     "excessSpyPct": -2.875540448327052,
-     "excessRspPct": -5.123396921835488
+     "netPct": -3.4493160719743954,
+     "grossPct": -3.2560214094558337,
+     "excessSpyPct": -2.5434343688533145,
+     "excessRspPct": -5.6245567507067324
     },
     {
      "strategyVersion": 2,
@@ -345,14 +324,14 @@
      "reason": null,
      "entryDate": "2026-10-08",
      "entryPrice": 74.66,
-     "valueDate": "2026-10-19",
-     "valuePrice": 72.8,
-     "sessionsHeld": 8,
+     "valueDate": "2026-10-20",
+     "valuePrice": 73.85,
+     "sessionsHeld": 9,
      "horizon": 21,
-     "netPct": -2.6861164552029693,
-     "grossPct": -2.4912938655237027,
-     "excessSpyPct": -1.5650712736397066,
-     "excessRspPct": -4.274199638642495
+     "netPct": -1.2825508271530062,
+     "grossPct": -1.0849182962764603,
+     "excessSpyPct": -0.49304582130648145,
+     "excessRspPct": -4.041705634918968
     },
     {
      "strategyVersion": 2,
@@ -363,14 +342,14 @@
      "reason": null,
      "entryDate": "2026-10-09",
      "entryPrice": 98.6,
-     "valueDate": "2026-10-19",
-     "valuePrice": 103.96,
-     "sessionsHeld": 7,
+     "valueDate": "2026-10-20",
+     "valuePrice": 107.51,
+     "sessionsHeld": 8,
      "horizon": 21,
-     "netPct": 5.225443927269491,
-     "grossPct": 5.436105476673436,
-     "excessSpyPct": 6.522276181966646,
-     "excessRspPct": 4.832627159297775
+     "netPct": 8.81865598904139,
+     "grossPct": 9.036511156186622,
+     "excessSpyPct": 9.784537480371702,
+     "excessRspPct": 7.268546206780968
     },
     {
      "strategyVersion": 2,
@@ -381,14 +360,14 @@
      "reason": null,
      "entryDate": "2026-10-12",
      "entryPrice": 51.74,
-     "valueDate": "2026-10-19",
-     "valuePrice": 50.49,
-     "sessionsHeld": 6,
+     "valueDate": "2026-10-20",
+     "valuePrice": 52.3,
+     "sessionsHeld": 7,
      "horizon": 21,
-     "netPct": -2.61089895801917,
-     "grossPct": -2.4159257827599534,
-     "excessSpyPct": -0.9921451772516687,
-     "excessRspPct": -2.6130821977108254
+     "netPct": 0.880372043881894,
+     "grossPct": 1.0823347506764502,
+     "excessSpyPct": 2.1692544610346642,
+     "excessRspPct": -0.27460112443977724
     },
     {
      "strategyVersion": 2,
@@ -399,14 +378,14 @@
      "reason": null,
      "entryDate": "2026-10-13",
      "entryPrice": 34.5,
-     "valueDate": "2026-10-19",
-     "valuePrice": 32.54,
-     "sessionsHeld": 5,
+     "valueDate": "2026-10-20",
+     "valuePrice": 33.66,
+     "sessionsHeld": 6,
      "horizon": 21,
-     "netPct": -5.8696086522173285,
-     "grossPct": -5.681159420289861,
-     "excessSpyPct": -4.433103301423447,
-     "excessRspPct": -5.736021137510539
+     "netPct": -2.629718107978962,
+     "grossPct": -2.4347826086956625,
+     "excessSpyPct": -1.5236951980164837,
+     "excessRspPct": -3.647355404489705
     },
     {
      "strategyVersion": 2,
@@ -417,14 +396,14 @@
      "reason": null,
      "entryDate": "2026-10-14",
      "entryPrice": 38.945,
-     "valueDate": "2026-10-19",
-     "valuePrice": 38.89,
-     "sessionsHeld": 4,
+     "valueDate": "2026-10-20",
+     "valuePrice": 38.85,
+     "sessionsHeld": 5,
      "horizon": 21,
-     "netPct": -0.3407428365702847,
-     "grossPct": -0.14122480421107086,
-     "excessSpyPct": 0.7879582801722407,
-     "excessRspPct": -0.6886939449255891
+     "netPct": -0.4432465724030554,
+     "grossPct": -0.24393375272819817,
+     "excessSpyPct": 0.3539400388990588,
+     "excessRspPct": -1.9479734995332287
     },
     {
      "strategyVersion": 2,
@@ -435,14 +414,14 @@
      "reason": null,
      "entryDate": "2026-10-15",
      "entryPrice": 53.41,
-     "valueDate": "2026-10-19",
-     "valuePrice": 52.5,
-     "sessionsHeld": 3,
+     "valueDate": "2026-10-20",
+     "valuePrice": 52.07,
+     "sessionsHeld": 4,
      "horizon": 21,
-     "netPct": -1.9001967887944171,
-     "grossPct": -1.7038007863695914,
-     "excessSpyPct": -1.8902090962839901,
-     "excessRspPct": -2.0502740528552166
+     "netPct": -2.7036808912861865,
+     "grossPct": -2.508893465643136,
+     "excessSpyPct": -3.028958739468579,
+     "excessRspPct": -4.008252954173552
     },
     {
      "strategyVersion": 2,
@@ -453,14 +432,14 @@
      "reason": null,
      "entryDate": "2026-10-16",
      "entryPrice": 24.89,
-     "valueDate": "2026-10-19",
-     "valuePrice": 24.93,
-     "sessionsHeld": 2,
+     "valueDate": "2026-10-20",
+     "valuePrice": 26.1,
+     "sessionsHeld": 3,
      "horizon": 21,
-     "netPct": -0.03941418163996291,
-     "grossPct": 0.16070711128968185,
-     "excessSpyPct": 0.8744716356821058,
-     "excessRspPct": 1.0159886345452507
+     "netPct": 4.651876849546621,
+     "grossPct": 4.861390116512654,
+     "excessSpyPct": 5.233527887814482,
+     "excessRspPct": 4.566681216471369
     },
     {
      "strategyVersion": 2,
@@ -471,20 +450,38 @@
      "reason": null,
      "entryDate": "2026-10-19",
      "entryPrice": 110.74,
-     "valueDate": "2026-10-19",
-     "valuePrice": 104.83,
-     "sessionsHeld": 1,
+     "valueDate": "2026-10-20",
+     "valuePrice": 104.76,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": -5.525962208281154,
-     "grossPct": -5.336824995484912,
-     "excessSpyPct": -5.38825504173902,
-     "excessRspPct": -5.019738826091924
+     "netPct": -5.589047037484807,
+     "grossPct": -5.4000361206429375,
+     "excessSpyPct": -5.786177169478812,
+     "excessRspPct": -6.229752851545889
     },
     {
      "strategyVersion": 2,
      "date": "2026-10-20",
      "ticker": "MSGS",
      "name": "Madison Square Garden Sports Corp.",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-10-20",
+     "entryPrice": 402.75,
+     "valueDate": "2026-10-20",
+     "valuePrice": 413.41,
+     "sessionsHeld": 1,
+     "horizon": 21,
+     "netPct": 2.4417147098711567,
+     "grossPct": 2.646803227808814,
+     "excessSpyPct": 2.06534807475538,
+     "excessRspPct": 1.535093592960024
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-10-21",
+     "ticker": "MSGE",
+     "name": "Madison Square Garden Entertainment Corp.",
      "status": "not-entered",
      "reason": "the market has not opened since publication",
      "entryDate": null,
@@ -500,12 +497,12 @@
     }
    ],
    "completed": 0,
-   "open": 10,
+   "open": 11,
    "meanNetPct": null,
    "meanExcessSpyPct": null,
    "meanExcessRspPct": null,
    "winRate": null,
-   "mixedHorizonMeanPct": -2.2726741646642523,
+   "mixedHorizonMeanPct": -0.2048683711205479,
    "horizonsSpanned": [
     1,
     2,
@@ -515,14 +512,15 @@
     6,
     7,
     8,
-    9
+    9,
+    10
    ],
    "note": "Each position is bought at the open of the first session after it was published and held 21 sessions. Costs of 10 basis points each way on the stock and 2 on the benchmark are deducted. Only completed positions enter the average; a position still running is listed with the sessions elapsed and counted nowhere else."
   },
   {
    "kind": "recap",
    "strategyVersion": 1,
-   "asOf": "2026-10-19",
+   "asOf": "2026-10-20",
    "rows": [
     {
      "strategyVersion": 1,
