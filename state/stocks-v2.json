@@ -180,6 +180,21 @@
    "rankScore": 100,
    "composite": 1.0899480642263932,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-22",
+   "publishedAt": "2026-10-22T09:27:20.395Z",
+   "ticker": "KNSA",
+   "name": "Kiniksa Pharmaceuticals International, plc",
+   "cik": "1730430",
+   "sic": "2834",
+   "division": "Manufacturing",
+   "decisionSession": "2026-10-21",
+   "plannedEntry": "2026-10-22",
+   "referenceClose": 79.7,
+   "rankScore": 100,
+   "composite": 1.025411744677986,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
