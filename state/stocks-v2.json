@@ -210,6 +210,21 @@
    "rankScore": 100,
    "composite": 0.8243484087728118,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-26",
+   "publishedAt": "2026-10-26T07:44:38.918Z",
+   "ticker": "SBH",
+   "name": "Sally Beauty Holdings, Inc. (Name to be changed from Sally Holdings, Inc.)",
+   "cik": "1368458",
+   "sic": "5990",
+   "division": "Retail Trade",
+   "decisionSession": "2026-10-23",
+   "plannedEntry": "2026-10-26",
+   "referenceClose": 17.4,
+   "rankScore": 94,
+   "composite": 0.5659429938836463,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
