@@ -255,6 +255,21 @@
    "rankScore": 94,
    "composite": 0.6530109752133061,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-29",
+   "publishedAt": "2026-10-29T10:57:36.216Z",
+   "ticker": "ASH",
+   "name": "Ashland Inc.",
+   "cik": "1674862",
+   "sic": "5160",
+   "division": "Wholesale Trade",
+   "decisionSession": "2026-10-28",
+   "plannedEntry": "2026-10-29",
+   "referenceClose": 72.67,
+   "rankScore": 98,
+   "composite": 0.7307514480730091,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
