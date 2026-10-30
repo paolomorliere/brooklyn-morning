@@ -270,6 +270,21 @@
    "rankScore": 98,
    "composite": 0.7307514480730091,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-10-30",
+   "publishedAt": "2026-10-30T10:50:08.437Z",
+   "ticker": "BJRI",
+   "name": "BJ's Restaurants, Inc.",
+   "cik": "1013488",
+   "sic": "5812",
+   "division": "Retail Trade",
+   "decisionSession": "2026-10-29",
+   "plannedEntry": "2026-10-30",
+   "referenceClose": 63.28,
+   "rankScore": 96,
+   "composite": 0.5182532167106668,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
