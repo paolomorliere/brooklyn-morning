@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "version": "2026-10-01",
+  "version": "2026-11-01",
   "count": 4401,
-  "checksum": "b233f342050182ca2711895aaa753ad372afa85ef5b0cd28a777e54a7a529514",
-  "generatedAt": "2026-10-01T17:20:29.540Z",
+  "checksum": "f458dcbbf40fc4350fa5524356c8cd37f6fa4ed227c82255fe8b0a873cef58c0",
+  "generatedAt": "2026-11-01T17:04:46.248Z",
   "source": "Open Food Facts (https://world.openfoodfacts.org) — brand filter trader-joe-s",
   "license": "Data: Open Database License (ODbL). Photos: CC BY-SA, © individual contributors.",
   "note": "Listed in Open Food Facts does not mean stocked at any particular store. No prices or availability."
