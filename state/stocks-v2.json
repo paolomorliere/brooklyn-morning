@@ -285,6 +285,21 @@
    "rankScore": 96,
    "composite": 0.5182532167106668,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-02",
+   "publishedAt": "2026-11-02T09:20:22.107Z",
+   "ticker": "UNFI",
+   "name": "United Natural Foods, Inc.",
+   "cik": "1020859",
+   "sic": "5141",
+   "division": "Wholesale Trade",
+   "decisionSession": "2026-10-30",
+   "plannedEntry": "2026-11-02",
+   "referenceClose": 45.87,
+   "rankScore": 100,
+   "composite": 0.397928243158133,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
