@@ -300,6 +300,21 @@
    "rankScore": 100,
    "composite": 0.397928243158133,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-03",
+   "publishedAt": "2026-11-03T11:51:06.129Z",
+   "ticker": "CHEF",
+   "name": "The Chefs' Warehouse, Inc.",
+   "cik": "1517175",
+   "sic": "5141",
+   "division": "Wholesale Trade",
+   "decisionSession": "2026-11-02",
+   "plannedEntry": "2026-11-03",
+   "referenceClose": 103.23,
+   "rankScore": 89,
+   "composite": 0.23606329858745087,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
