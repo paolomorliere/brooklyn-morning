@@ -315,6 +315,21 @@
    "rankScore": 89,
    "composite": 0.23606329858745087,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-05",
+   "publishedAt": "2026-11-05T12:19:03.609Z",
+   "ticker": "ZD",
+   "name": "Ziff Davis, Inc.",
+   "cik": "1084048",
+   "sic": "4822",
+   "division": "Transportation, Communications and Utilities",
+   "decisionSession": "2026-11-04",
+   "plannedEntry": "2026-11-05",
+   "referenceClose": 56.75,
+   "rankScore": 97,
+   "composite": 0.9280099735311197,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }

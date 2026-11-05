@@ -1,57 +1,358 @@
 {
- "builtAt": "2026-11-04T12:01:16.266Z",
- "decidedFor": "2026-11-04",
- "outcome": "none-qualified",
+ "builtAt": "2026-11-05T12:19:04.279Z",
+ "decidedFor": "2026-11-05",
+ "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
  "block": {
-  "kind": "unavailable",
-  "reason": "No candidate qualified today. The test that removed the most was book-full: all 21 position slots are already open — 3,232 of 3,232 screened.",
-  "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
+  "kind": "pick",
   "strategyVersion": 2,
-  "lastPublishedFor": "2026-11-03"
+  "strategyHash": "46527bc8ea38a026",
+  "date": "2026-11-05",
+  "publishedAt": "2026-11-05T12:19:03.609Z",
+  "decisionSession": "2026-11-04",
+  "ticker": "ZD",
+  "name": "Ziff Davis, Inc.",
+  "cik": "1084048",
+  "sic": "4822",
+  "sector": "Transportation, Communications and Utilities",
+  "industry": "48",
+  "referenceClose": 56.75,
+  "referenceCloseDate": "2026-11-04",
+  "horizonSessions": 21,
+  "plannedEntry": "2026-11-05",
+  "plannedExit": "2026-12-03",
+  "thesis": "Ranked first among today's eligible candidates on earnings yield, free cash flow yield, valuation against its own industry — revenue -0.7% over the trailing year.",
+  "rankScore": 97,
+  "composite": 0.9280099735311197,
+  "scoredAgainst": "24 operating candidates",
+  "scanned": 5040,
+  "eligible": 177,
+  "signals": [
+   {
+    "key": "revenueGrowth",
+    "label": "Revenue growth, trailing year",
+    "value": -0.006911430246277828,
+    "z": -0.9623080243279593,
+    "cohort": 24
+   },
+   {
+    "key": "growthAcceleration",
+    "label": "Growth acceleration",
+    "value": -0.008388423323389627,
+    "z": 0.019207481394976546,
+    "cohort": 24
+   },
+   {
+    "key": "operatingMarginTrend",
+    "label": "Operating margin trend",
+    "value": -0.0032002226350911767,
+    "z": 0.07366844941489296,
+    "cohort": 20
+   },
+   {
+    "key": "cashConversion",
+    "label": "Cash conversion",
+    "value": 0.6966607303253799,
+    "z": -1.421090452027296,
+    "cohort": 22
+   },
+   {
+    "key": "leverage",
+    "label": "Debt over operating cash flow",
+    "value": 1.9354133532011144,
+    "z": 0.3233326923839252,
+    "cohort": 19
+   },
+   {
+    "key": "fcfYield",
+    "label": "Free cash flow yield",
+    "value": 0.1596281993555408,
+    "z": 2.5735037386789794,
+    "cohort": 20
+   },
+   {
+    "key": "earningsYield",
+    "label": "Earnings yield",
+    "value": 0.32431853663618077,
+    "z": 3.5846411015434803,
+    "cohort": 23
+   },
+   {
+    "key": "peerPercentile",
+    "label": "Valuation against its own industry",
+    "value": 1,
+    "z": 1.8679589941216312,
+    "cohort": 20
+   },
+   {
+    "key": "relativeStrengthSpy",
+    "label": "Six-month return against SPY",
+    "value": 0.2542793226355837,
+    "z": 1.6924629880586166,
+    "cohort": 24
+   },
+   {
+    "key": "relativeStrengthSector",
+    "label": "Six-month return against its sector",
+    "value": 0.357980735809203,
+    "z": 1.5287227660699503,
+    "cohort": 24
+   }
+  ],
+  "signalsDropped": [
+   {
+    "key": "grossMarginTrend",
+    "why": "gross profit is not reported"
+   },
+   {
+    "key": "grossProfitability",
+    "why": "gross profit or total assets is not reported"
+   }
+  ],
+  "evidence": [
+   {
+    "label": "Revenue, trailing year",
+    "value": "$1.3bn, -0.7%",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
+   },
+   {
+    "label": "Quarterly revenue, year on year",
+    "value": "-2.7%, against -1.9% the quarter before",
+    "period": "quarter to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
+   },
+   {
+    "label": "Operating margin, trailing year",
+    "value": "5.5%, from 5.8%",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "OperatingIncomeLoss"
+   },
+   {
+    "label": "Cash conversion (cash flow ÷ earnings)",
+    "value": "0.70×",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "NetCashProvidedByUsedInOperatingActivities"
+   },
+   {
+    "label": "Free cash flow, trailing year",
+    "value": "$317M (23.9% of revenue)",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
+   },
+   {
+    "label": "Debt ÷ trailing operating cash flow",
+    "value": "1.94× (net -1.65×)",
+    "period": "at 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "LongTermDebtNoncurrent + LongTermDebtCurrent"
+   },
+   {
+    "label": "Return on equity, trailing year",
+    "value": "28.8%",
+    "period": "4 qtrs to 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "StockholdersEquity"
+   },
+   {
+    "label": "Equity ÷ assets",
+    "value": "56.0%",
+    "period": "at 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "StockholdersEquity"
+   },
+   {
+    "label": "Earnings yield / free cash flow yield",
+    "value": "32.4% / 16.0%",
+    "period": "trailing year against the reference close",
+    "filed": null,
+    "interpretation": true
+   },
+   {
+    "label": "Share count",
+    "value": "34,962,853 (market cap $2.0bn)",
+    "period": "at 2026-06-30",
+    "filed": "2026-08-07",
+    "tag": "CommonStockSharesOutstanding"
+   }
+  ],
+  "peers": [
+   {
+    "ticker": "ZD",
+    "name": "Ziff Davis, Inc.",
+    "revenueTtm": 1324802000,
+    "revenueGrowth": -0.006911430246277828,
+    "quarterYoY": -0.027357252131084198,
+    "grossMargin": null,
+    "operatingMargin": 0.054862537949067106,
+    "cashConversion": 0.6966607303253799,
+    "freeCashFlowTtm": 316725000
+   },
+   {
+    "ticker": "FOX",
+    "name": "Fox Corporation",
+    "revenueTtm": 17959000000,
+    "revenueGrowth": 0.09014204200558451,
+    "quarterYoY": 0.22284644194756553,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 1.3089156626506024,
+    "freeCashFlowTtm": 2205000000
+   },
+   {
+    "ticker": "FOXA",
+    "name": "Fox Corporation",
+    "revenueTtm": 17959000000,
+    "revenueGrowth": 0.09014204200558451,
+    "quarterYoY": 0.22284644194756553,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 1.3089156626506024,
+    "freeCashFlowTtm": 2205000000
+   },
+   {
+    "ticker": "SIRI",
+    "name": "SiriusXM Holdings Inc.",
+    "revenueTtm": 8597000000,
+    "revenueGrowth": 0.005144393779960232,
+    "quarterYoY": -0.002779064381658203,
+    "grossMargin": 0.5290217517738746,
+    "operatingMargin": 0.1897173432592765,
+    "cashConversion": 2.3666666666666667,
+    "freeCashFlowTtm": 1585000000
+   },
+   {
+    "ticker": "ROKU",
+    "name": "Roku, Inc.",
+    "revenueTtm": 5500494000,
+    "revenueGrowth": 0.21065722879036497,
+    "quarterYoY": 0.2406863158103414,
+    "grossMargin": 0.45340982100880395,
+    "operatingMargin": 0.07781264737312685,
+    "cashConversion": 1.5783832815553636,
+    "freeCashFlowTtm": 801455000
+   },
+   {
+    "ticker": "FWONK",
+    "name": "Liberty Media Corporation",
+    "revenueTtm": 4339000000,
+    "revenueGrowth": 0.12234868080703576,
+    "quarterYoY": -0.30350484712900816,
+    "grossMargin": null,
+    "operatingMargin": 0.11892141046324038,
+    "cashConversion": 2.3333333333333335,
+    "freeCashFlowTtm": 823000000
+   },
+   {
+    "ticker": "IRDM",
+    "name": "Iridium Communications Inc",
+    "revenueTtm": 902967000,
+    "revenueGrowth": 0.03585710844202783,
+    "quarterYoY": 0.08283429175755175,
+    "grossMargin": null,
+    "operatingMargin": 0.1900268780586666,
+    "cashConversion": 2.393985303678987,
+    "freeCashFlowTtm": 277574000
+   }
+  ],
+  "peerBasis": "8 candidates in SIC major group 48, compared on free cash flow yield, all from the same source and the same periods.",
+  "runnersUp": [
+   {
+    "ticker": "ECPG",
+    "name": "ECPG",
+    "rankScore": 0,
+    "why": "set aside because it announced results on 2026-11-04, inside the quiet window"
+   },
+   {
+    "ticker": "AAMI",
+    "name": "Acadian Asset Management Inc.",
+    "rankScore": 92,
+    "why": "its weakest signal was valuation against its own industry (-1.22)"
+   },
+   {
+    "ticker": "KNTK",
+    "name": "Kinetik Holdings Inc.",
+    "rankScore": 90,
+    "why": "its weakest signal was debt over operating cash flow (-1.14)"
+   }
+  ],
+  "counterargument": "Growth decelerated against the previous quarter, so the trend in the numbers is already turning.",
+  "invalidation": [
+   "Quarterly revenue growth falling below -1.9%, the rate it was running at the quarter before.",
+   "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
+   "A close below the 200-session average, which stood at $47.64 on the decision date."
+  ],
+  "risks": [
+   "The share count is from 2026-06-30, 127 days older than the price, so the market capitalisation carries that staleness.",
+   "The most recent filing covers a period ending 2026-06-30, 127 days before the decision date.",
+   "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
+   "Point-in-time fundamentals are built from filings accepted up to 2026-11-04."
+  ],
+  "earnings": {
+   "estimate": "2026-11-06",
+   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-07) plus 364 days",
+   "spreadDays": 18,
+   "confirmed": false,
+   "inWindow": true,
+   "nearWindow": false
+  },
+  "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
+  "validation": "The held-out window has not been opened. No claim of an edge is made or implied.",
+  "sources": {
+   "universe": "Nasdaq Trader nasdaqtraded.txt",
+   "identity": "SEC company_tickers.json",
+   "fundamentals": "SEC Financial Statement Data Sets (twelve quarters), point-in-time by accepted timestamp, topped up from companyfacts for companies that have filed since the newest data set",
+   "earnings": "EDGAR 8-K item 2.02",
+   "prices": "Massive (Polygon.io) grouped daily bars, splits and dividends"
+  }
  },
  "recaps": [
   {
    "kind": "recap",
    "strategyVersion": 2,
-   "asOf": "2026-11-03",
+   "asOf": "2026-11-04",
    "rows": [
     {
      "strategyVersion": 2,
      "date": "2026-10-06",
      "ticker": "ATEX",
      "name": "Anterix Inc.",
-     "status": "open",
+     "status": "complete",
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 81.69,
-     "valueDate": "2026-11-03",
-     "valuePrice": 82.21,
-     "sessionsHeld": 20,
+     "valueDate": "2026-11-04",
+     "valuePrice": 77.76,
+     "sessionsHeld": 21,
      "horizon": 21,
-     "netPct": 0.43548078803312684,
-     "grossPct": 0.6365528216427885,
-     "excessSpyPct": 3.2354962132322362,
-     "excessRspPct": -3.3491169661540754
+     "netPct": -5.001058434771233,
+     "grossPct": -4.810870363569586,
+     "excessSpyPct": -3.8065468311430206,
+     "excessRspPct": -10.712151276341197
     },
     {
      "strategyVersion": 2,
      "date": "2026-10-07",
      "ticker": "VCTR",
      "name": "Victory Capital Holdings, Inc.",
-     "status": "open",
+     "status": "complete",
      "reason": null,
      "entryDate": "2026-10-07",
      "entryPrice": 112.1,
-     "valueDate": "2026-11-03",
-     "valuePrice": 115.75,
-     "sessionsHeld": 20,
+     "valueDate": "2026-11-04",
+     "valuePrice": 120.19,
+     "sessionsHeld": 21,
      "horizon": 21,
-     "netPct": 3.0497156723740204,
-     "grossPct": 3.256021409455845,
-     "excessSpyPct": 5.84973109757313,
-     "excessRspPct": -0.7348820818131818
+     "netPct": 7.002551418251701,
+     "grossPct": 7.216770740410361,
+     "excessSpyPct": 8.197063021879913,
+     "excessRspPct": 1.2914585766817366
     },
     {
      "strategyVersion": 2,
@@ -62,14 +363,14 @@
      "reason": null,
      "entryDate": "2026-10-08",
      "entryPrice": 74.66,
-     "valueDate": "2026-11-03",
-     "valuePrice": 71.97,
-     "sessionsHeld": 19,
+     "valueDate": "2026-11-04",
+     "valuePrice": 75.59,
+     "sessionsHeld": 20,
      "horizon": 21,
-     "netPct": -3.7956016659472125,
-     "grossPct": -3.6030002678810624,
-     "excessSpyPct": -1.109738456584608,
-     "excessRspPct": -8.173310751237505
+     "netPct": 1.0433579279012006,
+     "grossPct": 1.245646932761857,
+     "excessSpyPct": 2.1218318028549343,
+     "excessRspPct": -5.271855836660877
     },
     {
      "strategyVersion": 2,
@@ -80,14 +381,14 @@
      "reason": null,
      "entryDate": "2026-10-09",
      "entryPrice": 98.6,
-     "valueDate": "2026-11-03",
-     "valuePrice": 116.84,
-     "sessionsHeld": 18,
+     "valueDate": "2026-11-04",
+     "valuePrice": 120.87,
+     "sessionsHeld": 19,
      "horizon": 21,
-     "netPct": 18.262224590825028,
-     "grossPct": 18.49898580121705,
-     "excessSpyPct": 21.121092938767305,
-     "excessRspPct": 15.11260413840947
+     "netPct": 22.34127941024495,
+     "grossPct": 22.58620689655173,
+     "excessSpyPct": 23.59561604163043,
+     "excessRspPct": 17.276950596790776
     },
     {
      "strategyVersion": 2,
@@ -98,14 +399,14 @@
      "reason": null,
      "entryDate": "2026-10-12",
      "entryPrice": 51.74,
-     "valueDate": "2026-11-03",
-     "valuePrice": 49.41,
-     "sessionsHeld": 17,
+     "valueDate": "2026-11-04",
+     "valuePrice": 52.42,
+     "sessionsHeld": 18,
      "horizon": 21,
-     "netPct": -4.694088285120368,
-     "grossPct": -4.503285659064559,
-     "excessSpyPct": -1.5183930099377685,
-     "excessRspPct": -7.44234834667048
+     "netPct": 1.1118375246709444,
+     "grossPct": 1.3142636258214102,
+     "excessSpyPct": 2.6882342820949368,
+     "excessRspPct": -3.543680670832039
     },
     {
      "strategyVersion": 2,
@@ -116,14 +417,14 @@
      "reason": null,
      "entryDate": "2026-10-13",
      "entryPrice": 34.5,
-     "valueDate": "2026-11-03",
-     "valuePrice": 32.41,
-     "sessionsHeld": 16,
+     "valueDate": "2026-11-04",
+     "valuePrice": 35.19,
+     "sessionsHeld": 17,
      "horizon": 21,
-     "netPct": -6.245667376102149,
-     "grossPct": -6.057971014492769,
-     "excessSpyPct": -3.249336341539788,
-     "excessRspPct": -8.854428395433867
+     "netPct": 1.796203796203799,
+     "grossPct": 2.0000000000000018,
+     "excessSpyPct": 3.1902736584862645,
+     "excessRspPct": -2.717225914857746
     },
     {
      "strategyVersion": 2,
@@ -134,14 +435,14 @@
      "reason": null,
      "entryDate": "2026-10-14",
      "entryPrice": 38.945,
-     "valueDate": "2026-11-03",
-     "valuePrice": 36.67,
-     "sessionsHeld": 15,
+     "valueDate": "2026-11-04",
+     "valuePrice": 31.06,
+     "sessionsHeld": 16,
      "horizon": 21,
-     "netPct": -6.02970017529011,
-     "grossPct": -5.841571446912308,
-     "excessSpyPct": -3.3363021904572077,
-     "excessRspPct": -9.133222949507457
+     "netPct": -20.40584912583886,
+     "grossPct": -20.246501476441136,
+     "excessSpyPct": -19.319716019522527,
+     "excessRspPct": -25.423224575834137
     },
     {
      "strategyVersion": 2,
@@ -152,14 +453,14 @@
      "reason": null,
      "entryDate": "2026-10-15",
      "entryPrice": 53.41,
-     "valueDate": "2026-11-03",
-     "valuePrice": 51.96,
-     "sessionsHeld": 14,
+     "valueDate": "2026-11-04",
+     "valuePrice": 49.43,
+     "sessionsHeld": 15,
      "horizon": 21,
-     "netPct": -2.9092233361096675,
-     "grossPct": -2.7148474068526385,
-     "excessSpyPct": -1.316834472936157,
-     "excessRspPct": -5.809438616887396
+     "netPct": -7.636699567049677,
+     "grossPct": -7.451788054671404,
+     "excessSpyPct": -7.669761535406405,
+     "excessRspPct": -12.446993641007953
     },
     {
      "strategyVersion": 2,
@@ -170,14 +471,14 @@
      "reason": null,
      "entryDate": "2026-10-16",
      "entryPrice": 24.89,
-     "valueDate": "2026-11-03",
-     "valuePrice": 25.82,
-     "sessionsHeld": 13,
+     "valueDate": "2026-11-04",
+     "valuePrice": 15.95,
+     "sessionsHeld": 14,
      "horizon": 21,
-     "netPct": 3.5291747224250436,
-     "grossPct": 3.7364403374849253,
-     "excessSpyPct": 6.011156987189803,
-     "excessRspPct": 1.8675422082580884
+     "netPct": -36.04607525861041,
+     "grossPct": -35.91803937324227,
+     "excessSpyPct": -35.17484993820968,
+     "excessRspPct": -39.59479545102538
     },
     {
      "strategyVersion": 2,
@@ -188,14 +489,14 @@
      "reason": null,
      "entryDate": "2026-10-19",
      "entryPrice": 110.74,
-     "valueDate": "2026-11-03",
-     "valuePrice": 104.75,
-     "sessionsHeld": 12,
+     "valueDate": "2026-11-04",
+     "valuePrice": 99.36,
+     "sessionsHeld": 13,
      "horizon": 21,
-     "netPct": -5.59805915594247,
-     "grossPct": -5.409066281379804,
-     "excessSpyPct": -3.8799720550643513,
-     "excessRspPct": -7.823951664008022
+     "netPct": -10.455591004624775,
+     "grossPct": -10.276322918547942,
+     "excessSpyPct": -10.360878510657301,
+     "excessRspPct": -14.579045231689813
     },
     {
      "strategyVersion": 2,
@@ -203,7 +504,7 @@
      "ticker": "MSGS",
      "name": "Madison Square Garden Sports Corp.",
      "status": "unpriced",
-     "reason": "no bar for 2026-10-20 or 2026-11-03",
+     "reason": "no bar for 2026-10-20 or 2026-11-04",
      "entryDate": "2026-10-20",
      "entryPrice": null,
      "valueDate": null,
@@ -224,14 +525,14 @@
      "reason": null,
      "entryDate": "2026-10-21",
      "entryPrice": 81,
-     "valueDate": "2026-11-03",
-     "valuePrice": 79.5,
-     "sessionsHeld": 10,
+     "valueDate": "2026-11-04",
+     "valuePrice": 78.73,
+     "sessionsHeld": 11,
      "horizon": 21,
-     "netPct": -2.0479520479520286,
-     "grossPct": -1.851851851851849,
-     "excessSpyPct": 0.17226913078508543,
-     "excessRspPct": -3.331398309322453
+     "netPct": -2.996669996669965,
+     "grossPct": -2.8024691358024656,
+     "excessSpyPct": -2.3915294093200257,
+     "excessRspPct": -6.160183877687286
     },
     {
      "strategyVersion": 2,
@@ -242,14 +543,14 @@
      "reason": null,
      "entryDate": "2026-10-22",
      "entryPrice": 79.32,
-     "valueDate": "2026-11-03",
-     "valuePrice": 93.29,
-     "sessionsHeld": 9,
+     "valueDate": "2026-11-04",
+     "valuePrice": 96.12,
+     "sessionsHeld": 10,
      "horizon": 21,
-     "netPct": 17.37721431367425,
-     "grossPct": 17.61220373171963,
-     "excessSpyPct": 18.98501206985822,
-     "excessRspPct": 15.781556066192426
+     "netPct": 20.937912314614305,
+     "grossPct": 21.18003025718609,
+     "excessSpyPct": 20.920513756146008,
+     "excessRspPct": 17.456391032072503
     },
     {
      "strategyVersion": 2,
@@ -260,14 +561,14 @@
      "reason": null,
      "entryDate": "2026-10-23",
      "entryPrice": 24.63,
-     "valueDate": "2026-11-03",
-     "valuePrice": 24,
-     "sessionsHeld": 8,
+     "valueDate": "2026-11-04",
+     "valuePrice": 22.43,
+     "sessionsHeld": 9,
      "horizon": 21,
-     "netPct": -2.752545870694467,
-     "grossPct": -2.5578562728379994,
-     "excessSpyPct": -1.9830090309075676,
-     "excessRspPct": -3.707089185891399
+     "netPct": -9.1141501616532,
+     "grossPct": -8.932196508323177,
+     "excessSpyPct": -9.983655637735911,
+     "excessRspPct": -11.942655856184503
     },
     {
      "strategyVersion": 2,
@@ -278,14 +579,14 @@
      "reason": null,
      "entryDate": "2026-10-26",
      "entryPrice": 17.46,
-     "valueDate": "2026-11-03",
-     "valuePrice": 17.9,
-     "sessionsHeld": 7,
+     "valueDate": "2026-11-04",
+     "valuePrice": 19.24,
+     "sessionsHeld": 8,
      "horizon": 21,
-     "netPct": 2.3152105626332187,
-     "grossPct": 2.5200458190148822,
-     "excessSpyPct": 3.391193463789932,
-     "excessRspPct": 1.239618634348516
+     "netPct": 9.974561520953262,
+     "grossPct": 10.1947308132875,
+     "excessSpyPct": 9.416563838757996,
+     "excessRspPct": 7.022760256044824
     },
     {
      "strategyVersion": 2,
@@ -296,14 +597,14 @@
      "reason": null,
      "entryDate": "2026-10-27",
      "entryPrice": 123.69,
-     "valueDate": "2026-11-03",
-     "valuePrice": 134.07,
-     "sessionsHeld": 6,
+     "valueDate": "2026-11-04",
+     "valuePrice": 147,
+     "sessionsHeld": 7,
      "horizon": 21,
-     "netPct": 8.175380283068856,
-     "grossPct": 8.391947610962891,
-     "excessSpyPct": 9.907556328116307,
-     "excessRspPct": 7.378694513526662
+     "netPct": 18.60804730074681,
+     "grossPct": 18.845500848896446,
+     "excessSpyPct": 18.717081453464846,
+     "excessRspPct": 15.940329372662077
     },
     {
      "strategyVersion": 2,
@@ -314,14 +615,14 @@
      "reason": null,
      "entryDate": "2026-10-28",
      "entryPrice": 154.5,
-     "valueDate": "2026-11-03",
-     "valuePrice": 143.83,
-     "sessionsHeld": 5,
+     "valueDate": "2026-11-04",
+     "valuePrice": 132.33,
+     "sessionsHeld": 6,
      "horizon": 21,
-     "netPct": -7.092150567878708,
-     "grossPct": -6.90614886731391,
-     "excessSpyPct": -4.838974043233957,
-     "excessRspPct": -7.9630607010214405
+     "netPct": -14.520644404139526,
+     "grossPct": -14.34951456310679,
+     "excessSpyPct": -13.882004129912895,
+     "excessRspPct": -17.26396448091946
     },
     {
      "strategyVersion": 2,
@@ -332,14 +633,14 @@
      "reason": null,
      "entryDate": "2026-10-29",
      "entryPrice": 73.24,
-     "valueDate": "2026-11-03",
-     "valuePrice": 73.02,
-     "sessionsHeld": 4,
+     "valueDate": "2026-11-04",
+     "valuePrice": 76.44,
+     "sessionsHeld": 5,
      "horizon": 21,
-     "netPct": -0.49958234010664127,
-     "grossPct": -0.30038230475150085,
-     "excessSpyPct": 1.4179347535167253,
-     "excessRspPct": -0.903775632191739
+     "netPct": 4.160667295566256,
+     "grossPct": 4.369197160021843,
+     "excessSpyPct": 4.458103873496066,
+     "excessRspPct": 1.8927274619378487
     },
     {
      "strategyVersion": 2,
@@ -350,14 +651,14 @@
      "reason": null,
      "entryDate": "2026-10-30",
      "entryPrice": 63.21,
-     "valueDate": "2026-11-03",
-     "valuePrice": 60.62,
-     "sessionsHeld": 3,
+     "valueDate": "2026-11-04",
+     "valuePrice": 61.75,
+     "sessionsHeld": 4,
      "horizon": 21,
-     "netPct": -4.289066415312259,
-     "grossPct": -4.097452934662238,
-     "excessSpyPct": -3.3261202302184656,
-     "excessRspPct": -4.071590220134724
+     "netPct": -2.504946406227837,
+     "grossPct": -2.3097611137478213,
+     "excessSpyPct": -3.1778478920211906,
+     "excessRspPct": -4.13967705172179
     },
     {
      "strategyVersion": 2,
@@ -368,14 +669,14 @@
      "reason": null,
      "entryDate": "2026-11-02",
      "entryPrice": 46.23,
-     "valueDate": "2026-11-03",
-     "valuePrice": 45.1,
-     "sessionsHeld": 2,
+     "valueDate": "2026-11-04",
+     "valuePrice": 48.29,
+     "sessionsHeld": 3,
      "horizon": 21,
-     "netPct": -2.639216720981785,
-     "grossPct": -2.444300237940722,
-     "excessSpyPct": -1.9279546676448822,
-     "excessRspPct": -2.4717363243764168
+     "netPct": 4.247277706070718,
+     "grossPct": 4.455980964741513,
+     "excessSpyPct": 3.318534887908453,
+     "excessRspPct": 2.5616232181288945
     },
     {
      "strategyVersion": 2,
@@ -386,25 +687,42 @@
      "reason": null,
      "entryDate": "2026-11-03",
      "entryPrice": 103.23,
-     "valueDate": "2026-11-03",
-     "valuePrice": 100.95,
-     "sessionsHeld": 1,
+     "valueDate": "2026-11-04",
+     "valuePrice": 106.84,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": -2.4040475653378746,
-     "grossPct": -2.2086602731763993,
-     "excessSpyPct": -2.579186105841491,
-     "excessRspPct": -2.209290524032126
+     "netPct": 3.2902581289678157,
+     "grossPct": 3.497045432529311,
+     "excessSpyPct": 1.4604735671018831,
+     "excessRspPct": 1.6323866067330828
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-11-05",
+     "ticker": "ZD",
+     "name": "Ziff Davis, Inc.",
+     "status": "not-entered",
+     "reason": "the market has not opened since publication",
+     "entryDate": null,
+     "entryPrice": null,
+     "valueDate": null,
+     "valuePrice": null,
+     "sessionsHeld": 0,
+     "horizon": 21,
+     "netPct": null,
+     "grossPct": null,
+     "excessSpyPct": null,
+     "excessRspPct": null
     }
    ],
-   "completed": 0,
-   "open": 20,
-   "meanNetPct": null,
-   "meanExcessSpyPct": null,
-   "meanExcessRspPct": null,
-   "winRate": null,
-   "mixedHorizonMeanPct": 0.10737497051289013,
+   "completed": 2,
+   "open": 18,
+   "meanNetPct": 1.0007464917402342,
+   "meanExcessSpyPct": 2.1952580953684464,
+   "meanExcessRspPct": -4.710346349829731,
+   "winRate": 0.5,
+   "mixedHorizonMeanPct": -0.708386500769686,
    "horizonsSpanned": [
-    1,
     2,
     3,
     4,
@@ -414,7 +732,7 @@
     8,
     9,
     10,
-    12,
+    11,
     13,
     14,
     15,
@@ -422,14 +740,15 @@
     17,
     18,
     19,
-    20
+    20,
+    21
    ],
    "note": "Each position is bought at the open of the first session after it was published and held 21 sessions. Costs of 10 basis points each way on the stock and 2 on the benchmark are deducted. Only completed positions enter the average; a position still running is listed with the sessions elapsed and counted nowhere else."
   },
   {
    "kind": "recap",
    "strategyVersion": 1,
-   "asOf": "2026-11-03",
+   "asOf": "2026-11-04",
    "rows": [
     {
      "strategyVersion": 1,
