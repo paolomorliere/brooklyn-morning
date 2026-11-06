@@ -330,6 +330,21 @@
    "rankScore": 97,
    "composite": 0.9280099735311197,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-06",
+   "publishedAt": "2026-11-06T12:01:34.152Z",
+   "ticker": "SLDE",
+   "name": "Slide Insurance Holdings, Inc.",
+   "cik": "1886428",
+   "sic": "6331",
+   "division": "Finance, Insurance and Real Estate",
+   "decisionSession": "2026-11-05",
+   "plannedEntry": "2026-11-06",
+   "referenceClose": 26.43,
+   "rankScore": 100,
+   "composite": 1.5047712398206279,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
