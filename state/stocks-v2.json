@@ -345,6 +345,21 @@
    "rankScore": 100,
    "composite": 1.5047712398206279,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-09",
+   "publishedAt": "2026-11-09T12:46:29.558Z",
+   "ticker": "PD",
+   "name": "PagerDuty, Inc.",
+   "cik": "1568100",
+   "sic": "7372",
+   "division": "Services",
+   "decisionSession": "2026-11-06",
+   "plannedEntry": "2026-11-09",
+   "referenceClose": 15.68,
+   "rankScore": 99,
+   "composite": 0.9417885326373575,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
