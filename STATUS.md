@@ -529,9 +529,11 @@ Found on resuming after a month away. Editions had run every day; the other two 
 
 ### Water polo: eight days of results stuck behind one impossible fixture
 
-**Symptom.** Every run from 2 November failed. `public/data/waterpolo.json` was frozen at
-`builtAt 2026-11-02T09:17`. One run on 9 November at 22:56 UTC reported success and had read nothing
-at all — it was a slot `polo-due.mjs` had already claimed.
+**Symptom.** `public/data/waterpolo.json` was frozen at `builtAt 2026-11-02T09:17`, eight days stale.
+The last run to write it succeeded on 2 November at 22:16 UTC. The schedule is weekends plus Monday,
+so the next slots were Saturday 7, Sunday 8 and Monday 9 November — and **all nine of those runs
+failed**, so three collection days were lost, not eight. One further run on 9 November at 22:56 UTC
+reported success and had read nothing at all: it was a slot `polo-due.mjs` had already claimed.
 
 **Cause.** Not the network. All thirteen watched schedules read fine (`sources 13/13 ok`), and the
 build produced a complete feed. It then refused to write it:
@@ -574,7 +576,9 @@ with no new results says so explicitly rather than printing nothing.
 ### Stocks: two workflows deciding the same day, and a rebase that could not resolve them
 
 **Symptom.** No commit named `Stock …` since 12 October, yet a fresh pick on the card every morning.
-Most runs green; 5 and 9 November red.
+Most runs green, and **nine red ones**: 8, 9, 14, 22, 27, 29 and 30 October, then 5 and 9 November.
+All nine have the identical signature — push rejected, rebase, conflict in `public/data/stock.json`,
+`state/sec/overlay.meta.json` and `state/stocks-v2.json`, `could not apply`, exit 1.
 
 **Cause.** Two separate problems that only together produce the failure.
 
@@ -590,6 +594,12 @@ Most runs green; 5 and 9 November red.
    was rejected. `git pull --rebase` conflicted in `stock.json`, `state/stocks-v2.json` and
    `state/sec/overlay.meta.json`, leaving the repository mid-rebase; the four remaining attempts
    pushed from inside that rebase and failed identically.
+
+   The two failures on 8 and 9 October predate the edition's stock step, so the second writer there
+   was another Stock in focus run: nothing serialised them until the `brooklyn-data` concurrency group
+   was added on 12 October, and two runs a day were being delivered. Different second writer, same
+   cause — two writers of one file, reconciled by a rebase that cannot reconcile them — and the same
+   fix covers both.
 
 **Fix.**
 
@@ -610,6 +620,27 @@ Most runs green; 5 and 9 November red.
 Nothing was backfilled. The outage's missing water polo results come back because every run
 reconciles the whole season from the schedules; the picks the stocks workflow did not make are not
 reconstructed, because a pick made with hindsight is not a pick.
+
+### The cron restructure of 12 October did work, and the throttle is per expression
+
+The 12 October entry called the four-expression schedule "a bet on the shape of the throttle, not a
+proven mechanism", and named the run counts as the way to tell. Measured over 490 runs,
+8 October to 10 November, counting only `event: schedule`:
+
+| workflow | 8–12 Oct (one expression, 18 slots) | 13 Oct – 9 Nov (four expressions, 8 slots) |
+|---|---|---|
+| Morning edition | **2 a day**, every day | **4 a day**, every day without exception |
+| Stock in focus | 2–3 a day | **4 a day**, every day without exception |
+| Water polo | — | 4 on each day it asks (3 expressions) |
+
+So the bet paid off, and the mechanism is now clear: **GitHub delivers roughly one run per cron
+expression per day, not a fixed number per workflow.** Slots inside one expression are nearly all
+dropped; separate expressions are each honoured. "Asking more often does not help" was the right
+conclusion from the wrong model — asking in more *expressions* does.
+
+That is worth knowing before anything else on this repository is scheduled. It also means the floor
+on the morning edition is unchanged: the first expression still cannot fire before New York midnight,
+and GitHub's own lag is hours, so about 06:30 NY remains the realistic earliest.
 
 ## 2026-11-10 — the learning section replays four weeks behind
 

@@ -59,8 +59,59 @@ test('the deployed team page switches between Results and Schedule', async ({ pa
   await expect(page.locator('.polo-team-name')).toHaveText('LIU', { timeout: 40_000 });
   await expect(page.locator('.polo-record b')).toHaveText(/^\d+–\d+/);
   await page.getByRole('button', { name: /^Schedule/ }).click();
-  await expect(page.locator('.polo-row--fixture').first()).toBeVisible();
-  await expect(page.locator('.polo-row--fixture').first().locator('.polo-when')).toBeVisible();
+
+  // A team with nothing left to play is not a failure, and from 10 November 2026 LIU is one: its
+  // season ended on 8 November and the NWPC tournament is published as a date range rather than a
+  // fixture. So either there are fixtures and they carry a time, or the screen says so plainly.
+  const fixtures = page.locator('.polo-row--fixture');
+  if (await fixtures.count()) {
+    await expect(fixtures.first()).toBeVisible();
+    await expect(fixtures.first().locator('.polo-when')).toBeVisible();
+  } else {
+    await expect(page.getByRole('heading', { name: 'Nothing left on the schedule' })).toBeVisible();
+  }
+});
+
+test('the deployed lesson is the replayed October one, by title and by content', async ({ page }) => {
+  // Paolo's own profile: the sequence began on the epoch Monday.
+  await page.goto(`${SITE}#/home`);
+  await page.waitForFunction(() => document.querySelector('.app') !== null, null, { timeout: 40_000 });
+  await page.evaluate(async () => {
+    await new Promise<void>((resolve) => {
+      const open = indexedDB.open('brooklyn-personal');
+      open.onsuccess = () => {
+        const db = open.result;
+        const tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put({ key: 'lessonProgress', value: { startMonday: '2026-09-21', readLessonIds: [] } });
+        tx.oncomplete = () => { db.close(); resolve(); };
+      };
+    });
+  });
+
+  // Tuesday 10 November replays Tuesday 13 October: week 4, day 2.
+  await page.goto(`${SITE}?r=1#/home`);
+  const card = page.locator('section.lesson');
+  await expect(card).toBeVisible({ timeout: 40_000 });
+  await expect(card.getByRole('heading', { name: 'Neural networks, explained with a dial board' })).toBeVisible();
+  await expect(card).toContainText('Week 4');
+  await expect(card).toContainText('How AI actually works (no code)');
+  await expect(card).toContainText('Day 2 of 7');
+  // Said out loud, naming the date it is replaying.
+  await expect(card).toContainText('Catching up: this is the lesson from Tuesday, October 13');
+  // The body is the original, not a summary of it.
+  await expect(card).toContainText('Explanation');
+
+  // Sunday 15 November leads to week 4's quiz, filed under its own week rather than October's.
+  await page.goto(`${SITE}?r=1#/quiz/2026-11-09`);
+  await expect(page.getByRole('heading', { name: 'Weekly quiz' })).toBeVisible({ timeout: 40_000 });
+  await expect(page.locator('.screen').getByText('1 / 20')).toBeVisible();
+  await expect(page.locator('.screen')).toContainText('In machine learning, the rules a model follows are');
+
+  // And the original October week is still reachable, with its own lessons.
+  await page.goto(`${SITE}?r=1#/week/2026-10-12`);
+  await expect(page.getByRole('heading', { name: /This week.s lessons/ })).toBeVisible({ timeout: 40_000 });
+  await expect(page.locator('section.lesson')).toHaveCount(7);
+  await expect(page.locator('section.lesson').first()).toContainText('Prediction machines');
 });
 
 test('the deployed poll shows the published week', async ({ page }) => {
@@ -171,7 +222,9 @@ test('the deployed To Do screen reorders a task by press and hold', async ({ pag
 });
 
 test('the deployed stock card is labelled for the rule that made it', async ({ page }) => {
-  await page.goto('/#/home');
+  // `/#/home` resolves against `baseURL`, which is the local dev server — so this test has been
+  // checking the working tree, not the deployed app its name claims.
+  await page.goto(`${SITE}#/home`);
   const card = page.locator('section.stock');
   await expect(card).toBeVisible({ timeout: 20_000 });
   const eyebrow = (await card.locator('.eyebrow').innerText()).toLowerCase();
