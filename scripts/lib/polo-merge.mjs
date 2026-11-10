@@ -398,7 +398,7 @@ function dedupeSources(sources) {
 }
 
 export function repairIdentities(games, canonical, season = SEASON) {
-  if (!canonical || canonical.size === 0) return { games, rewritten: 0, collapsed: 0 };
+  if (!canonical || canonical.size === 0) return { games, rewritten: 0, collapsed: 0, selfMatches: [] };
   const map = (slug) => {
     let s = slug;
     for (let i = 0; i < 8 && canonical.has(s); i++) s = canonical.get(s);
@@ -413,14 +413,33 @@ export function repairIdentities(games, canonical, season = SEASON) {
 
   let rewritten = 0;
   const touched = new Set();
-  const moved = games.map((g) => {
+  // Rows that name one school on both sides, after the merge. See the note below.
+  const selfMatches = [];
+  const moved = [];
+  for (const g of games) {
     const teams = teamPair(map(g.teams[0]), map(g.teams[1]));
+    // An identity merge has just decided these two names are the same school, so this row now has
+    // that school playing itself. No intercollegiate game can look like that: it is an intrasquad or
+    // alumni fixture, or a parse that read one team's name on both sides. Publishing it would put a
+    // nonsense row on a team screen, and letting it reach the feed validator costs a whole day of
+    // results, because that gate writes nothing at all when any row is unsound. So the row is
+    // dropped here and reported by name — the one place that knows why the two slugs became one.
+    if (teams[0] === teams[1]) {
+      selfMatches.push({
+        id: g.id ?? null,
+        date: g.date,
+        team: teams[0],
+        was: [g.teams[0], g.teams[1]],
+        sources: (g.sources ?? []).map((src) => src.id),
+      });
+      continue;
+    }
     const changed = teams[0] !== g.teams[0] || teams[1] !== g.teams[1];
     if (changed) {
       rewritten++;
       touched.add(bucketOf(g.date, teams[0], teams[1]));
     }
-    return {
+    moved.push({
       ...g,
       teams,
       scores: rekey(g.scores),
@@ -433,8 +452,8 @@ export function repairIdentities(games, canonical, season = SEASON) {
       conflict: g.conflict
         ? { ...g.conflict, readings: (g.conflict.readings ?? []).map((r) => ({ ...r, scores: rekey(r.scores) })) }
         : g.conflict,
-    };
-  });
+    });
+  }
 
   // Only the buckets the rewrite actually touched are reconsidered. Everything else keeps the id it
   // was published with — feeds written before this existed carry no slot, so re-deriving an id for
@@ -504,7 +523,7 @@ export function repairIdentities(games, canonical, season = SEASON) {
     g.sources = dedupeSources(g.sources.map((src) => ({ ...src, id: map(src.id) })));
     delete g.publishedBy;
   }
-  return { games: out, rewritten, collapsed };
+  return { games: out, rewritten, collapsed, selfMatches };
 }
 
 /** Every game must involve at least one watched team. Anything else is out of scope by design. */

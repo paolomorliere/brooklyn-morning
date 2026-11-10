@@ -85,6 +85,18 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # `actions/checkout` pins the run to the commit it was created at, not the tip of main, and a run
+      # that waited in a concurrency queue starts on a commit that may be minutes old. Working from the
+      # live tip instead means the pre-checks below judge what is actually published, and a push cannot
+      # be rejected for being behind. See the long note in stocks.yml, where a stale checkout cost two
+      # days' picks in November 2026.
+      - name: Start from the live tip of main
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git log -1 --format='working from %h %s'
+
       - name: Decide what to do
         id: check
         run: |

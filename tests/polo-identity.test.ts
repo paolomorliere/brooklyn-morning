@@ -130,6 +130,62 @@ describe('repairing what has already been published', () => {
 
   it('does nothing at all when there is nothing to canonicalise', () => {
     const archive = fromFeedGames(published);
-    expect(repairIdentities(archive, new Map(), 2026)).toEqual({ games: archive, rewritten: 0, collapsed: 0 });
+    expect(repairIdentities(archive, new Map(), 2026)).toEqual({ games: archive, rewritten: 0, collapsed: 0, selfMatches: [] });
+  });
+
+  // The outage of 2–10 November 2026. Concordia's two slugs were correctly merged into one school,
+  // and one scraped row had the two of them on opposite sides, so the merge produced a game of
+  // concordia-irvine against itself. `validateFeed` refused that row, and refusing one row used to
+  // mean refusing the whole feed: eight days of results never shipped.
+  it('drops a game that the merge puts on both sides of one school, and names it', () => {
+    const intrasquad = [
+      {
+        ...published[0],
+        id: 'self1',
+        date: '2026-08-22',
+        home: { team: 'concordia', score: 11 },
+        away: { team: 'concordia-irvine', score: 9 },
+        hosted: 'concordia',
+        sources: [{ id: 'concordia-irvine', url: 'u', verifiedAt: 't', detailUrl: null, reading: { concordia: 11, 'concordia-irvine': 9 } }],
+      },
+    ];
+    const { games, selfMatches, rewritten, collapsed } = repairIdentities(
+      fromFeedGames(intrasquad),
+      new Map([['concordia', 'concordia-irvine']]),
+      2026,
+    );
+    expect(games).toEqual([]);
+    expect(rewritten).toBe(0);
+    expect(collapsed).toBe(0);
+    expect(selfMatches).toEqual([
+      {
+        id: 'self1',
+        date: '2026-08-22',
+        team: 'concordia-irvine',
+        was: ['concordia', 'concordia-irvine'],
+        sources: ['concordia-irvine'],
+      },
+    ]);
+  });
+
+  it('drops only the self-match, never the real games beside it', () => {
+    const mixed = [
+      ...published,
+      {
+        ...published[0],
+        id: 'self1',
+        date: '2026-08-22',
+        home: { team: 'concordia', score: 11 },
+        away: { team: 'concordia-irvine', score: 9 },
+        hosted: 'concordia',
+        sources: [{ id: 'concordia-irvine', url: 'u', verifiedAt: 't', detailUrl: null, reading: { concordia: 11, 'concordia-irvine': 9 } }],
+      },
+    ];
+    const { games, selfMatches } = repairIdentities(fromFeedGames(mixed), new Map([['concordia', 'concordia-irvine']]), 2026);
+    const feed = toFeedGames(games);
+    expect(selfMatches).toHaveLength(1);
+    // The two published rows for the Harvard game still collapse into one, exactly as before.
+    expect(feed).toHaveLength(1);
+    expect([feed[0].home.team, feed[0].away.team].sort()).toEqual(['concordia-irvine', 'harvard']);
   });
 });

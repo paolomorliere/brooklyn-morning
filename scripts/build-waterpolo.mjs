@@ -39,7 +39,7 @@ import {
 import { parseSchedule } from './lib/polo-parse.mjs';
 import { classifyGame, indexFixtures, parseConferenceSchedule } from './lib/polo-conference.mjs';
 import { buildIdentity, canonicalize } from './lib/polo-identity.mjs';
-import { validateFeed, validateSource } from './lib/polo-validate.mjs';
+import { quarantineRows, validateSource } from './lib/polo-validate.mjs';
 import { buildTeams, fromFeedGames, involvesWatched, mergeGames, repairIdentities, toCandidates, toFeedGames } from './lib/polo-merge.mjs';
 
 const FEED_PATH = 'public/data/waterpolo.json';
@@ -69,6 +69,14 @@ const CONFERENCE_COUNT = (games) => {
   for (const g of games) by[g.conference] = (by[g.conference] ?? 0) + 1;
   return Object.entries(by).map(([k, v]) => `${v} ${k}`).join(', ') || 'none';
 };
+
+/** One quarantined row, as it is published in the feed. */
+const rowDetail = (r) => ({
+  id: r.game.id,
+  date: r.game.date,
+  teams: [r.game.home?.team ?? null, r.game.away?.team ?? null],
+  problems: r.problems,
+});
 
 async function readJSON(path, fallback) {
   try {
@@ -452,7 +460,7 @@ async function main() {
   }
 
   const all = toFeedGames(games);
-  const kept = NO_OPPONENTS || ONLY ? all.filter(involvesWatched) : all;
+  let kept = NO_OPPONENTS || ONLY ? all.filter(involvesWatched) : all;
   const dropped = all.length - all.filter(involvesWatched).length;
 
   // --- 3. assemble and validate the whole feed ---------------------------------------------------
@@ -525,7 +533,37 @@ async function main() {
     feed.sources.sort((a, b) => a.id.localeCompare(b.id));
   }
 
-  const problems = validateFeed(feed);
+  // --- 3b. validate, telling a bad row apart from a bad feed --------------------------------------
+  //
+  // A problem with the feed as a whole means publish nothing: it is the wrong season or the wrong
+  // shape, and no part of it is worth keeping. A problem with one game means drop that one game.
+  //
+  // That distinction is the whole fix for the outage of 2–10 November 2026. One impossible fixture —
+  // a school an identity merge had put on both sides of its own game — made the old `validateFeed`
+  // gate return a problem, and a single problem meant nothing at all was written. Eight days of
+  // results sat behind one row that could never become valid, and every run went red without the app
+  // ever being told why its data had stopped moving.
+  //
+  // `quarantineRows` holds the decision, so it can be tested without a network: see
+  // tests/polo-validate.test.ts.
+  const gate = quarantineRows(feed, previous);
+  const { rescued, discarded, systemic, limit: quarantineLimit } = gate;
+  if (gate.write) {
+    kept = gate.games;
+    feed.games = gate.games;
+  }
+  // Published in the feed, so the number is visible to anything that reads the file and not only to
+  // whoever happens to open the run log.
+  feed.quarantined = {
+    rows: rescued.length + discarded.length,
+    rescued: rescued.length,
+    dropped: discarded.length,
+    detail: [
+      ...rescued.map((r) => ({ ...rowDetail(r), kept: 'last published version' })),
+      ...discarded.map((r) => ({ ...rowDetail(r), kept: 'dropped' })),
+    ],
+  };
+  const problems = [...gate.fatal, ...(systemic ? gate.rows.flatMap((r) => r.problems) : [])];
   const okCount = feed.sources.filter((s) => s.ok).length;
 
   // --- 4. report --------------------------------------------------------------------------------
@@ -585,6 +623,26 @@ async function main() {
   if (repair.rewritten) {
     console.log(`  repaired ${repair.rewritten} published game(s) onto canonical identities` + (repair.collapsed ? `, collapsing ${repair.collapsed} duplicate row(s)` : ''));
   }
+  for (const m of repair.selfMatches ?? []) {
+    console.log(
+      `  SELF-MATCH dropped ${m.date} ${m.was[0]} v ${m.was[1]} — both names are ${m.team}, so this is not an intercollegiate game` +
+        (m.sources.length ? ` (published by ${m.sources.join(', ')})` : ''),
+    );
+  }
+  for (const r of rescued) {
+    console.log(`  QUARANTINED ${r.game.id} ${r.game.date} ${r.game.home?.team} v ${r.game.away?.team} — kept the last published version. ${r.problems.join('; ')}`);
+  }
+  for (const r of discarded) {
+    console.log(`  QUARANTINED ${r.game.id} ${r.game.date} ${r.game.home?.team} v ${r.game.away?.team} — dropped, nothing published before it. ${r.problems.join('; ')}`);
+  }
+  if (rescued.length + discarded.length) {
+    // `::warning::` is read by GitHub Actions and shows on the run itself, so a feed that published
+    // with rows missing can never look like a clean green run.
+    console.log(
+      `::warning::${rescued.length + discarded.length} water polo row(s) failed validation and were left out of the feed` +
+        ` (${rescued.length} replaced by the last published version, ${discarded.length} dropped). The rest of the feed was published.`,
+    );
+  }
 
   const missingLogos = Object.entries(feed.teams).filter(([, t]) => !t.logo).map(([slug]) => slug);
   if (missingLogos.length) console.log(`no logo yet: ${missingLogos.join(', ')}`);
@@ -601,8 +659,13 @@ async function main() {
     );
   }
   if (problems.length) {
-    console.error(`\nFeed NOT written, ${problems.length} problem(s):`);
+    console.error(
+      systemic
+        ? `\nFeed NOT written: ${gate.rows.length} of ${feed.games.length} games failed validation, more than the ${quarantineLimit} a bad row allowance covers. That is a broken build, not bad data. Keeping the published file.`
+        : `\nFeed NOT written, ${problems.length} problem(s) with the feed itself:`,
+    );
     for (const p of problems.slice(0, 20)) console.error(`  ${p}`);
+    console.error('::error::The water polo feed was not written. The published file is unchanged.');
     process.exit(1);
   }
   if (okCount === 0) {

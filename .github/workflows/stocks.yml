@@ -39,10 +39,18 @@ on:
     # Measured 2026-10-07 to 10-11: 26 requested slots a day produced two or three runs. Asking more often
     # does not produce more runs on this repository, so this asks for eight across four expressions, at
     # minutes away from the congested top of the hour. See the long note in edition.yml.
-    - cron: '9 4,5 * * *'
-    - cron: '27 6,7 * * *'
-    - cron: '47 8,9 * * *'
-    - cron: '19 11,12 * * *'
+    #
+    # Each slot sits a few minutes *before* the edition's matching slot (edition.yml asks for 7, 23, 41
+    # and 13). Until 10 November 2026 they sat a few minutes after, and since the edition gained its own
+    # last-resort stock step on 12 October that meant the edition decided the pick on every single day
+    # for a month, while this workflow — the one that owns the strategy, with the larger heap and no
+    # `continue-on-error` over it — only ever arrived to find the work already done. Ordering is a
+    # preference, not a guarantee: GitHub's delivery delay on this repository is hours, so either run may
+    # arrive first, and the live-tip step below is what makes both orders safe.
+    - cron: '3 4,5 * * *'
+    - cron: '19 6,7 * * *'
+    - cron: '37 8,9 * * *'
+    - cron: '9 11,12 * * *'
   workflow_dispatch:
     inputs:
       backfill:
@@ -89,6 +97,27 @@ jobs:
       patched: ${{ steps.patch.outputs.patched }}
     steps:
       - uses: actions/checkout@v4
+
+      # `actions/checkout` checks out the commit this run was *created* at, not the current tip of
+      # main. Runs in the shared `brooklyn-data` concurrency group wait their turn, so by the time a
+      # run actually starts, that pinned commit can be minutes old — and on 5 and 9 November 2026 it
+      # was. Both days the edition workflow had already decided and pushed the day's pick; this run
+      # could not see it, so the pre-check below said "no decision yet", the strategy ran for three
+      # minutes and produced a *second* pick for the same session, and the push was then rejected.
+      # `git pull --rebase` left the repository mid-rebase with conflicts in `stock.json`,
+      # `state/stocks-v2.json` and `state/sec/overlay.meta.json`; the four remaining attempts pushed
+      # from inside that rebase and failed identically, and the job ended red having computed a pick
+      # it could never publish.
+      #
+      # Reading the live tip fixes the cause rather than the symptom: the pre-check then sees the
+      # decision that already exists and skips, so the duplicate pick is never computed at all. It
+      # also removes the only way two different picks for one session could ever both exist.
+      - name: Start from the live tip of main
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git log -1 --format='working from %h %s'
 
       # A scheduled run warns and stops; a run someone asked for fails. Asking for 18 red runs a day
       # until the secrets exist would teach us to ignore red, and the app already says the honest thing
@@ -186,17 +215,61 @@ jobs:
             exit 0
           fi
           git commit -m "Stock $(TZ=America/New_York date +%F' '%H:%M)"
-          # These paths have exactly one writer, so a rebase onto a newer main cannot conflict; the
-          # retry is for the plain race of two pushes arriving together. Five attempts, then the job
-          # fails loudly — a push that silently gave up is how a pick gets computed and then lost.
+          # These paths used to have exactly one writer, and the old comment here said a rebase could
+          # therefore never conflict. That stopped being true on 12 October 2026, when the edition
+          # workflow gained a last-resort step that writes the same files. `git pull --rebase` then
+          # conflicts, leaves the repository mid-rebase, and every remaining attempt fails the same
+          # way. So there is no rebase here at all: each attempt replays this run's own files on top
+          # of the newest main, which is a copy rather than a merge and cannot conflict.
+          #
+          # Five attempts, then the job fails loudly — a push that silently gave up is how a pick gets
+          # computed and then lost.
+          mine=$(node -e "console.log(require('./public/data/stock.json').decidedFor ?? '')")
           pushed=false
           for attempt in 1 2 3 4 5; do
             if git push; then pushed=true; break; fi
-            echo "push rejected (attempt $attempt); rebasing onto origin/main"
-            git pull --rebase --autostash origin main
+            echo "push rejected (attempt $attempt); reading the newest main"
+            git fetch --depth=1 origin main
+
+            # Did something else decide this very session while the strategy was running? Two
+            # different picks for one session must never both exist, and the published one is the one
+            # the app has already shown. So this run stands down. Its pick is discarded, not held over
+            # to tomorrow: a pick belongs to the session it was made in and is never republished as
+            # fresh. The cached bars it fetched are not lost — they are append-only, and the next run
+            # re-adds any that are still missing.
+            theirs=$(git show FETCH_HEAD:public/data/stock.json 2>/dev/null \
+              | node -e "let s='';process.stdin.on('data',(d)=>{s+=d}).on('end',()=>{try{console.log(JSON.parse(s).decidedFor??'')}catch{console.log('')}})" \
+              || true)
+            if [ -n "$theirs" ] && [ "$theirs" = "$mine" ]; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "::notice::main already carries a decision for $theirs, published while this run was computing. Standing down rather than overwriting it; this run's pick is discarded, not republished later."
+              {
+                echo "### Stood down"
+                echo ""
+                echo "A decision for \`$theirs\` was already published while this run was computing."
+                echo "This run's pick was discarded rather than republished — a pick belongs to the"
+                echo "session it was made in."
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            # Nothing else decided this session, so this run's pick is still the only one. Carry its
+            # files over to the new tip verbatim.
+            keep=$(mktemp -d)
+            git diff --diff-filter=d --name-only HEAD~1 HEAD | tar -czf "$keep/mine.tgz" -T -
+            git reset --hard FETCH_HEAD
+            tar -xzf "$keep/mine.tgz"
+            rm -rf "$keep"
+            git add public/data/stock.json state
+            if git diff --cached --quiet; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "The newest main already holds everything this run produced."
+              exit 0
+            fi
+            git commit -m "Stock $(TZ=America/New_York date +%F' '%H:%M)"
           done
           if [ "$pushed" != true ]; then
-            echo "::error::Could not push the pick after five attempts."
+            echo "::error::Could not push the pick after five attempts. The pick was computed but is not published."
             exit 1
           fi
           echo "changed=true" >> "$GITHUB_OUTPUT"

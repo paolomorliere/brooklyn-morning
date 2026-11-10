@@ -523,6 +523,94 @@ share no proper nouns at all — one contains only "french", another only "franc
 same-subject-no-names stories needs a different mechanism, and the pools make it harder still (world and
 soccer hold about 12 candidates against water polo's 45, so almost any word looks rare).
 
+## 2026-11-10 — both data workflows were broken, for two unrelated reasons
+
+Found on resuming after a month away. Editions had run every day; the other two had not.
+
+### Water polo: eight days of results stuck behind one impossible fixture
+
+**Symptom.** Every run from 2 November failed. `public/data/waterpolo.json` was frozen at
+`builtAt 2026-11-02T09:17`. One run on 9 November at 22:56 UTC reported success and had read nothing
+at all — it was a slot `polo-due.mjs` had already claimed.
+
+**Cause.** Not the network. All thirteen watched schedules read fine (`sources 13/13 ok`), and the
+build produced a complete feed. It then refused to write it:
+
+```
+Feed NOT written, 1 problem(s):
+  e7248052b1f8 has the same team on both sides
+```
+
+The identity pass had correctly merged two slugs for one school
+(`IDENTITY concordia = concordia-irvine → concordia-irvine`, both linking to cuigoldeneagles.com).
+One scraped row had those two names on opposite sides, so `repairIdentities` rewrote it into
+Concordia Irvine against itself. `validateFeed` returned that as a problem, and `build-waterpolo.mjs`
+treated *any* problem as a reason to write nothing. One row that could never become valid therefore
+stopped every subsequent run, indefinitely, while 760 good games sat behind it.
+
+The eleven `UNREAD` opponent pages in those logs (Stanford, UCLA, Pomona-Pitzer, several junior
+colleges) are a red herring: they are chronic, they were there on the days that succeeded, and
+`opponent seasons 31/42 read` is tolerated by design.
+
+**Fix, in two layers.**
+
+1. *Root cause.* `repairIdentities` no longer produces a self-match. When the merge puts one school
+   on both sides, that row is dropped and reported by name — no intercollegiate game can look like
+   that, so it is an intrasquad or alumni fixture, or a parse that read one name twice.
+2. *Safety net.* Validation now tells a bad **feed** apart from a bad **row**
+   (`feedProblems`, `gameProblems`, `partitionProblems`, `quarantineRows` in `polo-validate.mjs`).
+   A wrong season or schema still means publish nothing. A handful of unsound rows means publish the
+   feed without them. More than `max(5, 1%)` of them is a broken build, not bad data, so the
+   published file is kept — the old behaviour, now reserved for the case that deserves it.
+
+   A quarantined row is not simply deleted: if the published feed holds that game and that version
+   still validates, it is kept instead. A source that starts returning nonsense costs today's reading
+   of a game rather than the game itself — the same promise the per-source gate already makes.
+
+**Honesty.** A feed published with rows missing emits `::warning::`, so it can never be a clean green
+tick. A slot that was already claimed now says "Nothing read" in the run summary, and a real check
+with no new results says so explicitly rather than printing nothing.
+
+### Stocks: two workflows deciding the same day, and a rebase that could not resolve them
+
+**Symptom.** No commit named `Stock …` since 12 October, yet a fresh pick on the card every morning.
+Most runs green; 5 and 9 November red.
+
+**Cause.** Two separate problems that only together produce the failure.
+
+1. Since 12 October the edition workflow has had a last-resort step that runs `build-stocks.mjs`
+   itself. It has been making *every* pick for a month — hence the picks arriving in commits named
+   `Edition …`. The comment in `stocks.yml` still said "these paths have exactly one writer, so a
+   rebase onto a newer main cannot conflict". That stopped being true the day that step was added.
+2. `actions/checkout` checks out the commit a run was *created* at, not the tip of main. Both
+   workflows share the `brooklyn-data` concurrency group, so a queued run starts on a commit minutes
+   old. On 9 November the edition had already published the day's pick at 12:46; the stocks run
+   started at 12:47:52 on the commit from the day before, its pre-check said "no decision yet", the
+   strategy ran for three minutes and produced a **second pick for the same session**, and the push
+   was rejected. `git pull --rebase` conflicted in `stock.json`, `state/stocks-v2.json` and
+   `state/sec/overlay.meta.json`, leaving the repository mid-rebase; the four remaining attempts
+   pushed from inside that rebase and failed identically.
+
+**Fix.**
+
+- Every data workflow now begins with `git fetch --depth=1 origin main && git reset --hard FETCH_HEAD`.
+  The pre-checks then judge what is actually published, so the duplicate pick is never computed.
+- The stocks commit step no longer rebases. Each attempt replays this run's own files onto the newest
+  main — a copy, not a merge, so it cannot conflict. The water polo commit step got the same
+  treatment; its old `git pull --rebase --autostash || true` swallowed a failed rebase and then
+  pushed from inside it.
+- If main already carries a decision for the same session, the run **stands down**: its pick is
+  discarded, not held over. A pick belongs to the session it was made in and is never republished as
+  fresh, and two different picks for one session must never both exist.
+- The stocks cron now sits a few minutes *before* the edition's matching slot (3/19/37/9 against the
+  edition's 7/23/41/13), so the workflow that owns the strategy is the one that normally runs it, with
+  the larger heap and no `continue-on-error` above it. Ordering is a preference, not a guarantee —
+  GitHub's delay here is hours — and the live-tip step is what makes either order safe.
+
+Nothing was backfilled. The outage's missing water polo results come back because every run
+reconciles the whole season from the schedules; the picks the stocks workflow did not make are not
+reconstructed, because a pick made with hindsight is not a pick.
+
 ## Backtest
 
 <!-- backtest -->

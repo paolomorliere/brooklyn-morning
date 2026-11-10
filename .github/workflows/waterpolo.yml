@@ -62,9 +62,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # `actions/checkout` pins the run to the commit it was created at, not the tip of main, and a run
+      # that waited in a concurrency queue starts on a commit that may be minutes old. Working from the
+      # live tip instead means the pre-checks below judge what is actually published, and a push cannot
+      # be rejected for being behind. See the long note in stocks.yml, where a stale checkout cost two
+      # days' picks in November 2026.
+      - name: Start from the live tip of main
+        run: |
+          set -euo pipefail
+          git fetch --depth=1 origin main
+          git reset --hard FETCH_HEAD
+          git log -1 --format='working from %h %s'
+
       - name: Is a check due?
         id: due
         run: |
+          set -o pipefail
           # Anything that is not the cron — a manual refresh from the app — always collects.
           if [ "${{ github.event_name }}" != "schedule" ]; then
             echo "action=run" >> "$GITHUB_OUTPUT"
@@ -72,7 +85,13 @@ jobs:
             echo "run: started by hand, reading every source now"
             exit 0
           fi
-          node scripts/polo-due.mjs
+          node scripts/polo-due.mjs | tee "$RUNNER_TEMP/due.txt"
+          # A slot that another run already covered ends here, green, having read nothing at all.
+          # That is deliberate and costs ten seconds — but it must not look like a successful check,
+          # which is the only thing a bare green tick says.
+          if grep -q '^skip' "$RUNNER_TEMP/due.txt"; then
+            echo "- **Nothing read.** This slot had already been checked by an earlier run; no source was contacted." >> "$GITHUB_STEP_SUMMARY"
+          fi
 
       - uses: actions/setup-node@v4
         if: steps.due.outputs.action == 'run'
@@ -99,19 +118,46 @@ jobs:
         id: commit
         if: steps.due.outputs.action == 'run'
         run: |
+          set -euo pipefail
           git config user.name "brooklyn-morning-bot"
           git config user.email "actions@users.noreply.github.com"
           git add public/data/waterpolo.json public/logos state
           if git diff --cached --quiet; then
             echo "changed=false" >> "$GITHUB_OUTPUT"
-            echo "No new results."
-          else
-            git commit -m "Water polo results $(TZ=America/New_York date +%F' '%H:%M)"
-            # A delayed run may land after another push: rebase once, then push.
-            git pull --rebase --autostash origin main || true
-            git push
-            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "Checked every source; no new results and nothing to correct."
+            echo "- Checked every source successfully. **No changes**: no new results, no corrections." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
           fi
+          git commit -m "Water polo results $(TZ=America/New_York date +%F' '%H:%M)"
+          # This file has one writer, so each attempt simply replays it on top of the newest main —
+          # a copy rather than a merge, which cannot conflict. The old version ran
+          # `git pull --rebase --autostash || true` and then pushed once: a rebase that stopped on a
+          # conflict was swallowed by the `|| true`, and the push then ran from inside the half-finished
+          # rebase and failed with a message about the push rather than about the rebase.
+          pushed=false
+          for attempt in 1 2 3 4 5; do
+            if git push; then pushed=true; break; fi
+            echo "push rejected (attempt $attempt); replaying onto the newest main"
+            git fetch --depth=1 origin main
+            keep=$(mktemp -d)
+            git diff --diff-filter=d --name-only HEAD~1 HEAD | tar -czf "$keep/mine.tgz" -T -
+            git reset --hard FETCH_HEAD
+            tar -xzf "$keep/mine.tgz"
+            rm -rf "$keep"
+            git add public/data/waterpolo.json public/logos state
+            if git diff --cached --quiet; then
+              echo "changed=false" >> "$GITHUB_OUTPUT"
+              echo "The newest main already holds this check's results."
+              exit 0
+            fi
+            git commit -m "Water polo results $(TZ=America/New_York date +%F' '%H:%M)"
+          done
+          if [ "$pushed" != true ]; then
+            echo "::error::Collected results but could not push them after five attempts."
+            exit 1
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+          echo "- Checked every source and **published new results**." >> "$GITHUB_STEP_SUMMARY"
 
   deploy:
     needs: collect

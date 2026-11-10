@@ -106,6 +106,54 @@ export function validateSource(html, rows, cfg, season = SEASON) {
 }
 
 /**
+ * Problems with the feed as a whole, independent of any one game. Nothing can be published while
+ * one of these stands: the file would be the wrong season or the wrong shape.
+ */
+export function feedProblems(feed) {
+  const problems = [];
+  if (feed.schemaVersion !== 1) problems.push(`unexpected schemaVersion ${feed.schemaVersion}`);
+  if (feed.season !== SEASON) problems.push(`feed season ${feed.season} is not ${SEASON}`);
+  if (!feed.teams || typeof feed.teams !== 'object') problems.push('teams table missing');
+  return problems;
+}
+
+/**
+ * Problems with one game, every one of them confined to that row. `seen` collects the ids already
+ * accepted, so a duplicate is reported against the second row rather than the first.
+ *
+ * Kept separate from `feedProblems` for one reason: a single unsound row used to mean no feed was
+ * written at all. On 2 November 2026 one impossible fixture — a school merged onto both sides of its
+ * own game — stopped every water polo run for eight days, while the other 760 games were perfectly
+ * good. Telling the two kinds of problem apart is what lets the caller drop the bad row, keep the
+ * last published version of it if there was one, say so loudly, and still publish the day.
+ */
+export function gameProblems(g, feed, seen = new Set()) {
+  const problems = [];
+  const where = `${g.date} ${g.home?.team}/${g.away?.team}`;
+  if (seen.has(g.id)) problems.push(`duplicate game id ${g.id} (${where})`);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(g.date ?? '')) problems.push(`bad date on ${g.id}`);
+  else if (g.date < SEASON_START || g.date > SEASON_END) problems.push(`${g.id} (${where}) is outside the season window`);
+  if (!g.home?.team || !g.away?.team) problems.push(`${g.id} is missing a team`);
+  if (g.home?.team === g.away?.team) problems.push(`${g.id} has the same team on both sides`);
+  // Two kinds of game legitimately have no scores: one that has not been played yet, and one
+  // whose sources disagree and was never verified.
+  const notFinal = (g.status ?? 'final') !== 'final';
+  const withheld = g.conflict && g.home?.score == null && g.away?.score == null;
+  if (notFinal) {
+    if (g.home?.score != null || g.away?.score != null) problems.push(`${g.id} (${where}) is ${g.status} but carries a score`);
+  } else if (!withheld) {
+    for (const side of ['home', 'away']) {
+      const v = g[side]?.score;
+      if (!Number.isInteger(v) || v < 0 || v > 99) problems.push(`${g.id} (${where}) has a bad ${side} score: ${v}`);
+    }
+  }
+  if (!Array.isArray(g.sources) || g.sources.length === 0) problems.push(`${g.id} has no source provenance`);
+  if (!feed.teams?.[g.home?.team]) problems.push(`${g.id} references unknown team ${g.home?.team}`);
+  if (!feed.teams?.[g.away?.team]) problems.push(`${g.id} references unknown team ${g.away?.team}`);
+  return problems;
+}
+
+/**
  * Last gate before the merged file is written: the whole feed must be internally sound.
  * Returns a list of human-readable problems; an empty list means write it.
  */
@@ -116,30 +164,76 @@ export function validateFeed(feed) {
   if (!Array.isArray(feed.games)) return ['games is not an array'];
   if (!feed.teams || typeof feed.teams !== 'object') problems.push('teams table missing');
 
-  const ids = new Set();
+  const seen = new Set();
   for (const g of feed.games) {
-    const where = `${g.date} ${g.home?.team}/${g.away?.team}`;
-    if (ids.has(g.id)) problems.push(`duplicate game id ${g.id} (${where})`);
-    ids.add(g.id);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(g.date ?? '')) problems.push(`bad date on ${g.id}`);
-    else if (g.date < SEASON_START || g.date > SEASON_END) problems.push(`${g.id} (${where}) is outside the season window`);
-    if (!g.home?.team || !g.away?.team) problems.push(`${g.id} is missing a team`);
-    if (g.home?.team === g.away?.team) problems.push(`${g.id} has the same team on both sides`);
-    // Two kinds of game legitimately have no scores: one that has not been played yet, and one
-    // whose sources disagree and was never verified.
-    const notFinal = (g.status ?? 'final') !== 'final';
-    const withheld = g.conflict && g.home?.score == null && g.away?.score == null;
-    if (notFinal) {
-      if (g.home?.score != null || g.away?.score != null) problems.push(`${g.id} (${where}) is ${g.status} but carries a score`);
-    } else if (!withheld) {
-      for (const side of ['home', 'away']) {
-        const v = g[side]?.score;
-        if (!Number.isInteger(v) || v < 0 || v > 99) problems.push(`${g.id} (${where}) has a bad ${side} score: ${v}`);
-      }
-    }
-    if (!Array.isArray(g.sources) || g.sources.length === 0) problems.push(`${g.id} has no source provenance`);
-    if (!feed.teams?.[g.home?.team]) problems.push(`${g.id} references unknown team ${g.home?.team}`);
-    if (!feed.teams?.[g.away?.team]) problems.push(`${g.id} references unknown team ${g.away?.team}`);
+    problems.push(...gameProblems(g, feed, seen));
+    seen.add(g.id);
   }
   return problems;
+}
+
+/**
+ * The same checks as `validateFeed`, told apart by what they cost. `fatal` means publish nothing.
+ * `rows` lists the individual games that are unsound, each with its reasons, so the caller can
+ * decide what to do with those rows alone.
+ */
+export function partitionProblems(feed) {
+  if (!Array.isArray(feed.games)) return { fatal: ['games is not an array'], rows: [] };
+  const fatal = feedProblems(feed);
+  const rows = [];
+  const seen = new Set();
+  for (const g of feed.games) {
+    const problems = gameProblems(g, feed, seen);
+    if (problems.length) rows.push({ game: g, problems });
+    else seen.add(g.id);
+  }
+  return { fatal, rows };
+}
+
+/**
+ * What to do about the rows that failed validation. This is the whole lesson of the outage of
+ * 2–10 November 2026, written down as a function.
+ *
+ *   * a `fatal` problem — wrong season, wrong schema, no teams table — means publish nothing;
+ *   * a handful of unsound rows means publish the feed without them;
+ *   * more unsound rows than `limit` is not bad data but a broken build, so publish nothing.
+ *
+ * A row is only dropped if there is nothing better. If the published feed already holds that game
+ * and that published version still validates, it is kept instead, so a source that starts returning
+ * nonsense costs today's reading of a game rather than the game itself. That is the same promise the
+ * per-source gate already makes, extended to the row.
+ *
+ * Pure: it returns the games to write and what it did, and writes nothing itself.
+ */
+export function quarantineRows(feed, previous = null, limit = null) {
+  const { fatal, rows } = partitionProblems(feed);
+  const games = Array.isArray(feed.games) ? feed.games : [];
+  // Five, or one percent, whichever is larger: enough headroom for the odd impossible fixture,
+  // small enough that a parser regression still stops the build.
+  const allowed = limit ?? Math.max(5, Math.ceil(games.length * 0.01));
+  const systemic = rows.length > allowed;
+  if (fatal.length || systemic || rows.length === 0) {
+    return { games, rescued: [], discarded: [], fatal, rows, systemic, limit: allowed, write: fatal.length === 0 && !systemic };
+  }
+
+  const publishedById = new Map((previous?.games ?? []).map((g) => [g.id, g]));
+  const bad = new Set(rows.map((r) => r.game));
+  const reasons = new Map(rows.map((r) => [r.game, r.problems]));
+  const rescued = [];
+  const discarded = [];
+  const next = [];
+  for (const g of games) {
+    if (!bad.has(g)) {
+      next.push(g);
+      continue;
+    }
+    const before = publishedById.get(g.id);
+    if (before && before !== g && gameProblems(before, feed).length === 0) {
+      next.push(before);
+      rescued.push({ game: g, problems: reasons.get(g) });
+    } else {
+      discarded.push({ game: g, problems: reasons.get(g) });
+    }
+  }
+  return { games: next, rescued, discarded, fatal, rows, systemic, limit: allowed, write: true };
 }

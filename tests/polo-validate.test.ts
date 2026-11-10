@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { checkSeason, checkSport, pageHeadings, validateFeed, validateSource } from '../scripts/lib/polo-validate.mjs';
+import { checkSeason, checkSport, feedProblems, gameProblems, pageHeadings, partitionProblems, quarantineRows, validateFeed, validateSource } from '../scripts/lib/polo-validate.mjs';
 import { parseClassic } from '../scripts/lib/polo-parse.mjs';
 import { SCHOOLS } from '../scripts/waterpolo.config.mjs';
 
@@ -127,5 +127,141 @@ describe('whole-feed gate', () => {
       conflict: { detectedAt: 'x', readings: [], withheld: true },
     });
     expect(validateFeed(feed([withheld]))).toEqual([]);
+  });
+
+  // Why this split exists: for eight days in November 2026 one impossible row stopped the whole
+  // feed from being written. A bad row and a bad feed are not the same failure and must not have
+  // the same consequence.
+  describe('telling a bad row apart from a bad feed', () => {
+    it('reports a sound feed as sound on both counts', () => {
+      const { fatal, rows } = partitionProblems(feed([game()]));
+      expect(fatal).toEqual([]);
+      expect(rows).toEqual([]);
+    });
+
+    it('puts the same-team-both-sides row in rows, and leaves fatal empty', () => {
+      const self = game({ home: { team: 'liu', score: 11 }, away: { team: 'liu', score: 9 } });
+      const { fatal, rows } = partitionProblems(feed([game(), self]));
+      expect(fatal).toEqual([]);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].game).toBe(self);
+      expect(rows[0].problems.join()).toContain('same team on both sides');
+    });
+
+    it('puts a wrong season in fatal, where no row can be salvaged', () => {
+      const bad = { ...feed([game()]), season: 2025 };
+      const { fatal, rows } = partitionProblems(bad);
+      expect(fatal.join()).toContain('is not 2026');
+      expect(rows).toEqual([]);
+    });
+
+    it('blames the second row for a duplicate id, so the first one survives', () => {
+      const a = game();
+      const b = game();
+      const { rows } = partitionProblems(feed([a, b]));
+      expect(rows).toHaveLength(1);
+      expect(rows[0].game).toBe(b);
+    });
+
+    it('finds the same problems as validateFeed when every id is distinct', () => {
+      const broken = feed([
+        game({ id: 'one', sources: [] }),
+        game({ id: 'two', away: { team: 'ghost', score: 1 } }),
+      ]);
+      const { fatal, rows } = partitionProblems(broken);
+      expect([...fatal, ...rows.flatMap((r) => r.problems)].sort()).toEqual(validateFeed(broken).sort());
+    });
+
+    // The one place the two deliberately disagree. `validateFeed` only ever answers "is this whole
+    // feed sound", so it counts an id it has seen even on a row it has already condemned.
+    // `partitionProblems` answers "which rows must go", and a row that is going cannot also be the
+    // reason the next row is a duplicate — once the first is dropped, the second id is unique.
+    it('does not call a row a duplicate of a row that is itself being dropped', () => {
+      const broken = feed([game({ sources: [] }), game()]);
+      expect(validateFeed(broken).join()).toContain('duplicate');
+      const { rows } = partitionProblems(broken);
+      expect(rows).toHaveLength(1);
+      expect(rows[0].problems.join()).toContain('provenance');
+      expect(rows.flatMap((r) => r.problems).join()).not.toContain('duplicate');
+    });
+
+    it('checks one game on its own, which is what lets a row be replaced by its last good version', () => {
+      const f = feed([]);
+      expect(gameProblems(game(), f)).toEqual([]);
+      expect(gameProblems(game({ away: { team: 'ghost', score: 1 } }), f).join()).toContain('unknown team');
+      expect(feedProblems(f)).toEqual([]);
+    });
+  });
+
+  // The behaviour the eight-day outage should have had. Each of these is a day the app would have
+  // kept moving instead of silently freezing on 2 November 2026.
+  describe('quarantining the rows that cannot be published', () => {
+    const sound = (id: string) => game({ id, away: { team: 'navy', score: 7 } });
+
+    it('writes the feed untouched when every row is sound', () => {
+      const f = feed([sound('a'), sound('b')]);
+      const out = quarantineRows(f);
+      expect(out.write).toBe(true);
+      expect(out.games).toHaveLength(2);
+      expect(out.rescued).toEqual([]);
+      expect(out.discarded).toEqual([]);
+    });
+
+    it('drops the one unsound row and publishes the rest', () => {
+      const bad = game({ id: 'bad', home: { team: 'liu', score: 'x' } });
+      const f = feed([sound('a'), bad, sound('b')]);
+      const out = quarantineRows(f);
+      expect(out.write).toBe(true);
+      expect(out.games.map((g: { id: string }) => g.id)).toEqual(['a', 'b']);
+      expect(out.discarded).toHaveLength(1);
+      expect(out.discarded[0].game).toBe(bad);
+      expect(out.rescued).toEqual([]);
+    });
+
+    it('keeps the last published version of a row rather than losing the game', () => {
+      const good = sound('x');
+      const broken = game({ id: 'x', home: { team: 'liu', score: null }, away: { team: 'navy', score: 7 } });
+      const f = feed([sound('a'), broken]);
+      const out = quarantineRows(f, feed([good]));
+      expect(out.write).toBe(true);
+      expect(out.rescued).toHaveLength(1);
+      expect(out.discarded).toEqual([]);
+      // The published row is back in the feed, scores and all.
+      const restored = out.games.find((g: { id: string }) => g.id === 'x');
+      expect(restored).toBe(good);
+      expect(restored.home.score).toBe(8);
+    });
+
+    it('drops a row whose published version is just as unsound', () => {
+      const brokenBefore = game({ id: 'x', home: { team: 'liu', score: null }, away: { team: 'navy', score: 7 } });
+      const brokenNow = game({ id: 'x', home: { team: 'liu', score: null }, away: { team: 'navy', score: 7 } });
+      const out = quarantineRows(feed([brokenNow]), feed([brokenBefore]));
+      expect(out.rescued).toEqual([]);
+      expect(out.discarded).toHaveLength(1);
+      expect(out.games).toEqual([]);
+    });
+
+    it('publishes nothing when more rows fail than the allowance covers — that is a broken build', () => {
+      const rows = Array.from({ length: 4 }, (_, i) => game({ id: `b${i}`, sources: [] }));
+      const out = quarantineRows(feed(rows), null, 3);
+      expect(out.systemic).toBe(true);
+      expect(out.write).toBe(false);
+      // The caller keeps the published file, so the games it hands back are the unfiltered ones.
+      expect(out.games).toHaveLength(4);
+      expect(out.rescued).toEqual([]);
+      expect(out.discarded).toEqual([]);
+    });
+
+    it('publishes nothing when the feed itself is wrong, however good the rows are', () => {
+      const out = quarantineRows({ ...feed([sound('a')]), season: 2025 });
+      expect(out.write).toBe(false);
+      expect(out.fatal.join()).toContain('is not 2026');
+    });
+
+    it('allows five bad rows in a small feed and one percent in a large one', () => {
+      expect(quarantineRows(feed([sound('a')])).limit).toBe(5);
+      const many = Array.from({ length: 800 }, (_, i) => sound(`g${i}`));
+      expect(quarantineRows(feed(many)).limit).toBe(8);
+    });
   });
 });
