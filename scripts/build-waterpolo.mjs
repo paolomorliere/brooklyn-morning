@@ -670,6 +670,7 @@ async function main() {
   }
   if (okCount === 0) {
     console.error('\nFeed NOT written: no source could be checked. Keeping the published file.');
+    console.error('::error::Not one of the thirteen schedules could be read, so nothing was written. The published feed is unchanged and the app will report its real age.');
     process.exit(1);
   }
 
