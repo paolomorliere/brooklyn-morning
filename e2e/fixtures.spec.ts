@@ -12,6 +12,32 @@ const open = async (page: Page, at = MONDAY) => {
   await expect(page.locator(RESULT_ROW).first()).toBeVisible({ timeout: 20_000 });
 };
 
+/**
+ * A controlled LIU season for the team-page tests: one result and two fixtures, one of them a
+ * Wednesday, written out of date order.
+ *
+ * These tests used to read the published feed and assume LIU still had fixtures to come. That was true
+ * in September and false by 10 November 2026, when LIU's season ended and its remaining schedule became
+ * a single TBA tournament — so the suite started failing on a change in the real data rather than on a
+ * change in the app. What they are actually about is the Results/Schedule toggle, that weekdays are
+ * included, and the ordering; none of that should depend on the date.
+ */
+const routeLiuSeason = async (page: Page) => {
+  await page.route('**/data/waterpolo.json*', async (route) => {
+    const feed = await (await route.fetch()).json();
+    const src = [{ id: 'liu', url: 'https://liuathletics.com/x', verifiedAt: feed.builtAt }];
+    feed.games = [
+      { id: 'done', date: '2026-09-26', time: '14:00', timeZone: 'America/New_York', status: 'final',
+        home: { team: 'liu', score: 14 }, away: { team: 'iona', score: 9 }, hosted: 'liu', sources: src, conflict: null },
+      { id: 'later', date: '2026-10-10', time: '13:00', timeZone: 'America/New_York', status: 'scheduled',
+        home: { team: 'liu', score: null }, away: { team: 'navy', score: null }, hosted: 'liu', sources: src, conflict: null },
+      { id: 'midweek', date: '2026-09-30', time: '19:00', timeZone: 'America/New_York', status: 'scheduled',
+        home: { team: 'liu', score: null }, away: { team: 'iona', score: null }, hosted: 'liu', sources: src, conflict: null },
+    ];
+    await route.fulfill({ json: feed });
+  });
+};
+
 test('Monday shows the coming Friday to Sunday, labelled with its dates', async ({ page }) => {
   await open(page);
   const section = page.locator('.polo-weekend');
@@ -128,6 +154,7 @@ test('the team and conference filters apply to fixtures too', async ({ page }) =
 });
 
 test('team pages switch between Results and Schedule', async ({ page }) => {
+  await routeLiuSeason(page);
   await page.clock.setFixedTime(new Date(MONDAY));
   await page.goto('/?fixtures=1&seed=none#/team/liu');
   await expect(page.locator('.polo-team-name')).toHaveText('LIU', { timeout: 20_000 });
@@ -145,14 +172,16 @@ test('team pages switch between Results and Schedule', async ({ page }) => {
 
   // Weekdays are included — the season is not only weekends.
   const days = await page.locator('section[aria-labelledby^="s-"] .section-title h2').allInnerTexts();
-  expect(days.length).toBeGreaterThan(0);
+  expect(days).toHaveLength(2);
   expect(days.some((d) => /^(Monday|Tuesday|Wednesday|Thursday|Friday)/.test(d))).toBe(true);
+  expect(days[0]).toMatch(/^Wednesday/); // 30 September, the earlier of the two
   // Earliest first.
   const parsed = days.map((d) => Date.parse(`${d.replace(/^\w+, /, '')}, 2026`));
   expect(parsed).toEqual([...parsed].sort((a, b) => a - b));
 });
 
 test('the chosen team view survives a trip to another team and back', async ({ page }) => {
+  await routeLiuSeason(page);
   await page.clock.setFixedTime(new Date(MONDAY));
   await page.goto('/?fixtures=1&seed=none#/team/liu');
   await expect(page.locator('.polo-team-name')).toHaveText('LIU', { timeout: 20_000 });

@@ -187,6 +187,7 @@ export function Home() {
             lesson={today.lesson}
             dayIndex={today.dayIndex}
             isReview={today.isReview}
+            replayOf={today.replayOf}
             weekNumber={today.weekNumber}
             readIds={ls.progress?.readLessonIds ?? []}
             saved={savedLessonTitles.has(today.lesson.title)}
@@ -378,9 +379,11 @@ interface LessonProps {
   quizMissing: boolean;
   /** The published pack for this week is newer than the stored one and could not be fetched. */
   staleWeek: boolean;
+  /** A replay is in force: the date this lesson originally belonged to. */
+  replayOf?: string;
 }
 
-function LessonCard({ lesson, dayIndex, isReview, weekNumber, weekStart, readIds, saved, onMarkRead, onSave, quiz, quizMissing, staleWeek }: LessonProps) {
+function LessonCard({ lesson, dayIndex, isReview, weekNumber, weekStart, readIds, saved, onMarkRead, onSave, quiz, quizMissing, staleWeek, replayOf }: LessonProps) {
   const isRead = readIds.includes(lesson.id);
   const weekIds = Array.from({ length: 7 }, (_, i) => lesson.id.replace(/-d\d$/, `-d${i + 1}`));
   return (
@@ -391,6 +394,13 @@ function LessonCard({ lesson, dayIndex, isReview, weekNumber, weekStart, readIds
         {isReview ? `Revisiting week ${lesson.week}` : `Week ${weekNumber}`}: {lesson.theme} · {lesson.readMinutes} min
         {isReview && <span> · no new pack yet</span>}
       </div>
+      {replayOf && (
+        // Said out loud. The week number goes backwards under a replay, and an unexplained jump from
+        // week 8 to week 4 reads as a bug rather than as catching up.
+        <div class="lesson-theme" style="margin-top:2px;opacity:.75">
+          Catching up: this is the lesson from {formatDateLong(dateFromYMD(replayOf))}.
+        </div>
+      )}
       <div class="lesson-progress" aria-label={`Day ${dayIndex + 1} of 7`}>
         {weekIds.map((id, i) => <span key={id} class={i === dayIndex ? 'today' : readIds.includes(id) ? 'done' : ''} />)}
       </div>

@@ -611,6 +611,53 @@ Nothing was backfilled. The outage's missing water polo results come back becaus
 reconciles the whole season from the schedules; the picks the stocks workflow did not make are not
 reconstructed, because a pick made with hindsight is not a pick.
 
+## 2026-11-10 — the learning section replays four weeks behind
+
+Four weeks of lessons were missed, so from **Monday 9 November 2026** the learning section runs
+exactly 28 days behind. 9 November shows the lesson of 12 October, 10 November shows 13 October,
+Sunday 15 November shows 18 October with that week's twenty-question quiz, and 16 November carries on
+with 19 October. One original lesson per day, in the original order, and the offset never catches up.
+
+It is one constant, `LESSON_REPLAY` in `src/lib/lessons.ts`: `{ from: '2026-11-09', offsetDays: 28 }`.
+Set it to `null` to put the section back on the real calendar.
+
+**What moves and what does not.** Only the lesson. The edition's own date, the news, the stock card and
+the water polo results are all on the real calendar and the replay never touches them — the lesson is
+computed in the client at render time and has never been stored in `edition.json`, which is also why
+the editions already generated for 9 and 10 November pick the replay up with no rebuild.
+
+**Design notes, both of them things that would have been bugs.**
+
+- The replay shifts the *start of the sequence* forward by 28 days, not the date being asked about.
+  Shifting the date would also move `weekStart`, and `weekStart` is the key every quiz result and
+  draft is filed under: the replayed Sunday would have been filed as `2026-10-12` and overwritten the
+  October attempt it was replaying. Moving the start keeps `weekStart` on the real calendar, so
+  15 November is filed as `2026-11-09` and both attempts survive.
+- `from` is a floor, not a global reinterpretation. Every date before 9 November returns exactly what
+  it returned before, so October's archived editions, the saved Library lessons and the past quiz
+  results are all untouched. `tests/lessons-replay.test.ts` asserts this by comparing the replayed
+  result against `lessonForDate(..., null)` for five earlier dates.
+
+Nothing was regenerated. The packs are the originals, unchanged; the replay only changes which pack
+and day a date resolves to. The tests run against the **published** packs rather than fixtures,
+because the promise is that the replayed day is the original lesson — same title, wording, example,
+exercise and answer — and a fixture could not show that.
+
+**Why it was needed anyway.** Without it the eight published packs ran out and the sequence would have
+begun a Review cycle on 16 November, repeating week 1 instead of continuing through weeks 5 to 8.
+
+The card says so out loud — "Catching up: this is the lesson from Monday, 12 October" — because a week
+number that goes from 8 back to 4 with no explanation reads as a bug.
+
+### One test was coupled to the real season
+
+`e2e/fixtures.spec.ts` had two team-page tests that read the published feed and assumed LIU still had
+weekday fixtures to come. True in September; false from 10 November, when LIU's season ended and its
+remaining schedule became a single TBA tournament entry. They now use a controlled three-game feed
+through `routeLiuSeason`, so they test the Results/Schedule toggle rather than the date. The app's own
+behaviour was already right: an empty Schedule tab says "Nothing left on the schedule".
+
+
 ## Backtest
 
 <!-- backtest -->

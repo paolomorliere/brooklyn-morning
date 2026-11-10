@@ -40,6 +40,7 @@ export function WeekReview() {
           <h1 style="font-size:var(--fs-18);font-family:var(--font-ui);font-weight:600">This week&rsquo;s lessons</h1>
           <div class="sub small muted">
             {formatDateLong(dateFromYMD(weekStart))} – {formatDateLong(dateFromYMD(shiftYMD(weekStart, 6)))}
+            {days[0]?.replayOf && <> · replaying {formatDateLong(dateFromYMD(days[0].replayOf))} onwards</>}
           </div>
         </div>
       </header>
