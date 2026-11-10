@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-11-09T12:46:29.945Z",
- "decidedFor": "2026-11-09",
+ "builtAt": "2026-11-10T12:31:04.440Z",
+ "decidedFor": "2026-11-10",
  "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
@@ -8,264 +8,251 @@
   "kind": "pick",
   "strategyVersion": 2,
   "strategyHash": "46527bc8ea38a026",
-  "date": "2026-11-09",
-  "publishedAt": "2026-11-09T12:46:29.558Z",
-  "decisionSession": "2026-11-06",
-  "ticker": "PD",
-  "name": "PagerDuty, Inc.",
-  "cik": "1568100",
-  "sic": "7372",
-  "sector": "Services",
-  "industry": "73",
-  "referenceClose": 15.68,
-  "referenceCloseDate": "2026-11-06",
+  "date": "2026-11-10",
+  "publishedAt": "2026-11-10T12:31:03.885Z",
+  "decisionSession": "2026-11-09",
+  "ticker": "MPC",
+  "name": "Marathon Petroleum Corporation",
+  "cik": "1510295",
+  "sic": "2911",
+  "sector": "Manufacturing",
+  "industry": "29",
+  "referenceClose": 389.88,
+  "referenceCloseDate": "2026-11-09",
   "horizonSessions": 21,
-  "plannedEntry": "2026-11-09",
-  "plannedExit": "2026-12-07",
-  "thesis": "Ranked first among today's eligible candidates on earnings yield, six-month return against spy, six-month return against its sector — revenue +2.3% over the trailing year, operating margin wider than a year ago.",
-  "rankScore": 99,
-  "composite": 0.9417885326373575,
-  "scoredAgainst": "132 operating candidates",
+  "plannedEntry": "2026-11-10",
+  "plannedExit": "2026-12-08",
+  "thesis": "Ranked first among today's eligible candidates on free cash flow yield, earnings yield, six-month return against spy — revenue +31.2% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
+  "rankScore": 100,
+  "composite": 1.393213786339985,
+  "scoredAgainst": "all 325 eligible candidates",
   "scanned": 5040,
-  "eligible": 271,
+  "eligible": 325,
   "signals": [
    {
     "key": "revenueGrowth",
     "label": "Revenue growth, trailing year",
-    "value": 0.023004168665530678,
-    "z": -0.9741521262836864,
-    "cohort": 132
+    "value": 0.3117017604418364,
+    "z": 1.7071550611317965,
+    "cohort": 325
    },
    {
     "key": "growthAcceleration",
     "label": "Growth acceleration",
-    "value": -0.001393513821848824,
-    "z": 0.14754598651787082,
-    "cohort": 132
-   },
-   {
-    "key": "grossMarginTrend",
-    "label": "Gross margin trend",
-    "value": 0.010545380914415592,
-    "z": 0.25742550021727734,
-    "cohort": 58
+    "value": 0.07136910477920688,
+    "z": 0.9265901265155952,
+    "cohort": 325
    },
    {
     "key": "operatingMarginTrend",
     "label": "Operating margin trend",
-    "value": 0.12422437748242651,
-    "z": 2.3146332943967334,
-    "cohort": 120
+    "value": 0.07455236577884958,
+    "z": 1.0723112896457494,
+    "cohort": 209
    },
    {
     "key": "cashConversion",
     "label": "Cash conversion",
-    "value": 0.7142500054339557,
-    "z": -1.5999372780081096,
-    "cohort": 121
+    "value": 1.7257193629963776,
+    "z": 0.06759544345730353,
+    "cohort": 293
    },
    {
-    "key": "grossProfitability",
-    "label": "Gross profit over assets",
-    "value": 0.4379742027445976,
-    "z": -0.04976886008738763,
-    "cohort": 58
+    "key": "leverage",
+    "label": "Debt over operating cash flow",
+    "value": 1.3027842686839082,
+    "z": 0.809756975198217,
+    "cohort": 249
    },
    {
     "key": "fcfYield",
     "label": "Free cash flow yield",
-    "value": 0.102040332818537,
-    "z": 1.0103132652767912,
-    "cohort": 120
+    "value": 0.19633107999019697,
+    "z": 3.17757879902565,
+    "cohort": 247
    },
    {
     "key": "earningsYield",
     "label": "Earnings yield",
-    "value": 0.1482983484140551,
-    "z": 2.8589842663822522,
-    "cohort": 130
+    "value": 0.1378236268753753,
+    "z": 2.43249426119878,
+    "cohort": 313
    },
    {
     "key": "peerPercentile",
     "label": "Valuation against its own industry",
-    "value": 0.8717948717948718,
-    "z": 1.2175078010811577,
-    "cohort": 120
+    "value": 0.5,
+    "z": -0.1441767661625914,
+    "cohort": 303
    },
    {
     "key": "relativeStrengthSpy",
     "label": "Six-month return against SPY",
-    "value": 1.154050440431464,
-    "z": 2.6476540340966523,
-    "cohort": 132
+    "value": 0.5260897936029301,
+    "z": 2.2455674217490826,
+    "cohort": 325
    },
    {
     "key": "relativeStrengthSector",
     "label": "Six-month return against its sector",
-    "value": 0.9248518493713056,
-    "z": 2.529467975421382,
-    "cohort": 132
+    "value": 0.38046287963171666,
+    "z": 1.6372652516402664,
+    "cohort": 325
    }
   ],
-  "signalsDropped": [],
+  "signalsDropped": [
+   {
+    "key": "grossMarginTrend",
+    "why": "gross profit is not reported"
+   }
+  ],
   "evidence": [
    {
     "label": "Revenue, trailing year",
-    "value": "$495M, +2.3%",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "$174.8bn, +31.2%",
+    "period": "4 qtrs to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
     "label": "Quarterly revenue, year on year",
-    "value": "+0.8%, against +1.0% the quarter before",
-    "period": "quarter to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "+61.0%, against +53.8% the quarter before",
+    "period": "quarter to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "RevenueFromContractWithCustomerExcludingAssessedTax"
    },
    {
-    "label": "Gross margin, trailing year",
-    "value": "84.8%, from 83.8%",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
-    "tag": "GrossProfit"
-   },
-   {
     "label": "Operating margin, trailing year",
-    "value": "6.5%, from -5.9%",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "12.5%, from 5.1%",
+    "period": "4 qtrs to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "OperatingIncomeLoss"
    },
    {
     "label": "Cash conversion (cash flow ÷ earnings)",
-    "value": "0.71×",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "1.73×",
+    "period": "4 qtrs to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "NetCashProvidedByUsedInOperatingActivities"
    },
    {
     "label": "Free cash flow, trailing year",
-    "value": "$127M (25.6% of revenue)",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "$20.8bn (11.9% of revenue)",
+    "period": "4 qtrs to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
    },
    {
+    "label": "Debt ÷ trailing operating cash flow",
+    "value": "1.30× (net 0.80×)",
+    "period": "at 2026-09-30",
+    "filed": "2026-11-03",
+    "tag": "LongTermDebtAndCapitalLeaseObligations"
+   },
+   {
     "label": "Return on equity, trailing year",
-    "value": "79.3%",
-    "period": "4 qtrs to 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "63.0%",
+    "period": "4 qtrs to 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Equity ÷ assets",
-    "value": "24.2%",
-    "period": "at 2026-07-31",
-    "filed": "2026-08-27",
+    "value": "22.6%",
+    "period": "at 2026-09-30",
+    "filed": "2026-11-03",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Earnings yield / free cash flow yield",
-    "value": "14.8% / 10.2%",
+    "value": "13.8% / 19.6%",
     "period": "trailing year against the reference close",
     "filed": null,
     "interpretation": true
    },
    {
     "label": "Share count",
-    "value": "79,141,000 (market cap $1.2bn)",
-    "period": "at 2026-07-31",
-    "filed": "2026-08-27",
-    "tag": "WeightedAverageNumberOfDilutedSharesOutstanding"
+    "value": "272,282,280 (market cap $106.2bn)",
+    "period": "at 2026-10-29",
+    "filed": "2026-11-03",
+    "tag": "EntityCommonStockSharesOutstanding"
    }
   ],
   "peers": [
    {
-    "ticker": "PD",
-    "name": "PagerDuty, Inc.",
-    "revenueTtm": 494733000,
-    "revenueGrowth": 0.023004168665530678,
-    "quarterYoY": 0.008305580539822222,
-    "grossMargin": 0.8483747799318015,
-    "operatingMargin": 0.06472784309920705,
-    "cashConversion": 0.7142500054339557,
-    "freeCashFlowTtm": 126625000
-   },
-   {
-    "ticker": "MSFT",
-    "name": "Microsoft Corporation",
-    "revenueTtm": 346445000000,
-    "revenueGrowth": 0.1791383605843193,
-    "quarterYoY": 0.18804475171552526,
-    "grossMargin": 0.6765691523907114,
-    "operatingMargin": 0.4710444659325434,
-    "cashConversion": 1.3733199655053951,
-    "freeCashFlowTtm": 59957000000
-   },
-   {
-    "ticker": "ACN",
-    "name": "Accenture plc",
-    "revenueTtm": 74183445000,
-    "revenueGrowth": 0.06473769593625955,
-    "quarterYoY": 0.061538645143911275,
+    "ticker": "MPC",
+    "name": "Marathon Petroleum Corporation",
+    "revenueTtm": 174800000000,
+    "revenueGrowth": 0.3117017604418364,
+    "quarterYoY": 0.6096986411560228,
     "grossMargin": null,
-    "operatingMargin": 0.15375344188989876,
-    "cashConversion": 1.4776219975102354,
-    "freeCashFlowTtm": 11620598000
+    "operatingMargin": 0.12511441647597255,
+    "cashConversion": 1.7257193629963776,
+    "freeCashFlowTtm": 20842000000
    },
    {
-    "ticker": "CRM",
-    "name": "Salesforce, Inc.",
-    "revenueTtm": 43938000000,
-    "revenueGrowth": 0.11229811148802593,
-    "quarterYoY": 0.1083431027745212,
-    "grossMargin": 0.772816241066958,
-    "operatingMargin": 0.1988028585734444,
-    "cashConversion": 1.630097288346098,
-    "freeCashFlowTtm": 15154000000
-   },
-   {
-    "ticker": "MA",
-    "name": "Mastercard Incorporated",
-    "revenueTtm": 36288000000,
-    "revenueGrowth": 0.1529516426256592,
-    "quarterYoY": 0.14008370146477556,
+    "ticker": "CVX",
+    "name": "Chevron Corporation",
+    "revenueTtm": 215261000000,
+    "revenueGrowth": 0.10205450347366218,
+    "quarterYoY": 0.5629601534960511,
     "grossMargin": null,
-    "operatingMargin": 0.5860339506172839,
-    "cashConversion": 0.9942799858473876,
-    "freeCashFlowTtm": 16082000000
+    "operatingMargin": null,
+    "cashConversion": 2.2010101500655628,
+    "freeCashFlowTtm": 27012000000
    },
    {
-    "ticker": "PYPL",
-    "name": "PayPal Holdings, Inc.",
-    "revenueTtm": 34295000000,
-    "revenueGrowth": 0.043606597285618554,
-    "quarterYoY": 0.01984079838422237,
+    "ticker": "PSX",
+    "name": "Phillips 66",
+    "revenueTtm": 168192000000,
+    "revenueGrowth": 0.2746356657294642,
+    "quarterYoY": 0.46429088801970164,
     "grossMargin": null,
-    "operatingMargin": 0.16993730864557516,
-    "cashConversion": 1.5005288766659615,
-    "freeCashFlowTtm": 6299000000
+    "operatingMargin": null,
+    "cashConversion": 1.1949745547073791,
+    "freeCashFlowTtm": null
    },
    {
-    "ticker": "XYZ",
-    "name": "Block, Inc.",
-    "revenueTtm": 25646371000,
-    "revenueGrowth": 0.06976813738817667,
-    "quarterYoY": 0.09884084126907289,
-    "grossMargin": 0.47503091178085194,
-    "operatingMargin": 0.04635127519601116,
+    "ticker": "VLO",
+    "name": "Valero Energy Corporation",
+    "revenueTtm": 153327000000,
+    "revenueGrowth": 0.2458418311381234,
+    "quarterYoY": 0.4330390450136783,
+    "grossMargin": null,
+    "operatingMargin": 0.11462429969933541,
+    "cashConversion": 1.2328312089609887,
+    "freeCashFlowTtm": null
+   },
+   {
+    "ticker": "COP",
+    "name": "ConocoPhillips",
+    "revenueTtm": 63345000000,
+    "revenueGrowth": 0.09597217896813048,
+    "quarterYoY": 0.3682519280205656,
+    "grossMargin": null,
+    "operatingMargin": null,
+    "cashConversion": 2.3620986856280974,
+    "freeCashFlowTtm": null
+   },
+   {
+    "ticker": "VVV",
+    "name": "Valvoline Inc.",
+    "revenueTtm": 1964000000,
+    "revenueGrowth": 0.1607565011820331,
+    "quarterYoY": 0.24054669703872444,
+    "grossMargin": 0.38284114052953155,
+    "operatingMargin": 0.15325865580448064,
     "cashConversion": 3,
-    "freeCashFlowTtm": 3453385000
+    "freeCashFlowTtm": 135300000
    }
   ],
-  "peerBasis": "117 candidates in SIC major group 73, compared on free cash flow yield, all from the same source and the same periods.",
+  "peerBasis": "6 candidates in all energy candidates, compared on free cash flow yield, all from the same source and the same periods.",
   "runnersUp": [
    {
-    "ticker": "AFRM",
-    "name": "Affirm Holdings, Inc.",
+    "ticker": "IMAX",
+    "name": "Imax Corporation",
     "rankScore": 99,
-    "why": "its weakest signal was six-month return against spy (-0.57)"
+    "why": "its weakest signal was cash conversion (-0.87)"
    },
    {
     "ticker": "CXW",
@@ -274,31 +261,29 @@
     "why": "its weakest signal was return on equity (-0.44)"
    },
    {
-    "ticker": "ALL",
-    "name": "Allstate Corporation (The)",
+    "ticker": "VLO",
+    "name": "Valero Energy Corporation",
     "rankScore": 98,
-    "why": "its weakest signal was revenue growth, trailing year (-0.41)"
+    "why": "its weakest signal was cash conversion (-0.63)"
    }
   ],
-  "counterargument": "Growth decelerated against the previous quarter, so the trend in the numbers is already turning.",
+  "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
   "invalidation": [
-   "Quarterly revenue growth falling below +1.0%, the rate it was running at the quarter before.",
-   "Gross margin falling back below 82.8%.",
+   "Quarterly revenue growth falling below +53.8%, the rate it was running at the quarter before.",
    "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
-   "A close below the 200-session average, which stood at $10.27 on the decision date."
+   "A close below the 200-session average, which stood at $297.15 on the decision date."
   ],
   "risks": [
-   "The share count is from 2026-07-31, 98 days older than the price, so the market capitalisation carries that staleness.",
-   "The most recent filing covers a period ending 2026-07-31, 98 days before the decision date.",
+   "The most recent filing covers a period ending 2026-10-29, 11 days before the decision date.",
    "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
-   "Point-in-time fundamentals are built from filings accepted up to 2026-11-06."
+   "Point-in-time fundamentals are built from filings accepted up to 2026-11-09."
   ],
   "earnings": {
-   "estimate": "2026-11-24",
-   "basis": "the same fiscal quarter's announcement a year earlier (2025-11-25) plus 364 days",
-   "spreadDays": 15,
+   "estimate": "2027-02-02",
+   "basis": "the same fiscal quarter's announcement a year earlier (2026-02-03) plus 364 days",
+   "spreadDays": 35,
    "confirmed": false,
-   "inWindow": true,
+   "inWindow": false,
    "nearWindow": false
   },
   "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
@@ -315,7 +300,7 @@
   {
    "kind": "recap",
    "strategyVersion": 2,
-   "asOf": "2026-11-06",
+   "asOf": "2026-11-09",
    "rows": [
     {
      "strategyVersion": 2,
@@ -394,18 +379,18 @@
      "date": "2026-10-12",
      "ticker": "TVTX",
      "name": "Travere Therapeutics, Inc.",
-     "status": "open",
+     "status": "complete",
      "reason": null,
      "entryDate": "2026-10-12",
      "entryPrice": 51.74,
-     "valueDate": "2026-11-06",
-     "valuePrice": 49.6,
-     "sessionsHeld": 20,
+     "valueDate": "2026-11-09",
+     "valuePrice": 51.63,
+     "sessionsHeld": 21,
      "horizon": 21,
-     "netPct": -4.327601273871073,
-     "grossPct": -4.136064940085038,
-     "excessSpyPct": 1.2945329859407217,
-     "excessRspPct": -5.571611062696691
+     "netPct": -0.41197689052346886,
+     "grossPct": -0.21260146888287812,
+     "excessSpyPct": 2.976787047538698,
+     "excessRspPct": -3.9521942607665506
     },
     {
      "strategyVersion": 2,
@@ -416,14 +401,14 @@
      "reason": null,
      "entryDate": "2026-10-13",
      "entryPrice": 34.5,
-     "valueDate": "2026-11-06",
-     "valuePrice": 30.65,
-     "sessionsHeld": 19,
+     "valueDate": "2026-11-09",
+     "valuePrice": 32.14,
+     "sessionsHeld": 20,
      "horizon": 21,
-     "netPct": -11.336923945619592,
-     "grossPct": -11.159420289855081,
-     "excessSpyPct": -5.889621968548775,
-     "excessRspPct": -12.44347697958209
+     "netPct": -7.026712418016745,
+     "grossPct": -6.840579710144922,
+     "excessSpyPct": -3.816918017002968,
+     "excessRspPct": -10.426355523103592
     },
     {
      "strategyVersion": 2,
@@ -434,14 +419,14 @@
      "reason": null,
      "entryDate": "2026-10-14",
      "entryPrice": 38.945,
-     "valueDate": "2026-11-06",
-     "valuePrice": 29.92,
-     "sessionsHeld": 18,
+     "valueDate": "2026-11-09",
+     "valuePrice": 29.1,
+     "sessionsHeld": 19,
      "horizon": 21,
-     "netPct": -23.327205597073352,
-     "grossPct": -23.173706509179603,
-     "excessSpyPct": -18.17518252519983,
-     "excessRspPct": -24.921276998011344
+     "netPct": -25.428532181645537,
+     "grossPct": -25.279239953780973,
+     "excessSpyPct": -22.52100420497175,
+     "excessRspPct": -29.326750538679768
     },
     {
      "strategyVersion": 2,
@@ -452,14 +437,14 @@
      "reason": null,
      "entryDate": "2026-10-15",
      "entryPrice": 53.41,
-     "valueDate": "2026-11-06",
-     "valuePrice": 46.55,
-     "sessionsHeld": 17,
+     "valueDate": "2026-11-09",
+     "valuePrice": 45.98,
+     "sessionsHeld": 18,
      "horizon": 21,
-     "netPct": -13.018174486064392,
-     "grossPct": -12.844036697247708,
-     "excessSpyPct": -8.939341574017112,
-     "excessRspPct": -14.411914846422103
+     "netPct": -14.083258063786042,
+     "grossPct": -13.911252574424271,
+     "excessSpyPct": -12.274316361098858,
+     "excessRspPct": -17.776601885221066
     },
     {
      "strategyVersion": 2,
@@ -470,14 +455,14 @@
      "reason": null,
      "entryDate": "2026-10-16",
      "entryPrice": 24.89,
-     "valueDate": "2026-11-06",
-     "valuePrice": 15.3,
-     "sessionsHeld": 16,
+     "valueDate": "2026-11-09",
+     "valuePrice": 16.14,
+     "sessionsHeld": 17,
      "horizon": 21,
-     "netPct": -38.65234805371405,
-     "grossPct": -38.52952993169948,
-     "excessSpyPct": -33.70639890615801,
-     "excessRspPct": -38.825638688967956
+     "netPct": -35.28424167234934,
+     "grossPct": -35.15468059461631,
+     "excessSpyPct": -32.587664180646826,
+     "excessRspPct": -37.72945604800011
     },
     {
      "strategyVersion": 2,
@@ -488,14 +473,14 @@
      "reason": null,
      "entryDate": "2026-10-19",
      "entryPrice": 110.74,
-     "valueDate": "2026-11-06",
-     "valuePrice": 98.02,
-     "sessionsHeld": 15,
+     "valueDate": "2026-11-09",
+     "valuePrice": 96.45,
+     "sessionsHeld": 16,
      "horizon": 21,
-     "netPct": -11.6632148779521,
-     "grossPct": -11.486364457287335,
-     "excessSpyPct": -7.461859718669695,
-     "excessRspPct": -12.392504654325197
+     "netPct": -13.078117475805751,
+     "grossPct": -12.904099692974524,
+     "excessSpyPct": -11.143754143188334,
+     "excessRspPct": -16.091941017067647
     },
     {
      "strategyVersion": 2,
@@ -503,7 +488,7 @@
      "ticker": "MSGS",
      "name": "Madison Square Garden Sports Corp.",
      "status": "unpriced",
-     "reason": "no bar for 2026-10-20 or 2026-11-06",
+     "reason": "no bar for 2026-10-20 or 2026-11-09",
      "entryDate": "2026-10-20",
      "entryPrice": null,
      "valueDate": null,
@@ -524,14 +509,14 @@
      "reason": null,
      "entryDate": "2026-10-21",
      "entryPrice": 81,
-     "valueDate": "2026-11-06",
-     "valuePrice": 77.06,
-     "sessionsHeld": 13,
+     "valueDate": "2026-11-09",
+     "valuePrice": 80.29,
+     "sessionsHeld": 14,
      "horizon": 21,
-     "netPct": -5.054279054279043,
-     "grossPct": -4.864197530864189,
-     "excessSpyPct": -0.36347713141349214,
-     "excessRspPct": -4.854920141431663
+     "netPct": -1.0745920745920623,
+     "grossPct": -0.8765432098765347,
+     "excessSpyPct": 1.3608003546830005,
+     "excessRspPct": -3.1387052345382305
     },
     {
      "strategyVersion": 2,
@@ -542,14 +527,14 @@
      "reason": null,
      "entryDate": "2026-10-22",
      "entryPrice": 79.32,
-     "valueDate": "2026-11-06",
-     "valuePrice": 93.86,
-     "sessionsHeld": 12,
+     "valueDate": "2026-11-09",
+     "valuePrice": 98.76,
+     "sessionsHeld": 13,
      "horizon": 21,
-     "netPct": 18.094386702556143,
-     "grossPct": 18.330811901159862,
-     "excessSpyPct": 22.188239174412082,
-     "excessRspPct": 17.986104460613017
+     "netPct": 24.259552852593735,
+     "grossPct": 24.508320726172485,
+     "excessSpyPct": 26.08386953994326,
+     "excessRspPct": 21.880821256401497
     },
     {
      "strategyVersion": 2,
@@ -560,14 +545,14 @@
      "reason": null,
      "entryDate": "2026-10-23",
      "entryPrice": 24.63,
-     "valueDate": "2026-11-06",
-     "valuePrice": 21.75,
-     "sessionsHeld": 11,
+     "valueDate": "2026-11-09",
+     "valuePrice": 21.52,
+     "sessionsHeld": 12,
      "horizon": 21,
-     "netPct": -11.869494695316863,
-     "grossPct": -11.69305724725943,
-     "excessSpyPct": -8.592722980692447,
-     "excessRspPct": -11.346048025829958
+     "netPct": -12.801449464056025,
+     "grossPct": -12.626877791311408,
+     "excessSpyPct": -11.813549041255989,
+     "excessRspPct": -14.534124578042896
     },
     {
      "strategyVersion": 2,
@@ -578,14 +563,14 @@
      "reason": null,
      "entryDate": "2026-10-26",
      "entryPrice": 17.46,
-     "valueDate": "2026-11-06",
-     "valuePrice": 18.31,
-     "sessionsHeld": 10,
+     "valueDate": "2026-11-09",
+     "valuePrice": 19.49,
+     "sessionsHeld": 11,
      "horizon": 21,
-     "netPct": 4.6587433185371285,
-     "grossPct": 4.868270332187841,
-     "excessSpyPct": 8.234218187485931,
-     "excessRspPct": 5.062913545181691
+     "netPct": 11.403544908699526,
+     "grossPct": 11.626575028636864,
+     "excessSpyPct": 12.697217036851772,
+     "excessRspPct": 9.548888169875735
     },
     {
      "strategyVersion": 2,
@@ -596,14 +581,14 @@
      "reason": null,
      "entryDate": "2026-10-27",
      "entryPrice": 123.69,
-     "valueDate": "2026-11-06",
-     "valuePrice": 131.14,
-     "sessionsHeld": 9,
+     "valueDate": "2026-11-09",
+     "valuePrice": 137.23,
+     "sessionsHeld": 10,
      "horizon": 21,
-     "netPct": 5.811287911700247,
-     "grossPct": 6.023122321933849,
-     "excessSpyPct": 10.026376032815055,
-     "excessRspPct": 6.49028106818299
+     "netPct": 10.725049871302627,
+     "grossPct": 10.946721642816716,
+     "excessSpyPct": 12.673471144381132,
+     "excessRspPct": 9.151449028557268
     },
     {
      "strategyVersion": 2,
@@ -614,14 +599,14 @@
      "reason": null,
      "entryDate": "2026-10-28",
      "entryPrice": 154.5,
-     "valueDate": "2026-11-06",
-     "valuePrice": 136.49,
-     "sessionsHeld": 8,
+     "valueDate": "2026-11-09",
+     "valuePrice": 137.49,
+     "sessionsHeld": 9,
      "horizon": 21,
-     "netPct": -11.833467503370409,
-     "grossPct": -11.65695792880258,
-     "excessSpyPct": -7.110542910268991,
-     "excessRspPct": -11.227612054430757
+     "netPct": -11.187511517608595,
+     "grossPct": -11.009708737864077,
+     "excessSpyPct": -8.719236262972341,
+     "excessRspPct": -12.835908826364806
     },
     {
      "strategyVersion": 2,
@@ -632,14 +617,14 @@
      "reason": null,
      "entryDate": "2026-10-29",
      "entryPrice": 73.24,
-     "valueDate": "2026-11-06",
-     "valuePrice": 76.62,
-     "sessionsHeld": 7,
+     "valueDate": "2026-11-09",
+     "valuePrice": 77.7,
+     "sessionsHeld": 8,
      "horizon": 21,
-     "netPct": 4.405943592180628,
-     "grossPct": 4.614964500273078,
-     "excessSpyPct": 8.801689789264666,
-     "excessRspPct": 5.471683076103884
+     "netPct": 5.877601371866814,
+     "grossPct": 6.089568541780466,
+     "excessSpyPct": 8.010955837564937,
+     "excessRspPct": 4.699518238207223
     },
     {
      "strategyVersion": 2,
@@ -650,14 +635,14 @@
      "reason": null,
      "entryDate": "2026-10-30",
      "entryPrice": 63.21,
-     "valueDate": "2026-11-06",
-     "valuePrice": 55.67,
-     "sessionsHeld": 6,
+     "valueDate": "2026-11-09",
+     "valuePrice": 57.71,
+     "sessionsHeld": 7,
      "horizon": 21,
-     "netPct": -12.104459375460785,
-     "grossPct": -11.92849232716342,
-     "excessSpyPct": -8.639165148062855,
-     "excessRspPct": -10.426151740834754
+     "netPct": -8.88357015552078,
+     "grossPct": -8.70115488055687,
+     "excessSpyPct": -7.702685998222114,
+     "excessRspPct": -9.43519213251397
     },
     {
      "strategyVersion": 2,
@@ -668,14 +653,14 @@
      "reason": null,
      "entryDate": "2026-11-02",
      "entryPrice": 46.23,
-     "valueDate": "2026-11-06",
-     "valuePrice": 45.3,
-     "sessionsHeld": 5,
+     "valueDate": "2026-11-09",
+     "valuePrice": 47.52,
+     "sessionsHeld": 6,
      "horizon": 21,
-     "netPct": -2.2074615844894674,
-     "grossPct": -2.0116807268007797,
-     "excessSpyPct": 1.0125077602418986,
-     "excessRspPct": -0.5784178022830044
+     "netPct": 2.585020430575291,
+     "grossPct": 2.7903958468527,
+     "excessSpyPct": 3.514774304673729,
+     "excessRspPct": 1.983017300181955
     },
     {
      "strategyVersion": 2,
@@ -686,14 +671,14 @@
      "reason": null,
      "entryDate": "2026-11-03",
      "entryPrice": 103.23,
-     "valueDate": "2026-11-06",
-     "valuePrice": 103.77,
-     "sessionsHeld": 4,
+     "valueDate": "2026-11-09",
+     "valuePrice": 107.27,
+     "sessionsHeld": 5,
      "horizon": 21,
-     "netPct": 0.3222583867745321,
-     "grossPct": 0.5231037489102031,
-     "excessSpyPct": 2.67822363175777,
-     "excessRspPct": 1.9781794794230145
+     "netPct": 3.7059714479069417,
+     "grossPct": 3.9135910103651916,
+     "excessSpyPct": 3.7512753147437294,
+     "excessRspPct": 3.131455203614797
     },
     {
      "strategyVersion": 2,
@@ -704,14 +689,14 @@
      "reason": null,
      "entryDate": "2026-11-05",
      "entryPrice": 56.99,
-     "valueDate": "2026-11-06",
-     "valuePrice": 49.61,
-     "sessionsHeld": 2,
+     "valueDate": "2026-11-09",
+     "valuePrice": 50.56,
+     "sessionsHeld": 3,
      "horizon": 21,
-     "netPct": -13.12356708040161,
-     "grossPct": -12.949640287769792,
-     "excessSpyPct": -9.142476092046437,
-     "excessRspPct": -9.499316140153002
+     "netPct": -11.459938552410897,
+     "grossPct": -11.282681172135467,
+     "excessSpyPct": -9.751051751250749,
+     "excessRspPct": -10.021483355706751
     },
     {
      "strategyVersion": 2,
@@ -722,20 +707,38 @@
      "reason": null,
      "entryDate": "2026-11-06",
      "entryPrice": 25.74,
-     "valueDate": "2026-11-06",
-     "valuePrice": 25.94,
-     "sessionsHeld": 1,
+     "valueDate": "2026-11-09",
+     "valuePrice": 26.18,
+     "sessionsHeld": 2,
      "horizon": 21,
-     "netPct": 0.5756481280957182,
-     "grossPct": 0.7770007770007803,
-     "excessSpyPct": 0.5517044668674531,
-     "excessRspPct": 0.24179726951878422
+     "netPct": 1.5061861215707628,
+     "grossPct": 1.7094017094017255,
+     "excessSpyPct": -0.8847373975440442,
+     "excessRspPct": -1.1032299728637174
     },
     {
      "strategyVersion": 2,
      "date": "2026-11-09",
      "ticker": "PD",
      "name": "PagerDuty, Inc.",
+     "status": "open",
+     "reason": null,
+     "entryDate": "2026-11-09",
+     "entryPrice": 15.8,
+     "valueDate": "2026-11-09",
+     "valuePrice": 15.66,
+     "sessionsHeld": 1,
+     "horizon": 21,
+     "netPct": -1.0841057676500676,
+     "grossPct": -0.8860759493670933,
+     "excessSpyPct": -2.4910717630890367,
+     "excessRspPct": -2.201969366434764
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-11-10",
+     "ticker": "MPC",
+     "name": "Marathon Petroleum Corporation",
      "status": "not-entered",
      "reason": "the market has not opened since publication",
      "entryDate": null,
@@ -750,17 +753,17 @@
      "excessRspPct": null
     }
    ],
-   "completed": 4,
+   "completed": 5,
    "open": 18,
-   "meanNetPct": 3.0717813304850767,
-   "meanExcessSpyPct": 6.357389700742641,
-   "meanExcessRspPct": -1.0036288001321698,
-   "winRate": 0.5,
-   "mixedHorizonMeanPct": -5.10740018935582,
+   "meanNetPct": 2.3750296862833675,
+   "meanExcessSpyPct": 5.681269170101853,
+   "meanExcessRspPct": -1.593341892259046,
+   "winRate": 0.4,
+   "mixedHorizonMeanPct": -3.019737126413448,
    "horizonsSpanned": [
     1,
     2,
-    4,
+    3,
     5,
     6,
     7,
@@ -770,7 +773,7 @@
     11,
     12,
     13,
-    15,
+    14,
     16,
     17,
     18,
@@ -783,7 +786,7 @@
   {
    "kind": "recap",
    "strategyVersion": 1,
-   "asOf": "2026-11-06",
+   "asOf": "2026-11-09",
    "rows": [
     {
      "strategyVersion": 1,
