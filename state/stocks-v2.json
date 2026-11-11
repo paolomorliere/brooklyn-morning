@@ -375,6 +375,21 @@
    "rankScore": 100,
    "composite": 1.393213786339985,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-11",
+   "publishedAt": "2026-11-11T11:47:56.517Z",
+   "ticker": "LTC",
+   "name": "LTC Properties, Inc.",
+   "cik": "887905",
+   "sic": "6798",
+   "division": "Finance, Insurance and Real Estate",
+   "decisionSession": "2026-11-10",
+   "plannedEntry": "2026-11-11",
+   "referenceClose": 44.47,
+   "rankScore": 100,
+   "composite": 1.448785543184113,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
