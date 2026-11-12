@@ -124,6 +124,17 @@ img { display: block; max-width: 100%; }
   border-top: 1px solid var(--line);
   z-index: 20;
 }
+/* Tablets and landscape phones. The bar itself still spans the window, because content scrolls
+   underneath it and the blurred surface has to cover all of that. Only the five tabs are pulled in,
+   to the same 640 px measure as `.screen`, so a tab sits under the column it belongs to instead of
+   stranded in an empty corner of an iPad. */
+@media (min-width: 700px) {
+  .tabbar {
+    grid-template-columns: repeat(5, minmax(0, 128px));
+    justify-content: center;
+  }
+}
+
 .tab {
   display: flex;
   flex-direction: column;

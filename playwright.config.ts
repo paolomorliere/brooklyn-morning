@@ -14,5 +14,9 @@ export default defineConfig({
     { name: 'iphone-se', use: { ...devices['iPhone SE'] } }, // 375 pt
     { name: 'iphone-14', use: { ...devices['iPhone 14'] } }, // 390/393 pt class
     { name: 'iphone-14-pro-max', use: { ...devices['iPhone 14 Pro Max'] } }, // 430 pt
+    // Paolo reads this on an iPad as well. Portrait is the narrowest tablet case that still clears the
+    // 700 px tab-bar breakpoint; landscape is the widest thing the layout has to look deliberate in.
+    { name: 'ipad-portrait', use: { ...devices['iPad (gen 7)'] } },
+    { name: 'ipad-landscape', use: { ...devices['iPad (gen 7) landscape'] } },
   ],
 });

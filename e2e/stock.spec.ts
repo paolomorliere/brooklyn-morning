@@ -224,6 +224,10 @@ test('the card fits the phone it is read on', async ({ page }) => {
   await openWith(page, PICK);
   await page.locator('section.stock').getByRole('button', { name: 'The evidence' }).click();
   await expect(page.locator('.stock-detail')).toBeVisible();
+  // Measure only once the display face has arrived. This probe reads real layout, so a heading still
+  // set in the fallback face can be wide enough to fail it for a frame; that is what happened once in a
+  // loaded parallel run on 2026-11-12, and never in isolation.
+  await page.evaluate(() => document.fonts.ready);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   expect(overflow).toBeLessThanOrEqual(1);
 });

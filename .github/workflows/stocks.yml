@@ -47,6 +47,10 @@ on:
     # `continue-on-error` over it — only ever arrived to find the work already done. Ordering is a
     # preference, not a guarantee: GitHub's delivery delay on this repository is hours, so either run may
     # arrive first, and the live-tip step below is what makes both orders safe.
+    # Four minutes ahead of the matching edition slot, so the workflow that owns the strategy is normally
+    # the one that runs it. See the delivery-lag note in edition.yml for why these are bought so early.
+    - cron: '25 22,23 * * *'
+    - cron: '47 1,2 * * *'
     - cron: '3 4,5 * * *'
     - cron: '19 6,7 * * *'
     - cron: '37 8,9 * * *'

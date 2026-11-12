@@ -1,28 +1,42 @@
 # Prepare the morning edition so it is ready before 6:00 AM New York time.
 #
-# GitHub runs scheduled workflows on a best-effort basis, and on this repository "best effort" is poor.
-# Measured over 2026-10-05 to 10-11: this workflow asked for 18 slots a day and GitHub delivered
-# **exactly two, every single day**, the first between 10:32 and 11:21 UTC — about six and a half hours
-# after the first requested slot. On 2026-10-12 it delivered none at all before 07:42 New York, which is
-# the morning Paolo found no edition.
+# GitHub starts scheduled workflows late on this repository, and the delay is the whole design problem.
+# Measured again on 2026-11-12 over the eight preceding days, with `created_at` and `run_started_at`
+# compared on every scheduled run of this workflow, of the stocks workflow and of the water polo one:
 #
-# Two things follow, and the schedule below is built on both.
+#   * There is **no queue delay at all** - `created_at` equals `run_started_at` to the second, always.
+#     The lateness is GitHub deciding when to fire the cron, not a runner waiting to be free.
+#   * **Each cron *expression* delivers about one run a day**, not each listed hour. Four expressions
+#     gave exactly four runs a day, every day. (The earlier bet recorded in STATUS.md - spread the same
+#     number of requests over more expressions - is what took this workflow from two runs a day to four.)
+#   * **That one run arrives six to eight and a half hours after the expression's first requested time.**
+#     `7 4,5` (04:07 UTC) landed between 10:58 and 12:46 UTC on eight consecutive days. Water polo's
+#     Monday `0 2,3` (02:00 UTC) landed at 09:17 and 09:35. The lag is remarkably consistent.
 #
-# **Asking more often does not help.** Eighteen requests produced two runs; the water polo workflow asks
-# for eight across three separate cron expressions and gets four or five. So this now asks for eight,
-# spread over four expressions, at minutes nowhere near the top of the hour (GitHub's own documentation
-# names the start of the hour as its congested period). That is a bet on the shape of the throttle rather
-# than a proven mechanism, and the run counts in STATUS.md are the way to tell whether it paid off.
+# So the earliest requested slot that can legally build - 04:07 UTC, just after New York midnight in EST -
+# cannot land before about 06:00 New York, and usually lands between 06:30 and 07:45. On 2026-11-12 it
+# landed at 07:33 NY, and Paolo looked at 07:35 and reasonably thought it had failed.
 #
-# **The first slot cannot move earlier than New York midnight.** The edition is dated in New York, so a run
-# before midnight there would build the wrong day. Midnight NY is 04:00 UTC in EDT, and with a six-and-a-half
-# hour lag that puts the earliest realistic edition at about 06:30 NY. That is the floor, and no arrangement
-# of crons beats it.
+# **The fix is that a cron is a lottery ticket bought seven hours in advance, and the ticket may be bought
+# before midnight even though the edition must not be built before midnight.** The two expressions added
+# below request at 22:29/23:29 and 01:51/02:51 UTC, which with the measured lag land roughly between
+# 23:30 and 05:30 New York. `edition-needed.mjs` makes this safe without any change: it builds only when
+# the newest edition's date differs from the *current* New York date, so a run that lands before midnight
+# sees today's edition already there and skips in about ten seconds. A run that lands after midnight
+# builds. Nothing can produce an edition dated for the wrong day.
 #
-# So the schedule alone cannot guarantee a 6 AM edition. Two things cover the gap: the `workflow_run`
-# triggers below, which give the edition a free attempt whenever any other data workflow finishes (water
-# polo runs Monday at about 09:01 UTC, earlier than this workflow has ever managed), and the "Run it now"
-# link the Morning screen shows when the edition is stale.
+# A build landing at, say, 03:00 New York is then refreshed in place by a later slot inside the 04:00-09:00
+# window, so the stories are current by the time Paolo reads. Worst case he gets an edition a few hours
+# old instead of no edition at all.
+#
+# **No arrangement of crons can guarantee a 6 AM edition**, because the delay is GitHub's and is not
+# contractual. A hard guarantee needs a trigger from outside GitHub - a `launchd` job on Paolo's Mac, or
+# an iPhone Shortcuts automation, calling `workflow_dispatch`. Both are free; neither is set up, and
+# STATUS.md records that.
+#
+# Two further things cover the gap: the `workflow_run` triggers below, which give the edition a free
+# attempt whenever another data workflow finishes, and the "Run it now" link the Morning screen shows
+# when the edition is stale.
 #
 # A dependency-free pre-check makes every run that has nothing to do cost one checkout, about ten seconds.
 #
@@ -34,7 +48,14 @@ name: Morning edition
 
 on:
   schedule:
-    # Just after New York midnight — 04:xx UTC in EDT, 05:xx in EST.
+    # Bought before New York midnight, expected to land between about 23:30 and 02:30 New York. A run that
+    # lands before midnight skips in ten seconds; one that lands after it builds the new day's edition.
+    - cron: '29 22,23 * * *'
+    # Expected to land between about 02:50 and 05:50 New York. This is the slot meant to put a complete
+    # edition on the phone before Paolo wakes up.
+    - cron: '51 1,2 * * *'
+    # Just after New York midnight — 04:xx UTC in EDT, 05:xx in EST. Lands 06:00-07:45 NY: now the first
+    # refresh rather than the first build.
     - cron: '7 4,5 * * *'
     # About 02:20 New York.
     - cron: '23 6,7 * * *'

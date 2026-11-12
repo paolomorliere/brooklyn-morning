@@ -22,7 +22,10 @@ export default defineConfig({
         start_url: base,
         scope: base,
         display: 'standalone',
-        orientation: 'portrait',
+        // Was 'portrait'. The same install is used on an iPad, which is held either way round, and the
+        // layout is a centred column that does not care. iOS has never honoured this field for a
+        // home-screen web app, so on Paolo's devices this is a correctness fix rather than a visible one.
+        orientation: 'any',
         background_color: '#F7F1E6',
         theme_color: '#F7F1E6',
         icons: [

@@ -689,6 +689,72 @@ through `routeLiuSeason`, so they test the Results/Schedule toggle rather than t
 behaviour was already right: an empty Schedule tab says "Nothing left on the schedule".
 
 
+## 2026-11-12 — why the edition lands at 07:30, and what was done about it
+
+Paolo looked at 07:35 New York and found no edition. The edition had in fact been built at 07:34 and was
+deploying. Nothing had failed; this is the scheduler lag, and 07:34 is a normal morning.
+
+**The lag was measured properly this time**, over the eight preceding days, across this workflow, the
+stocks workflow and the water polo one:
+
+* `created_at` equals `run_started_at` **to the second** on every scheduled run. There is no queue delay
+  at all. The lateness is entirely GitHub deciding when to fire the cron.
+* **One run per cron *expression* per day**, not per listed hour. Four expressions gave exactly four runs
+  a day, every day, on both the edition and the stocks workflow. This confirms the 2026-10-12 bet.
+* **That run lands six to eight and a half hours after the expression's first requested time.** The
+  edition's `7 4,5` (04:07 UTC) landed between 10:58 and 12:46 UTC on eight consecutive days. Water
+  polo's Monday `0 2,3` (02:00 UTC) landed at 09:17 and 09:35. The lag is consistent enough to plan with.
+
+The edition is dated in New York, so it was assumed no slot could be requested before New York midnight
+without risking an edition dated for the wrong day. That conflated two different times. **A cron is a
+lottery ticket bought seven hours before it is drawn**, and the ticket may be bought before midnight so
+long as nothing is built before midnight. `edition-needed.mjs` already guarantees the second half: it
+builds only when the newest edition's date differs from the *current* New York date, so a run landing at
+23:30 sees today's edition present and skips in about ten seconds.
+
+Two expressions were therefore added to the edition, at `29 22,23` and `51 1,2` UTC, and two matching
+ones four minutes earlier to the stocks workflow to keep the pick ahead of the edition. With the measured
+lag these should land roughly between 23:30 and 05:30 New York. Expected shape of a morning from here:
+
+| landing | what happens |
+|---|---|
+| 23:30-23:59 NY | skips, ten seconds, today's edition is already there |
+| 00:30-03:00 NY | **builds** the new day's edition |
+| 04:00-09:00 NY | refreshes it in place once it is 2.5 h old, with current stories |
+
+Worst case Paolo gets an edition a few hours old instead of no edition at all.
+
+**This is still a bet, and it is not a guarantee.** The delay is GitHub's and is not contractual; six
+expressions could deliver six runs or could deliver four. The run counts over the next week are the way
+to tell. **No arrangement of crons can promise a 6 AM edition.** A hard guarantee needs a trigger from
+outside GitHub — a `launchd` job on Paolo's Mac or an iPhone Shortcuts automation calling
+`workflow_dispatch`. Both are free and neither is set up; offered and not taken up as of this date.
+
+## 2026-11-12 — the iPad
+
+Paolo asked whether there is an iPad version. There is not a separate one and there should not be: this
+is one installable PWA and the iPad installs the same URL from Safari's Share menu. What it needed was
+tablet layout work, not a second app.
+
+Measured against the deployed site at 820x1180, 1180x820 and 1366x1024: the reading column was already
+correct — `max-width: 640px`, centred, no horizontal scroll anywhere. One thing was genuinely wrong. The
+tab bar is `position: fixed` with `left: 0; right: 0` and five equal columns, so on a 1366 pt iPad it put
+"Morning" and "Library" in opposite corners, a hand's width from the column they belong to.
+
+* The bar's surface still spans the window — content scrolls under it and the blurred surface has to
+  cover all of it — but above 700 pt the five tabs are pulled into the same 640 pt measure and centred.
+* `orientation` in the manifest went from `portrait` to `any`. An iPad is held either way round. iOS has
+  never honoured this field for a home-screen web app, so this is a correctness fix, not a visible one.
+* `ipad-portrait` and `ipad-landscape` were added to `playwright.config.ts`. All 230 pre-existing tests
+  passed at both sizes with no changes, which is the real evidence that the app was already tablet-safe.
+* `e2e/layout.spec.ts` is new: it asserts the centring, the tab geometry either side of the 700 pt
+  breakpoint, and that nothing scrolls sideways, in every project, reading each project's own viewport.
+  Verified to fail when the breakpoint is removed.
+
+Not done, and not obviously wanted: a two-column iPad layout. 640 pt is about 75 characters, which is the
+right measure for reading; the empty margin on a 13" iPad is deliberate, not an oversight.
+
+
 ## Backtest
 
 <!-- backtest -->
