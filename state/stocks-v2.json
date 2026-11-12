@@ -390,6 +390,21 @@
    "rankScore": 100,
    "composite": 1.448785543184113,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-12",
+   "publishedAt": "2026-11-12T12:33:10.001Z",
+   "ticker": "AR",
+   "name": "Antero Resources Corporation",
+   "cik": "1433270",
+   "sic": "1311",
+   "division": "Mining",
+   "decisionSession": "2026-11-11",
+   "plannedEntry": "2026-11-12",
+   "referenceClose": 38.21,
+   "rankScore": 99,
+   "composite": 0.8547877305514959,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
