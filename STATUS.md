@@ -755,6 +755,62 @@ Not done, and not obviously wanted: a two-column iPad layout. 640 pt is about 75
 right measure for reading; the empty margin on a 13" iPad is deliberate, not an oversight.
 
 
+## 2026-11-18 — one lesson sequence for the reader, not one per device
+
+Paolo opened the app on an iPad and the learning section was simply not there.
+
+The sequence was anchored to the Monday after a device's **first open**. The iPad anchored itself to
+23 November; the four-week replay pushed that anchor out to 21 December; and `lessonForDate` returns no
+lesson for any date before the sequence starts. Thirty-three blank days — and then it would have begun
+at week 1 while the phone was on week 9. Two devices, two different courses.
+
+Proved before fixing, against the published packs:
+
+| anchor | 18 November 2026 |
+|---|---|
+| `2026-09-21` (the phone) | week 5, day 3, "Rivers, borders, and disputes" |
+| `2026-11-23` (a fresh iPad) | **no lesson at all** |
+
+The anchor is now `LESSONS_EPOCH` on every device, so the lesson for a day is a pure function of the day
+and the published packs. Two devices agree with nothing to synchronise, which is the right shape for
+this: the material is public, only the progress through it is personal. An install anchored elsewhere is
+corrected on next open and keeps its `readLessonIds` — ids, not positions, so they stay true when the
+anchor moves. `startMondayFor`, whose only purpose was the per-install anchor, is deleted.
+
+**The deployed check that should have caught this was complicit.** It seeded `lessonProgress` into
+IndexedDB first, commented "Paolo's own profile", and then asserted the lesson rendered. Seeding the
+answer hid the question. It now opens the live site with no stored state at all, derives the expected
+lesson from the published packs rather than hard-coding a date, and asserts the anchor it settles on.
+Verified on the deployed app at both iPhone and iPad sizes.
+
+## 2026-11-18 — To-dos and Library stay on the device they were made on (Paolo's decision)
+
+Paolo asked for To-dos and Library to match across his iPhone and iPad. They cannot today: both live in
+IndexedDB, which is per-browser and per-device, and the Library screen shows only entries he has saved.
+On a new iPad both are empty, and that is the design working, not a fault. (The *lesson archive* at
+`#/week/<monday>` is published data and does match everywhere; only saved items do not.)
+
+Three options were put to him on 18 November:
+
+1. **Supabase free tier.** He already has a free-plan org — `qgoiscfdcyhhdiwjukbp`, three projects, one
+   of them `INACTIVE` rather than billed, which is the free plan stopping instead of charging. A new
+   project there quotes `{"recurrence":"monthly","amount":0}`. Email magic-link sign-in, row-level
+   security, last-write-wins on `updated_at`, delete tombstones so a deletion does not come back, and an
+   offline queue. Zero cost, but his task list would live on a third party's servers, and it is a few
+   hours of work with real failure modes.
+2. **The manual backup already built.** `exportBackup`/`restoreBackup` cover tasks, categories, grocery
+   list and history, library, favourites, prefs and lesson progress. Export, AirDrop, import. Nothing
+   leaves his devices. One-way replace, not sync.
+3. **Leave them per-device.**
+
+**He chose 3.** Recorded here so it is not re-litigated: this is a decision, not an oversight, and the
+work in option 1 is understood and declined for now. Option 2 remains available at no notice if he ever
+wants the iPad to start from the phone's contents.
+
+Also per-device as a consequence, and worth remembering before it is reported as a bug: quiz results,
+lesson read-marks, groceries and app preferences.
+
+
 ## Backtest
 
 <!-- backtest -->
