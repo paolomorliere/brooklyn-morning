@@ -1,7 +1,7 @@
 import type { LessonProgress, QuizDraft, QuizResult } from '@/types';
 import { createStore } from './store';
 import { getLessonProgress, kvGet, kvSet, setLessonProgress } from '@/db/personal';
-import { LESSONS_EPOCH, lessonForDate, startMondayFor, validatePack, type LessonIndex, type LessonIndexEntry, type LessonPack, type TodayLesson } from '@/lib/lessons';
+import { LESSONS_EPOCH, lessonForDate, validatePack, type LessonIndex, type LessonIndexEntry, type LessonPack, type TodayLesson } from '@/lib/lessons';
 
 interface LessonState {
   packs: LessonPack[];
@@ -19,12 +19,22 @@ export const lessonStore = createStore<LessonState>({ packs: [], progress: null,
   const weeks = await kvGet<number[]>('lessons:weeks', []);
   const packs = (await Promise.all(weeks.map((w) => kvGet<LessonPack | null>(`lessons:week-${w}`, null)))).filter(Boolean) as LessonPack[];
   let progress = await getLessonProgress();
+  // The sequence is anchored to the epoch on every device, not to the day this one was installed.
+  //
+  // It used to start on the Monday after a device's first open. That is wrong for a single reader with
+  // more than one device: opening the app on an iPad on 18 November 2026 anchored that iPad to
+  // 23 November, which the four-week replay pushed out to 21 December, so the iPad showed no lesson at
+  // all for thirty-three days — and would then have begun at week 1 while the phone was on week 9.
+  // Two devices, two different courses. One published epoch means every device computes the same
+  // lesson for the same day with nothing to synchronise.
+  //
+  // `readLessonIds` is carried across the correction. They are lesson ids, not positions in a
+  // sequence, so they stay true when the anchor moves.
   if (!progress) {
-    progress = { startMonday: startMondayFor(new Date()), readLessonIds: [] };
+    progress = { startMonday: LESSONS_EPOCH, readLessonIds: [] };
     await setLessonProgress(progress);
-  } else if (progress.startMonday < LESSONS_EPOCH) {
-    // Installed before the sequence officially began: restart cleanly at week 1 on the epoch Monday.
-    progress = { ...progress, startMonday: LESSONS_EPOCH, readLessonIds: [] };
+  } else if (progress.startMonday !== LESSONS_EPOCH) {
+    progress = { ...progress, startMonday: LESSONS_EPOCH };
     await setLessonProgress(progress);
   }
   return { packs, progress, totalWeeksAvailable: packs.length, ready: true, lastError: null, staleWeeks: [] };

@@ -89,18 +89,19 @@ export function effectiveStartMonday(startMonday: string, ymd: string, replay: L
   return replay && ymd >= replay.from ? shiftYMD(startMonday, replay.offsetDays) : startMonday;
 }
 
-/** First Monday on or after `d`, in New York (a Monday returns itself). */
+/**
+ * First Monday on or after `d`, in New York (a Monday returns itself).
+ *
+ * No longer used to anchor the sequence. `startMondayFor`, which did that, was removed on
+ * 2026-11-18: anchoring to a device's first open gave a second device its own, different course.
+ * The anchor is `LESSONS_EPOCH` for everyone. See the note in `state/lessons.ts`.
+ */
 export function nextMondayOnOrAfter(d: Date): string {
   const ymd = nyDate(d);
   const day = weekdayIndex(ymd);
   return day === 0 ? ymd : shiftYMD(ymd, 7 - day);
 }
 
-/** Where the sequence should start for a first open on `d`: the next Monday, but never before the epoch. */
-export function startMondayFor(d: Date): string {
-  const m = nextMondayOnOrAfter(d);
-  return m < LESSONS_EPOCH ? LESSONS_EPOCH : m;
-}
 export interface LessonIndexEntry {
   week: number;
   theme: string;

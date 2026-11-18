@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LESSONS_EPOCH, lessonForDate, nextMondayOnOrAfter, startMondayFor, type LessonPack } from '@/lib/lessons';
+import { lessonForDate, nextMondayOnOrAfter, type LessonPack } from '@/lib/lessons';
 import w1 from '../public/data/lessons/week-01.json';
 
 /** Midday in New York, the timezone the lesson calendar is decided in. */
@@ -14,7 +14,6 @@ describe('Monday start and Sunday quiz', () => {
     expect(nextMondayOnOrAfter(ny(2026, 9, 20))).toBe('2026-09-21');
     expect(nextMondayOnOrAfter(ny(2026, 9, 21))).toBe('2026-09-21');
     expect(nextMondayOnOrAfter(ny(2026, 9, 23))).toBe('2026-09-28');
-    expect(startMondayFor(ny(2026, 9, 15))).toBe(LESSONS_EPOCH); // never before the epoch
   });
   it('before the start date shows no lesson and reports the start', () => {
     const t = lessonForDate('2026-09-21', packs, ny(2026, 9, 20));

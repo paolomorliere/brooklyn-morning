@@ -72,42 +72,72 @@ test('the deployed team page switches between Results and Schedule', async ({ pa
   }
 });
 
-test('the deployed lesson is the replayed October one, by title and by content', async ({ page }) => {
-  // Paolo's own profile: the sequence began on the epoch Monday.
-  await page.goto(`${SITE}#/home`);
-  await page.waitForFunction(() => document.querySelector('.app') !== null, null, { timeout: 40_000 });
-  await page.evaluate(async () => {
-    await new Promise<void>((resolve) => {
-      const open = indexedDB.open('brooklyn-personal');
-      open.onsuccess = () => {
-        const db = open.result;
-        const tx = db.transaction('kv', 'readwrite');
-        tx.objectStore('kv').put({ key: 'lessonProgress', value: { startMonday: '2026-09-21', readLessonIds: [] } });
-        tx.oncomplete = () => { db.close(); resolve(); };
-      };
-    });
-  });
+/**
+ * A device that has never opened the app before — which is what Paolo's iPad was.
+ *
+ * This test used to seed `lessonProgress` into IndexedDB first, "Paolo's own profile", and that is
+ * exactly why it never caught the bug: the sequence used to be anchored to the Monday after a device's
+ * first open, so a real new device showed no learning section at all. Seeding the answer hid the
+ * question. Nothing is seeded now, and the expectation is computed from the same published packs the
+ * app downloads, so it stays true as the days pass instead of going stale on a fixed date.
+ */
+test('a device opening the app for the first time sees today\'s lesson, the same one as every other device', async ({ page }) => {
+  // What the lesson should be, derived from the published material rather than written down here.
+  const expected = await page.evaluate(async (site) => {
+    const idx = await (await fetch(`${site}data/lessons/lessons.index.json`, { cache: 'no-store' })).json();
+    const packs = await Promise.all(
+      idx.weeks.map((w: { file: string }) => fetch(`${site}data/lessons/${w.file}`, { cache: 'no-store' }).then((r) => r.json())),
+    );
+    // The published anchor, the fixed 28-day replay, and New York dates. Kept deliberately explicit:
+    // if the app's own arithmetic drifts, this should disagree with it rather than drift along.
+    const EPOCH = '2026-09-21';
+    const ny = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
+    const dayMs = 86_400_000;
+    const shift = (d: string, n: number) => new Date(Date.parse(`${d}T12:00:00Z`) + n * dayMs).toISOString().slice(0, 10);
+    const start = ny >= '2026-11-09' ? shift(EPOCH, 28) : EPOCH;
+    const days = Math.round((Date.parse(`${ny}T12:00:00Z`) - Date.parse(`${start}T12:00:00Z`)) / dayMs);
+    const weekIdx = Math.floor(days / 7);
+    const dayIdx = days % 7;
+    const sorted = [...packs].sort((a, b) => a.week - b.week);
+    const pack = sorted[weekIdx % sorted.length];
+    const lesson = pack.lessons.find((l: { day: number }) => l.day === dayIdx + 1);
+    return { ny, title: lesson.title, theme: pack.theme, week: weekIdx + 1, day: dayIdx + 1, replayOf: ny >= '2026-11-09' ? shift(ny, -28) : null };
+  }, SITE);
 
-  // Tuesday 10 November replays Tuesday 13 October: week 4, day 2.
-  await page.goto(`${SITE}?r=1#/home`);
+  // A brand-new profile: no IndexedDB, no localStorage, nothing seeded.
+  await page.goto(`${SITE}#/home`);
   const card = page.locator('section.lesson');
   await expect(card).toBeVisible({ timeout: 40_000 });
-  await expect(card.getByRole('heading', { name: 'Neural networks, explained with a dial board' })).toBeVisible();
-  await expect(card).toContainText('Week 4');
-  await expect(card).toContainText('How AI actually works (no code)');
-  await expect(card).toContainText('Day 2 of 7');
-  // Said out loud, naming the date it is replaying.
-  await expect(card).toContainText('Catching up: this is the lesson from Tuesday, October 13');
-  // The body is the original, not a summary of it.
+  await expect(card.getByRole('heading', { name: expected.title })).toBeVisible();
+  await expect(card).toContainText(`Week ${expected.week}`);
+  await expect(card).toContainText(expected.theme);
+  await expect(card).toContainText(`Day ${expected.day} of 7`);
+  // The body is the original lesson, not a summary of it.
   await expect(card).toContainText('Explanation');
+  if (expected.replayOf) await expect(card).toContainText('Catching up: this is the lesson from');
 
-  // Sunday 15 November leads to week 4's quiz, filed under its own week rather than October's.
+  // The anchor it settled on is the shared one, not this device's install week.
+  const stored = await page.evaluate(
+    () =>
+      new Promise<{ startMonday: string } | null>((resolve) => {
+        const open = indexedDB.open('brooklyn-personal');
+        open.onsuccess = () => {
+          const db = open.result;
+          const req = db.transaction('kv', 'readonly').objectStore('kv').get('lessonProgress');
+          req.onsuccess = () => { db.close(); resolve(req.result?.value ?? null); };
+        };
+      }),
+  );
+  expect(stored?.startMonday).toBe('2026-09-21');
+});
+
+/** The replay's two fixed points, which do not move with the calendar. */
+test('the replayed Sunday quiz is week 4 and the original October week is still intact', async ({ page }) => {
   await page.goto(`${SITE}?r=1#/quiz/2026-11-09`);
   await expect(page.getByRole('heading', { name: 'Weekly quiz' })).toBeVisible({ timeout: 40_000 });
   await expect(page.locator('.screen').getByText('1 / 20')).toBeVisible();
   await expect(page.locator('.screen')).toContainText('In machine learning, the rules a model follows are');
 
-  // And the original October week is still reachable, with its own lessons.
   await page.goto(`${SITE}?r=1#/week/2026-10-12`);
   await expect(page.getByRole('heading', { name: /This week.s lessons/ })).toBeVisible({ timeout: 40_000 });
   await expect(page.locator('section.lesson')).toHaveCount(7);

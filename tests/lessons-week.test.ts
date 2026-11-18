@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Lesson } from '@/types';
 import {
-  LESSONS_EPOCH,
   daysBetween,
   lessonForDate,
   mondayOf,
@@ -9,7 +8,6 @@ import {
   nextMondayOnOrAfter,
   nyDate,
   shiftYMD,
-  startMondayFor,
   validatePack,
   weekStartsUpTo,
   type LessonPack,
@@ -61,7 +59,6 @@ describe('weeks run on the New York calendar', () => {
   it('starts a fresh install on the next Monday, never before the epoch', () => {
     expect(nextMondayOnOrAfter(new Date('2026-09-27T15:00:00Z'))).toBe('2026-09-28');
     expect(nextMondayOnOrAfter(new Date('2026-09-28T15:00:00Z'))).toBe('2026-09-28');
-    expect(startMondayFor(new Date('2026-08-01T15:00:00Z'))).toBe(LESSONS_EPOCH);
   });
 });
 
