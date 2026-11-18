@@ -450,6 +450,21 @@
    "rankScore": 100,
    "composite": 1.3721543350430192,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-18",
+   "publishedAt": "2026-11-18T09:16:05.371Z",
+   "ticker": "DK",
+   "name": "Delek US Holdings, Inc.",
+   "cik": "1694426",
+   "sic": "2911",
+   "division": "Manufacturing",
+   "decisionSession": "2026-11-17",
+   "plannedEntry": "2026-11-18",
+   "referenceClose": 65.99,
+   "rankScore": 100,
+   "composite": 1.2737386547853995,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
