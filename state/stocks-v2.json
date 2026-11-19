@@ -465,6 +465,21 @@
    "rankScore": 100,
    "composite": 1.2737386547853995,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-19",
+   "publishedAt": "2026-11-19T09:32:35.925Z",
+   "ticker": "DXC",
+   "name": "DXC Technology Company",
+   "cik": "1688568",
+   "sic": "7374",
+   "division": "Services",
+   "decisionSession": "2026-11-18",
+   "plannedEntry": "2026-11-19",
+   "referenceClose": 14.37,
+   "rankScore": 99,
+   "composite": 0.7707144539299999,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
