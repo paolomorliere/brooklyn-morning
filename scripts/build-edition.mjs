@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
-import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, NEAR_DUPLICATE, PER_TOPIC, SLOT_RULES, SPONSORED_CATEGORIES, SUBJECTS, TOPIC_KEYWORDS } from './feeds.config.mjs';
+import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, NEAR_DUPLICATE, PER_TOPIC, SLOT_RULES, SPONSORED_CATEGORIES, SUBJECTS, TOPIC_KEYWORDS, isBlockedUrl } from './feeds.config.mjs';
 import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
 import { stockCardFor } from './lib/strategy.mjs';
 
@@ -296,6 +296,12 @@ async function main() {
         for (const raw of parsed) {
           if (!raw.title || !raw.url) continue;
           if (feed.requireKeyword && !feed.requireKeyword.test(`${raw.title} ${raw.excerpt}`)) continue;
+          // A site Paolo asked never to see. Checked on the story's own link, so it holds whichever feed
+          // the story came through.
+          if (isBlockedUrl(raw.url)) {
+            dropped.push({ rule: 'blocked', topic: feed.topic, title: raw.title, publisher: feed.name, detail: `links to ${new URL(raw.url).hostname}, which is blocked` });
+            continue;
+          }
           const categories = raw.categories ?? [];
           // The publisher's own label. Dropped before anything else looks at the item.
           const ad = categories.find((c) => SPONSORED_CATEGORIES.some((re) => re.test(c)));

@@ -13,13 +13,23 @@ export const FEEDS = [
   // Review's main feed carried ten items of climate tech and biotech and not one about AI, and
   // `technology-lab` was security, space and hardware. The topic feeds below are AI-only at source.
   // (`technologyreview.com/topic/data/feed/` answers 200 with no items, so there is no data-topic
-  // equivalent; the data side of this section comes from Power BI and Real Python, plus TOPIC_KEYWORDS.)
+  // equivalent; the data side of this section comes from the Power BI blog, plus TOPIC_KEYWORDS.)
+  //
+  // Real Python was removed on 2026-11-23 at Paolo's request, and its domain is blocked outright in
+  // BLOCKED_HOSTS below. It had been in this section on 32 of the previous 37 days (93 items): it posts
+  // tutorials and quizzes daily, they always looked fresh, and "python" and "data" carried them through
+  // the topic gate. They were not news. Wired's AI feed replaces it — reported journalism, and its
+  // robots.txt permits feed readers (`User-agent: *` disallows only query-string URLs, and the feed
+  // path has none). Considered and not used: Pew Research (every topic feed returns the same site-wide
+  // feed, mostly elections and religion), Inside Higher Ed (3 of 10 items on topic, and those loosely),
+  // and TechCrunch AI (on topic, but its robots.txt names Anthropic's crawlers as unwelcome; this reader
+  // is not one of them, but that is not a line worth leaning on).
   { id: 'mit-tr', name: 'MIT Technology Review', topic: 'ai', url: 'https://www.technologyreview.com/topic/artificial-intelligence/feed/', weight: 1.0, lead: true },
   { id: 'ars-tech', name: 'Ars Technica', topic: 'ai', url: 'https://arstechnica.com/ai/feed/', weight: 0.9, lead: true },
   { id: 'verge-ai', name: 'The Verge', topic: 'ai', url: 'https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', weight: 0.8, lead: true },
   { id: 'willison', name: 'Simon Willison', topic: 'ai', url: 'https://simonwillison.net/atom/entries/', weight: 0.6, lead: true },
   { id: 'powerbi', name: 'Power BI Blog', topic: 'ai', url: 'https://powerbi.microsoft.com/en-us/blog/feed/', weight: 0.8, lead: true, sub: 'data' },
-  { id: 'realpython', name: 'Real Python', topic: 'ai', url: 'https://realpython.com/atom.xml', weight: 0.4, lead: true, sub: 'data' },
+  { id: 'wired-ai', name: 'Wired', topic: 'ai', url: 'https://www.wired.com/feed/tag/ai/latest/rss', weight: 0.9, lead: true },
 
   // 2) World, US & France  (sub: 'france' guarantees one France story a day)
   { id: 'npr-news', name: 'NPR', topic: 'world', url: 'https://feeds.npr.org/1001/rss.xml', weight: 1.0, lead: true },
@@ -223,6 +233,27 @@ export const PER_TOPIC = 6;
  * that separates those two anyway.
  */
 export const NEAR_DUPLICATE = { maxShare: 0.15, minShared: 3, minOverlap: 0.25 };
+
+/**
+ * Sites Paolo has asked never to see in the edition, whichever feed an item arrives through. Matched
+ * against the story's own link host, so a blocked site cannot come back as a link inside another
+ * publisher's feed. Removing a feed is not enough on its own; this is what makes "no more" stay true.
+ */
+export const BLOCKED_HOSTS = [
+  // 2026-11-23: "I wanna stop receiving news everyday from Python and/or Real Python… No more."
+  /(^|\.)realpython\.com$/i,
+];
+
+/** True when a story's link points at a blocked site. A URL that cannot be parsed is not blocked here. */
+export function isBlockedUrl(url) {
+  let host;
+  try {
+    host = new URL(url).hostname;
+  } catch {
+    return false;
+  }
+  return BLOCKED_HOSTS.some((re) => re.test(host));
+}
 
 /**
  * Categories that mean "this is an advertisement", matched against the labels the publisher puts on its
