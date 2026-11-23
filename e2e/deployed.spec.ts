@@ -310,4 +310,18 @@ test('the deployed track record agrees with the published stock file', async ({ 
   await expect(page.locator('section[aria-labelledby="tr-finished"] .tr-bar-row')).toHaveCount(finished.length);
   const mean = finished.reduce((a: number, r: { excessSpyPct: number }) => a + r.excessSpyPct, 0) / finished.length;
   await expect(page.locator('.tr-verdict').first()).toContainText(`${Math.abs(mean).toFixed(1)} point`);
+
+  // The money answer: $1,000 into each finished pick, as the published file measures it.
+  const total = finished.reduce((a: number, r: { netPct: number }) => a + (1000 * r.netPct) / 100, 0);
+  const said = `${total >= 0 ? 'Up' : 'Down'} $${Math.abs(Math.round(total)).toLocaleString('en-US')}`;
+  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText(said);
+
+  // Every pick carries what its card said; a card that could not be followed says why.
+  const late = finished.find((r: { ticker: string }) => r.ticker === 'ATEX');
+  if (late?.cardBuy) {
+    const atex = page.locator('section[aria-labelledby="tr-finished"] .tr-bar-row', { hasText: 'ATEX' });
+    await atex.locator('button').click();
+    await expect(atex.locator('.tr-detail')).toContainText('The card said: buy at the open Tue, Oct 6');
+    await expect(atex.locator('.tr-note')).toContainText("couldn't be bought as written");
+  }
 });
