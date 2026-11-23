@@ -74,11 +74,13 @@ test('the money answer: finished and open, kept apart', async ({ page }) => {
   await expect(money).toContainText('$1,000 into each pick, bought and sold on the card');
   const blocks = money.locator('.tr-money-block');
   await expect(blocks.nth(0)).toContainText('Finished · sold on the card');
-  await expect(blocks.nth(0).locator('.tr-money-v')).toHaveText('Down $40');
+  await expect(blocks.nth(0).locator('.tr-money-v')).toHaveText('Down $40 (−1.0%)');
   await expect(blocks.nth(0)).toContainText('4 picks · $4,000 in, $3,960 back · made money on 1, lost on 3');
   // The open pick's +$500 is its own figure and never added to the finished one.
   await expect(blocks.nth(1)).toContainText('at the close on Fri, Nov 20');
-  await expect(blocks.nth(1).locator('.tr-money-v')).toHaveText('Up $500 so far');
+  await expect(blocks.nth(1).locator('.tr-money-v')).toHaveText('Up $500 (+50.0%) so far');
+  await expect(blocks.nth(0).locator('.tr-money-v')).toHaveClass(/is-loss/);
+  await expect(blocks.nth(1).locator('.tr-money-v')).toHaveClass(/is-gain/);
   await expect(blocks.nth(1)).toContainText('1 pick · $1,000 in, worth $1,500 now · up on 1, down on 0');
   await expect(blocks.nth(1)).toContainText('NEW: bought at the open on Mon, Nov 23, no closing price for it yet');
   await expect(money).toContainText('kept apart');
@@ -158,7 +160,7 @@ test('version 1 is kept apart, says its cards gave no sell day, and never moves 
   const v1 = page.locator('.tr-v1');
   await expect(v1).toContainText('never said when to sell');
   await expect(v1).toContainText('$1,000 in each, held five days: up $990');
-  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText('Down $40');
+  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText('Down $40 (−1.0%)');
 });
 
 test('the track record fits the screen and works offline from the saved copy', async ({ page, context }) => {
@@ -172,6 +174,6 @@ test('the track record fits the screen and works offline from the saved copy', a
   await page.evaluate(() => { location.hash = '#/picks'; });
   await page.getByRole('button', { name: 'Check for a newer record' }).click();
   await expect(page.getByRole('status')).toContainText(/offline|Couldn/);
-  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText('Down $40');
+  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText('Down $40 (−1.0%)');
   await context.setOffline(false);
 });

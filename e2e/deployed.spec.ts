@@ -313,8 +313,12 @@ test('the deployed track record agrees with the published stock file', async ({ 
 
   // The money answer: $1,000 into each finished pick, as the published file measures it.
   const total = finished.reduce((a: number, r: { netPct: number }) => a + (1000 * r.netPct) / 100, 0);
-  const said = `${total >= 0 ? 'Up' : 'Down'} $${Math.abs(Math.round(total)).toLocaleString('en-US')}`;
-  await expect(page.locator('.tr-money-block').first().locator('.tr-money-v')).toHaveText(said);
+  const share = (100 * total) / (finished.length * 1000);
+  const pctText = `${share > 0 ? '+' : share < 0 ? '−' : ''}${Math.abs(share).toFixed(1)}%`;
+  const said = `${total >= 0 ? 'Up' : 'Down'} $${Math.abs(Math.round(total)).toLocaleString('en-US')} (${pctText})`;
+  const hero = page.locator('.tr-money-block').first().locator('.tr-money-v');
+  await expect(hero).toHaveText(said);
+  await expect(hero).toHaveClass(Math.round(total) > 0 ? /is-gain/ : Math.round(total) < 0 ? /is-loss/ : /tr-money-v/);
 
   // Every pick carries what its card said; a card that could not be followed says why.
   const late = finished.find((r: { ticker: string }) => r.ticker === 'ATEX');

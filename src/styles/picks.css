@@ -164,6 +164,11 @@
   letter-spacing: -0.02em;
 }
 .tr-money-open .tr-money-v { font-size: var(--fs-28); color: var(--ink-muted); }
+/* Paolo asked for green = profit, red = loss on these two figures (2026-11-23). Both pass 4.5:1 on the
+   paper surface (green 5.1, red 6.3); the words Up/Down and the sign on the % say it without colour. */
+.tr-money-v.is-gain { color: #1e7b3e; }
+.tr-money-v.is-loss { color: #b3261e; }
+.tr-money-pct { font-size: 0.55em; font-weight: 500; letter-spacing: 0; }
 .picks .tr-hero-v { font-size: 2rem; }
 
 /* Money / vs S&P 500: one measure on the bars at a time. */

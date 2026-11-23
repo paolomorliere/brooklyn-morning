@@ -30,6 +30,8 @@ const clock = (iso: string) => new Date(iso).toLocaleTimeString('en-US', { hour:
 const money = (v: number | null | undefined) => (v == null ? '—' : `$${v.toFixed(2)}`);
 const pct = (v: number | null | undefined) => (v == null ? '—' : `${signed(v)}%`);
 const whole = (v: number) => `$${Math.round(v).toLocaleString('en-US')}`;
+/** Green for a profit, red for a loss, ink for a whole-dollar zero. The words Up/Down say it too. */
+const tone = (v: number) => (Math.round(v) > 0 ? 'is-gain' : Math.round(v) < 0 ? 'is-loss' : '');
 
 export function Picks() {
   const { recaps, builtAt, ready, refreshing, lastError } = picksStore.use();
@@ -189,8 +191,8 @@ function MoneyPanel({ t }: { t: TrackRecord }) {
       {f.n > 0 ? (
         <div class="tr-money-block">
           <div class="tr-money-k">Finished · sold on the card's sell day</div>
-          <div class="tr-money-v">
-            {f.total >= 0 ? 'Up' : 'Down'} {whole(Math.abs(f.total))}
+          <div class={`tr-money-v ${tone(f.total)}`}>
+            {f.total >= 0 ? 'Up' : 'Down'} {whole(Math.abs(f.total))} <span class="tr-money-pct">({pct((100 * f.total) / (f.n * STAKE))})</span>
           </div>
           <div class="small muted">
             {f.n} {f.n === 1 ? 'pick' : 'picks'} · {whole(f.n * STAKE)} in, {whole(f.n * STAKE + f.total)} back · made money on {f.made}, lost on {f.lost}
@@ -206,8 +208,8 @@ function MoneyPanel({ t }: { t: TrackRecord }) {
           <div class="tr-money-k">Still open · at the close on {dayW(t.asOf)}</div>
           {r.n > 0 && (
             <>
-              <div class="tr-money-v">
-                {r.total >= 0 ? 'Up' : 'Down'} {whole(Math.abs(r.total))} so far
+              <div class={`tr-money-v ${tone(r.total)}`}>
+                {r.total >= 0 ? 'Up' : 'Down'} {whole(Math.abs(r.total))} <span class="tr-money-pct">({pct((100 * r.total) / (r.n * STAKE))})</span> so far
               </div>
               <div class="small muted">
                 {r.n} {r.n === 1 ? 'pick' : 'picks'} · {whole(r.n * STAKE)} in, worth {whole(r.n * STAKE + r.total)} now · up on {r.up}, down on {r.down}

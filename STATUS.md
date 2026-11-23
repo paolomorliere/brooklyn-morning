@@ -906,6 +906,13 @@ only those lines change), are written for every new pick, and are published on e
 `publishedAt`. They are never used to measure anything; `measurePick` still works from `publishedAt`
 against the sessions that really traded.
 
+**Percentage and colour on the two money figures** (Paolo's request, same day): each now reads e.g.
+"Down $653 (−5.0%)" and "Down $647 (−3.4%) so far", the % being the total over the money put in
+($1,000 × picks). Green (#1e7b3e) for a profit, red (#b3261e) for a loss, ink for $0 — Paolo asked for
+green/red explicitly. Both pass 4.5:1 contrast on the paper surface. Red/green is the pair colour-blind
+readers confuse, so the words "Up"/"Down" and the sign on the % carry the answer without the colour; the
+bar charts keep the validated blue/terracotta pair.
+
 ### Two water polo tests fixed
 "A day with no results" and "a withheld score" took the first final game in the live feed. The
 22 November feed put an opponents-only game first (Biola v Concordia Irvine), which the screen never
