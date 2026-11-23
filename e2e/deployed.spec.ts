@@ -291,3 +291,21 @@ test('the deployed stock card is labelled for the rule that made it', async ({ p
     await expect(card.locator('p.muted.small')).not.toBeEmpty();
   }
 });
+
+/** The track record on the live site says what the live stock file says, reached in one tap. */
+test('the deployed track record agrees with the published stock file', async ({ page }) => {
+  const file = await page.request.get(`${SITE}data/stock.json`).then((r) => r.json());
+  const v2 = file.recaps.find((r: { strategyVersion: number }) => r.strategyVersion === 2);
+  const finished = v2.rows.filter((r: { status: string; netPct: number | null; excessSpyPct: number | null }) => r.status === 'complete' && r.netPct != null && r.excessSpyPct != null);
+  const beat = finished.filter((r: { excessSpyPct: number }) => r.excessSpyPct > 0).length;
+
+  await page.goto(`${SITE}#/home`);
+  const entry = page.locator('section.stock .stock-record');
+  await expect(entry).toBeVisible({ timeout: 40_000 });
+  await entry.click();
+  await expect(page).toHaveURL(/#\/picks$/);
+  await expect(page.locator('.tr-hero-v')).toHaveText(new RegExp(`${beat}\\s*of ${finished.length}`), { timeout: 40_000 });
+  await expect(page.locator('section[aria-labelledby="tr-finished"] .tr-bar-row')).toHaveCount(finished.length);
+  const mean = finished.reduce((a: number, r: { excessSpyPct: number }) => a + r.excessSpyPct, 0) / finished.length;
+  await expect(page.locator('.tr-verdict').first()).toContainText(`${Math.abs(mean).toFixed(1)} point`);
+});
