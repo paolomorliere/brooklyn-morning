@@ -15,6 +15,7 @@ import { Quiz } from '@/screens/Quiz';
 import { WeekReview } from '@/screens/WeekReview';
 import { Reader } from '@/screens/Reader';
 import { ProductDetail } from '@/screens/ProductDetail';
+import { Picks } from '@/screens/Picks';
 import { seedFixtures } from '../fixtures/seed';
 
 // ?fixtures=1 on localhost seeds the personal database with sample data for screenshots and tests.
@@ -45,6 +46,7 @@ export function App() {
         {route === 'week' && <WeekReview />}
         {route === 'read' && <Reader />}
         {route === 'product' && <ProductDetail />}
+        {route === 'picks' && <Picks />}
         {!['settings', 'quiz', 'week', 'read', 'product', 'team', 'poll'].includes(route) && <TabBar route={route} />}
       </div>
     </ToastProvider>

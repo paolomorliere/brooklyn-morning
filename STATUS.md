@@ -811,6 +811,62 @@ Also per-device as a consequence, and worth remembering before it is reported as
 lesson read-marks, groceries and app preferences.
 
 
+## 2026-11-23 — Real Python out of AI & Data; a track record for the stock picks
+
+### News
+Paolo: "I wanna stop receiving news everyday from Python and/or Real Python… No more." Real Python
+had been in the AI & Data section on **32 of the previous 37 days (93 items)** — daily tutorials and
+quizzes that always looked fresh and passed the topic gate on "python" and "data". The feed is removed
+and `realpython.com` is blocked on each story's own link host (`BLOCKED_HOSTS` / `isBlockedUrl` in
+`feeds.config.mjs`), so it cannot return through another feed; blocked items are logged with rule
+`blocked`. **Wired's AI feed** replaces it. A forced local build of the 23 November edition gave MIT
+Technology Review, Wired ×2, The Verge ×2 and Ars Technica, and no Real Python link. Considered and
+rejected: Pew Research (every topic feed returns the site-wide feed), Inside Higher Ed (3 of 10 on
+topic), TechCrunch AI (robots.txt names Anthropic's crawlers as unwelcome — this reader is not one, but
+that is not a line to lean on). Deployed the same day, so the 24 November edition is the first without it.
+
+### Stock picks: Track record (`#/picks`)
+Paolo found the section confusing and unused: he wants to see how the picks actually perform. The
+build had been measuring every pick properly since October (`recaps` in `data/stock.json`), but the
+app never read that file — it showed only the day's brief.
+
+* **One tap**: a "Track record" row at the top of the live stock card ("6 of 13 finished picks beat the
+  S&P 500 · 20 still running") opens the new screen. Archived editions do not show it.
+* **Answer first**: one generated sentence (ahead of / behind / level with the S&P 500, by how much),
+  a hero count of picks that beat it, and three tiles — average pick, the S&P 500 over the same days,
+  and how many made money.
+* **"Beat the market" and "made money" are counted separately and labelled.** The old recap card said
+  "23% finished ahead" next to an against-SPY figure; that 23% was picks with a positive return. It now
+  says "made money". Beat the S&P 500 is 6 of 13 (46%).
+* **One chart**: every finished pick as a bar left or right of the S&P 500 line, newest first, tap for
+  buy and sell prices and dates. Picks still inside their 21 sessions use the same chart in a lighter
+  wash, labelled "so far", and are counted in no figure. Unpriced picks are named and not counted.
+  Version 1 sits behind "The earlier version" and is never added in.
+* **The caution is rule-based, not editorial.** Under 30 finished picks it says the sample is small. It
+  names a single pick only when removing the pick furthest from the market flips the sign of the
+  average, and then shows both figures. On 23 November that is NRIX (−35.5 points): without it the
+  average would be +1.7 rather than −1.1.
+* **Colours were validated, not chosen by eye.** Sage against terracotta failed the protanopia check
+  (ΔE 4.9), so "beat" is blue `#3b6fb0` against terracotta; that pair passes every check on the ivory
+  surface. The side of the line repeats what the colour says.
+* `spyPct` (SPY's own net return over the same sessions) is now published on every recap row. Older
+  files derive it exactly as `netPct − excessSpyPct`.
+* The app adds no arithmetic of its own: `tests/picks.test.ts` asserts the screen's averages equal the
+  build's to nine decimal places on the real published file. The raw bars were spot-checked too: SPY
+  fell 8.0% from the 16 November open to the 20 November close, which is why several losing picks show
+  as ahead of the market.
+
+**Not changed, deliberately:** today's brief is as long as it was. Showing the strongest
+counterargument and the invalidation conditions up front was part of the plan approved in October, so
+it was not reversed without asking. Offered to Paolo as a follow-up.
+
+### Two water polo tests fixed
+"A day with no results" and "a withheld score" took the first final game in the live feed. The
+22 November feed put an opponents-only game first (Biola v Concordia Irvine), which the screen never
+lists, so both failed on every device. Proved unrelated to the day's changes by running them on the
+previous commit. They now pick from games involving the thirteen followed schools.
+
+
 ## Backtest
 
 <!-- backtest -->

@@ -7,6 +7,20 @@ const open = async (page: Page) => {
 
 
 /**
+ * Final games that involve one of the thirteen schools this screen follows.
+ *
+ * The feed also carries opponents' games against each other (Biola v Concordia Irvine, say), which the
+ * screen never lists. Two tests used to take "the first final in the feed" and expect to see it; that
+ * held until the 22 November 2026 feed put an opponents-only game first, and both went red on every
+ * device with no change to the app. They pick from this list instead.
+ */
+type FeedGame = { status: string; home: { team: string; score: number | null }; away: { team: string; score: number | null }; conflict?: unknown };
+const trackedFinals = (feed: { games: FeedGame[]; sources: { id: string }[] }) => {
+  const ids = new Set(feed.sources.map((x) => x.id));
+  return feed.games.filter((g) => g.status === 'final' && (ids.has(g.home.team) || ids.has(g.away.team)));
+};
+
+/**
  * Stand in for GitHub's run list.
  *
  * The first call is the baseline the app takes when the button is tapped — at that moment the new
@@ -134,7 +148,7 @@ test('a day with no results says so instead of looking broken', async ({ page })
   // Keep one game, on a date the strip will not offer, then ask for a different date.
   await page.route('**/data/waterpolo.json*', async (route) => {
     const feed = await (await route.fetch()).json();
-    feed.games = feed.games.filter((g: { status: string }) => g.status === 'final').slice(0, 1);
+    feed.games = trackedFinals(feed).slice(0, 1);
     await route.fulfill({ json: feed });
   });
   await open(page);
@@ -181,7 +195,9 @@ test('a disagreement between two schools shows one row and both readings', async
 test('a withheld score is shown as unconfirmed rather than as a number', async ({ page }) => {
   await page.route('**/data/waterpolo.json*', async (route) => {
     const feed = await (await route.fetch()).json();
-    const g = feed.games.find((x: { status: string }) => x.status === 'final');
+    // One game only, so the first row on screen is certainly the one being withheld.
+    const g = trackedFinals(feed)[0];
+    feed.games = [g];
     g.home.score = null;
     g.away.score = null;
     g.conflict = { detectedAt: feed.builtAt, withheld: true, readings: [

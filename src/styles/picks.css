@@ -1,0 +1,137 @@
+/* Track record of the stock picks. Colours validated with the dataviz palette checks on the ivory
+   surface (2026-11-23): blue #3b6fb0 against terracotta #c0623b passes lightness, chroma, contrast,
+   normal vision (ΔE 24.7) and protanopia (ΔE 18.3). Sage against terracotta failed protanopia at 4.9,
+   which is why "beat" is blue and not green. The side of the line repeats what the colour says. */
+.picks {
+  --tr-up: #3b6fb0;
+  --tr-down: var(--terracotta);
+  --tr-label-w: 68px;
+  --tr-value-w: 52px;
+}
+
+.tr-asof { margin-top: calc(-1 * var(--s-2)); margin-bottom: var(--s-4); }
+
+.tr-verdict {
+  font-size: var(--fs-18);
+  line-height: 1.4;
+  font-weight: 500;
+  color: var(--espresso);
+}
+
+.tr-headline {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  padding: var(--s-4);
+  display: grid;
+  gap: var(--s-4);
+}
+
+.tr-hero-v {
+  /* Same sans as everything else, proportional figures. */
+  font-family: var(--font-ui);
+  font-size: 3rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+.tr-hero-of { font-size: var(--fs-22); font-weight: 500; color: var(--ink-muted); letter-spacing: 0; }
+.tr-hero-k { color: var(--ink-muted); margin-top: 4px; }
+
+/* Thin segmented bar: one whole (the finished picks) split in two, 2px surface gap between parts. */
+.tr-split { display: flex; gap: 2px; height: 8px; margin-top: var(--s-3); }
+.tr-split > span { border-radius: var(--radius-pill); min-width: 4px; }
+.tr-split-up { background: var(--tr-up); }
+.tr-split-down { background: var(--tr-down); }
+
+.tr-tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--s-2); }
+.tr-tile { border-top: 1px solid var(--line); padding-top: var(--s-2); }
+.tr-tile-k { font-size: var(--fs-12); color: var(--ink-muted); line-height: 1.3; min-height: 2.6em; }
+.tr-tile-v { font-size: var(--fs-22); font-weight: 600; margin-top: 2px; }
+.tr-tile-of { font-size: var(--fs-14); font-weight: 500; color: var(--ink-muted); }
+.tr-caution { line-height: 1.45; }
+
+.tr-section { margin-top: var(--s-8); }
+.tr-section h2 { font-size: var(--fs-22); margin-bottom: var(--s-2); }
+
+.tr-legend { display: flex; gap: var(--s-4); margin: var(--s-3) 0 var(--s-2); }
+.tr-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.tr-key { display: inline-block; width: 12px; height: 12px; border-radius: 3px; }
+.tr-key-up { background: var(--tr-up); }
+.tr-key-down { background: var(--tr-down); }
+
+/* The diverging bar list. Label | plot | value, the plot centred on the S&P 500. */
+.tr-bars { display: grid; }
+.tr-axis,
+.tr-bar-btn {
+  display: grid;
+  grid-template-columns: var(--tr-label-w) minmax(0, 1fr) var(--tr-value-w);
+  align-items: center;
+  gap: var(--s-2);
+}
+.tr-axis { padding-bottom: 4px; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.tr-axis-scale { display: flex; justify-content: space-between; }
+
+.tr-bar-row { border-bottom: 1px solid var(--line); }
+.tr-bar-btn {
+  width: 100%;
+  min-height: var(--tap);
+  text-align: left;
+  padding: 4px 0;
+}
+.tr-bar-btn:active { background: var(--paper-2); }
+.tr-label { display: flex; flex-direction: column; line-height: 1.15; font-size: var(--fs-14); }
+.tr-label .faint { font-size: var(--fs-12); }
+.tr-plot { position: relative; height: 24px; }
+.tr-mid { position: absolute; left: 50%; top: -6px; bottom: -6px; width: 1px; background: var(--line-strong); }
+.tr-bar { position: absolute; top: 5px; height: 14px; }
+/* Square at the baseline, 4px rounded at the data end. */
+.tr-bar-up { background: var(--tr-up); border-radius: 0 4px 4px 0; }
+.tr-bar-down { background: var(--tr-down); border-radius: 4px 0 0 4px; }
+.tr-value { text-align: right; font-variant-numeric: tabular-nums; font-size: var(--fs-14); font-weight: 600; }
+
+.tr-detail {
+  padding: 0 0 var(--s-3) calc(var(--tr-label-w) + var(--s-2));
+  color: var(--ink-muted);
+  display: grid;
+  gap: 2px;
+}
+.tr-detail-name { color: var(--espresso); font-weight: 500; }
+
+/* Still running: a progress meter per pick. Neutral ink: time held is not good or bad. */
+.tr-running { display: grid; gap: var(--s-3); margin-top: var(--s-3); }
+.tr-run { display: grid; gap: 6px; padding-bottom: var(--s-3); border-bottom: 1px solid var(--line); }
+.tr-run-head { display: flex; justify-content: space-between; align-items: baseline; gap: var(--s-2); }
+.tr-meter { height: 6px; border-radius: var(--radius-pill); background: var(--line); overflow: hidden; }
+.tr-meter > span { display: block; height: 100%; background: var(--ink-muted); border-radius: var(--radius-pill); }
+
+.tr-unpriced { margin-top: var(--s-4); }
+.tr-more { margin-top: var(--s-6); flex-wrap: wrap; }
+.tr-method { display: grid; gap: var(--s-2); color: var(--ink-muted); margin-top: var(--s-2); line-height: 1.5; }
+.tr-v1 { margin-top: var(--s-4); }
+
+/* The Morning card's way in. */
+.stock-record {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  text-align: left;
+  padding: var(--s-3);
+  margin: var(--s-2) 0 var(--s-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-m);
+  background: var(--paper);
+  min-height: var(--tap);
+}
+.stock-record-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.stock-record-text strong { font-size: var(--fs-15); }
+.stock-record-split { display: flex; gap: 2px; height: 6px; width: 72px; flex: none; }
+.stock-record-split > span { border-radius: var(--radius-pill); min-width: 3px; }
+.stock-record-split .up { background: #3b6fb0; }
+.stock-record-split .down { background: var(--terracotta); }
+
+/* A running position: the same chart in a lighter wash, so it can never be read as a result. */
+.is-provisional .tr-bar,
+.tr-legend.is-provisional .tr-key { opacity: 0.45; }
+.is-provisional .tr-value { font-weight: 500; color: var(--ink-muted); }

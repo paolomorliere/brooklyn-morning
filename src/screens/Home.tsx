@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'preact/hooks';
-import { Bookmark, BookmarkCheck, ChevronDown, ChevronUp, ExternalLink, History, Info, RefreshCw, Settings } from 'lucide-preact';
+import { Bookmark, BookmarkCheck, ChevronDown, ChevronRight, ChevronUp, ExternalLink, History, Info, RefreshCw, Settings } from 'lucide-preact';
 import type { Edition, Lesson, StockBlock, StockPickV1, StockPickV2, StockRecap, Story, TopicId } from '@/types';
 import { TOPIC_META, TOPIC_ORDER, strategyVersionOf } from '@/types';
 import { formatDateLong, formatTime, readMinutes, relativeTime, shortDate } from '@/lib/format';
@@ -15,6 +15,8 @@ import { dateFromYMD, type TodayLesson } from '@/lib/lessons';
 import { libraryActions, libraryStore } from '@/state/library';
 import { prefsStore } from '@/state/prefs';
 import { groceryActions } from '@/state/grocery';
+import { picksActions, picksStore } from '@/state/picks';
+import { trackRecord } from '@/lib/picks';
 
 const nyToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
@@ -490,6 +492,8 @@ function StockSection({ stock, archived, onSave }: { stock: StockBlock; archived
                 : 'Stock in focus · rules-based, not a recommendation'}
       </div>
 
+      {!archived && <StockRecordLink />}
+
       {stock.kind === 'pick' && version === 2 && <StockBrief pick={stock as StockPickV2} archived={archived} onSave={onSave} />}
 
       {stock.kind === 'open-position' && (
@@ -621,6 +625,40 @@ function StockSection({ stock, archived, onSave }: { stock: StockBlock; archived
  * conditions). The counterargument and the invalidation conditions are never behind the expander —
  * they are the parts most worth reading.
  */
+/**
+ * The way into the track record, at the top of the stock card. One tap from the Morning screen.
+ *
+ * It shows the headline count when the record is already on the phone and a plain invitation when it
+ * is not; it never shows a number it has not read from the published file.
+ */
+function StockRecordLink() {
+  const { recaps } = picksStore.use();
+  useEffect(() => {
+    void picksActions.refresh(false);
+  }, []);
+  const v2 = recaps.find((r) => r.strategyVersion === 2);
+  const t = v2 ? trackRecord(v2) : null;
+  return (
+    <button class="stock-record" onClick={() => navigate('picks')}>
+      <span class="stock-record-text">
+        <strong>Track record</strong>
+        <span class="small muted">
+          {t && t.n > 0
+            ? `${t.beat} of ${t.n} finished picks beat the S&P 500 · ${t.running.length} still running`
+            : 'How every past pick has done against the S&P 500'}
+        </span>
+      </span>
+      {t && t.n > 0 && (
+        <span class="stock-record-split" aria-hidden="true">
+          {t.beat > 0 && <span class="up" style={{ flexGrow: t.beat }} />}
+          {t.n - t.beat > 0 && <span class="down" style={{ flexGrow: t.n - t.beat }} />}
+        </span>
+      )}
+      <ChevronRight size={18} class="faint" />
+    </button>
+  );
+}
+
 function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: boolean; onSave: (title: string, url: string) => void }) {
   const [showDetail, setShowDetail] = useState(false);
   return (
@@ -875,7 +913,7 @@ function StockRecapCard({ recap }: { recap: StockRecap }) {
           <div class="small muted">
             Average return against SPY over {recap.completed} completed {recap.completed === 1 ? 'position' : 'positions'}, after
             costs{recap.meanExcessRspPct != null ? ` · against RSP ${pct(recap.meanExcessRspPct, 2)}` : ''}
-            {recap.winRate != null ? ` · ${Math.round(recap.winRate * 100)}% finished ahead` : ''}
+            {recap.winRate != null ? ` · ${Math.round(recap.winRate * 100)}% made money` : ''}
           </div>
         </>
       ) : (

@@ -620,6 +620,10 @@ function recapFor(picks, { strategyVersion, calendar, series, dividendsFor, benc
       netPct: measured.net == null ? null : measured.net * 100,
       grossPct: measured.gross == null ? null : measured.gross * 100,
       excessSpyPct: measured.excess?.SPY == null ? null : measured.excess.SPY * 100,
+      // The benchmark's own return over exactly the same sessions, after its own costs. `excessSpyPct`
+      // is `netPct` minus this; publishing it saves every reader from reconstructing it, and lets the
+      // track record say "the S&P 500 did −3.9% over the same days" in so many words.
+      spyPct: measured.benchmarks?.SPY?.net == null ? null : measured.benchmarks.SPY.net * 100,
       excessRspPct: measured.excess?.RSP == null ? null : measured.excess.RSP * 100,
       _measured: measured,
     };

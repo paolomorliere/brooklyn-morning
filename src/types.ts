@@ -174,6 +174,8 @@ export interface StockRecapRow {
   grossPct?: number | null;
   excessSpyPct?: number | null;
   excessRspPct?: number | null;
+  /** SPY's own net return over the same sessions. Published from 2026-11-23; derive it as `netPct − excessSpyPct` on older files. */
+  spyPct?: number | null;
 }
 
 export interface StockRecap {

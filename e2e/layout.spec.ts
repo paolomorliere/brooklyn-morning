@@ -16,7 +16,7 @@ import { test, expect } from '@playwright/test';
 const COLUMN = 640;
 const TAB_BREAKPOINT = 700;
 
-for (const route of ['#/home', '#/waterpolo', '#/library']) {
+for (const route of ['#/home', '#/waterpolo', '#/library', '#/picks']) {
   test(`the shell is centred and never scrolls sideways on ${route}`, async ({ page }, info) => {
     await page.goto(`/?fixtures=1&seed=none${route}`);
     await expect(page.locator('.tabbar')).toBeVisible();
