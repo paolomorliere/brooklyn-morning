@@ -152,3 +152,64 @@ describe('the one line on the daily card', () => {
     }
   });
 });
+
+describe('if you had done what the card said', () => {
+  const card = (o: Partial<StockRecapRow>) =>
+    row({ cardBuy: '2026-10-01', cardSell: '2026-10-29', entryDate: '2026-10-01', valueDate: '2026-10-29', publishedAt: '2026-10-01T10:00:00.000Z', ...o });
+
+  it('turns each return into dollars on $1,000, and totals finished and open separately', async () => {
+    const { STAKE } = await import('@/lib/picks');
+    const t = trackRecord(recap([
+      card({ ticker: 'A', netPct: 12, excessSpyPct: 10 }),
+      card({ ticker: 'B', netPct: -2, excessSpyPct: 4 }),
+      row({ ticker: 'R', status: 'open', sessionsHeld: 5, netPct: 50, excessSpyPct: 58, cardBuy: '2026-11-02', cardSell: '2026-12-01', entryDate: '2026-11-02' }),
+      row({ ticker: 'N', status: 'not-entered', sessionsHeld: 0, netPct: null, excessSpyPct: null, cardBuy: '2026-11-23', cardSell: '2026-12-21' }),
+    ]));
+    expect(STAKE).toBe(1000);
+    expect(t.finished.map((f) => Math.round(f.dollars))).toEqual(expect.arrayContaining([120, -20]));
+    expect(t.money.finished).toEqual({ n: 2, total: 100, made: 1, lost: 1 });
+    // The open pick is its own figure, and the one with no close yet is waiting, not zero.
+    expect(t.money.running).toEqual({ n: 1, total: 500, up: 1, down: 0, waiting: 1 });
+    expect(t.running.find((r) => r.row.ticker === 'N')?.dollars).toBeNull();
+  });
+
+  it('says exact when the record bought and sold on the card’s own days', async () => {
+    const { cardFollow } = await import('@/lib/picks');
+    expect(cardFollow(card({}))).toEqual({ kind: 'exact' });
+  });
+
+  it('says late when the card was published after its own buy day’s open — the ATEX case', async () => {
+    const { cardFollow } = await import('@/lib/picks');
+    // Published at 18:20 New York on 6 October; the card still said "buy at the open on 6 October".
+    const atex = card({ cardBuy: '2026-10-06', cardSell: '2026-11-03', publishedAt: '2026-10-06T22:20:59.688Z', entryDate: '2026-10-07', valueDate: '2026-11-04' });
+    expect(cardFollow(atex)).toEqual({ kind: 'late', publishedAt: '2026-10-06T22:20:59.688Z' });
+    // Published before that open: the card could be followed, so a different measured day is a plain difference.
+    const early = card({ cardBuy: '2026-10-06', cardSell: '2026-11-03', publishedAt: '2026-10-06T12:00:00.000Z', entryDate: '2026-10-07', valueDate: '2026-11-04' });
+    expect(cardFollow(early)).toEqual({ kind: 'differs' });
+  });
+
+  it('has nothing to follow when the card gave no sell day', async () => {
+    const { cardFollow } = await import('@/lib/picks');
+    expect(cardFollow(row({ strategyVersion: 1, cardBuy: null, cardSell: null }))).toEqual({ kind: 'no-dates' });
+  });
+
+  it('on the published record, every finished card was followed exactly except ATEX', async () => {
+    const { cardFollow } = await import('@/lib/picks');
+    const log = JSON.parse(readFileSync('state/stocks-v2.json', 'utf8')) as { picks: { date: string; ticker: string; publishedAt: string; cardBuy: string; cardSell: string }[] };
+    const byKey = new Map(log.picks.map((p) => [p.date + p.ticker, p]));
+    const kinds = v2.rows
+      .filter((r) => r.status === 'complete')
+      .map((r) => {
+        const p = byKey.get(r.date + r.ticker)!;
+        return [r.ticker, cardFollow({ ...r, publishedAt: p.publishedAt, cardBuy: p.cardBuy, cardSell: p.cardSell }).kind] as const;
+      });
+    expect(kinds.filter(([, k]) => k !== 'exact')).toEqual([['ATEX', 'late']]);
+  });
+
+  it('writes dollars with a real minus and thousands separators', async () => {
+    const { usd } = await import('@/lib/picks');
+    expect(usd(176.6)).toBe('+$177');
+    expect(usd(-1053.2)).toBe('−$1,053');
+    expect(usd(0.2)).toBe('$0');
+  });
+});

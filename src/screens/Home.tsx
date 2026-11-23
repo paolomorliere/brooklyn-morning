@@ -644,14 +644,15 @@ function StockRecordLink() {
         <strong>Track record</strong>
         <span class="small muted">
           {t && t.n > 0
-            ? `${t.beat} of ${t.n} finished picks beat the S&P 500 · ${t.running.length} still running`
-            : 'How every past pick has done against the S&P 500'}
+            ? `$1,000 in each finished pick: ${t.money.finished.total >= 0 ? 'up' : 'down'} $${Math.abs(Math.round(t.money.finished.total)).toLocaleString('en-US')} · ${t.running.length} still open`
+            : 'What following every card would have made'}
         </span>
       </span>
       {t && t.n > 0 && (
         <span class="stock-record-split" aria-hidden="true">
-          {t.beat > 0 && <span class="up" style={{ flexGrow: t.beat }} />}
-          {t.n - t.beat > 0 && <span class="down" style={{ flexGrow: t.n - t.beat }} />}
+          {/* Made money against lost money, matching the line beside it. */}
+          {t.money.finished.made > 0 && <span class="up" style={{ flexGrow: t.money.finished.made }} />}
+          {t.money.finished.lost > 0 && <span class="down" style={{ flexGrow: t.money.finished.lost }} />}
         </span>
       )}
       <ChevronRight size={18} class="faint" />

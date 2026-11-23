@@ -609,6 +609,10 @@ function recapFor(picks, { strategyVersion, calendar, series, dividendsFor, benc
       date: p.date,
       ticker: p.ticker,
       name: p.name,
+      publishedAt: p.publishedAt ?? null,
+      // What the card told Paolo to do. Version 1 cards gave no sell day, so theirs are null.
+      cardBuy: p.cardBuy ?? null,
+      cardSell: p.cardSell ?? null,
       status: measured.status,
       reason: measured.reason ?? null,
       entryDate: measured.entryDate ?? null,
@@ -999,6 +1003,13 @@ async function main() {
     rankScore: pick.rankScore,
     composite: pick.composite,
     strategyHash: hash,
+    // The buy and sell days exactly as the card printed them, kept so the track record can answer
+    // "if I had done what the card said". Never used to measure anything: `measurePick` still works
+    // from `publishedAt` against the sessions that really traded. Picks before 23 November 2026 had these
+    // filled in from the cards as published (git history); ATEX's card said 6 October although it was
+    // published after that day's close, which is why the two can differ.
+    cardBuy: plannedEntry ?? null,
+    cardSell: plannedExit ?? null,
   }].slice(-400);
   await writeJson('state/stocks-v2.json', { strategyVersion: 2, picks: log2.picks });
 

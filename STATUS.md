@@ -876,6 +876,36 @@ tall on an iPhone 14 against 1,551 pt open.
   against the pick is one tap away, and complete", and its comment records why.
 * Applies to today's card, the open-position card and archived editions alike, since they share it.
 
+### "Would I have made money doing what the card said?" (same day)
+Paolo asked the track record to say, for every pick, whether buying and selling exactly when the card
+said would have made money, and how much — finished picks at the card's sell day, open ones at the last
+close. The screen now leads with that:
+
+* **If you'd done what the cards said**, $1,000 into each pick, after trading costs, dividends included.
+  On 23 November: **finished, down $653** (13 picks, $13,000 in, $12,347 back, made money on 3, lost on
+  10); **still open, down $647 so far** at the 20 November close (19 picks, up on 4, down on 15); ELF
+  bought that morning with no close yet. The two are separate figures and are never added: the open
+  ones have not been sold.
+* Every pick, tapped, says **what its card said** ("buy at the open Thu, Oct 22 · sell at the close Thu,
+  Nov 19"), the prices actually bought and sold at, and **"On $1,000: made $177"**. Open picks give the
+  card's sell day and the trading days left.
+* The chart has a **Money / vs S&P 500** switch, money by default.
+* Version 1's cards never gave a sell day, so its section says there is no "as the card said" answer and
+  shows the five-day measurement for what it is.
+
+**Do the figures really follow the cards?** Checked before building on it. The pick log never stored the
+sell day the card showed, so every card was recovered from git history (the edition archive keeps only
+about two weeks) and its printed days compared with what the record measures: **all 31 comparable picks
+agree exactly**, except **ATEX**. Its card said "buy at the open on 6 October" but was published at
+6:20 PM that day, after the close — the look-ahead fixed in October. That card cannot be followed as
+written; the record measures it from the next open, and the screen says exactly that on ATEX.
+
+`cardBuy` and `cardSell` — the days exactly as each card printed them — were added to every pick in
+`state/stocks-v2.json` (34 backfilled from the published cards; the file's own JSON format kept, so
+only those lines change), are written for every new pick, and are published on each recap row with
+`publishedAt`. They are never used to measure anything; `measurePick` still works from `publishedAt`
+against the sessions that really traded.
+
 ### Two water polo tests fixed
 "A day with no results" and "a withheld score" took the first final game in the live feed. The
 22 November feed put an opponents-only game first (Biola v Concordia Irvine), which the screen never

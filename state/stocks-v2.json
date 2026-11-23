@@ -14,7 +14,9 @@
    "referenceClose": 85.61,
    "rankScore": 100,
    "composite": 1.6198366132131505,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-06",
+   "cardSell": "2026-11-03"
   },
   {
    "date": "2026-10-07",
@@ -29,7 +31,9 @@
    "referenceClose": 113.85,
    "rankScore": 100,
    "composite": 1.5270272407710381,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-07",
+   "cardSell": "2026-11-04"
   },
   {
    "date": "2026-10-08",
@@ -44,7 +48,9 @@
    "referenceClose": 75.31,
    "rankScore": 99,
    "composite": 1.36599164781193,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-08",
+   "cardSell": "2026-11-05"
   },
   {
    "date": "2026-10-09",
@@ -59,7 +65,9 @@
    "referenceClose": 98,
    "rankScore": 100,
    "composite": 1.643671208409735,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-09",
+   "cardSell": "2026-11-06"
   },
   {
    "date": "2026-10-12",
@@ -74,7 +82,9 @@
    "referenceClose": 52.125,
    "rankScore": 99,
    "composite": 1.2433246289774693,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-12",
+   "cardSell": "2026-11-09"
   },
   {
    "date": "2026-10-13",
@@ -89,7 +99,9 @@
    "referenceClose": 34.01,
    "rankScore": 99,
    "composite": 1.2641385093547859,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-13",
+   "cardSell": "2026-11-10"
   },
   {
    "date": "2026-10-14",
@@ -104,7 +116,9 @@
    "referenceClose": 38.54,
    "rankScore": 99,
    "composite": 1.1314666976699639,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-14",
+   "cardSell": "2026-11-11"
   },
   {
    "date": "2026-10-15",
@@ -119,7 +133,9 @@
    "referenceClose": 55.2,
    "rankScore": 99,
    "composite": 1.7419676480875657,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-15",
+   "cardSell": "2026-11-12"
   },
   {
    "date": "2026-10-16",
@@ -134,7 +150,9 @@
    "referenceClose": 24.95,
    "rankScore": 100,
    "composite": 2.080918175180155,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-16",
+   "cardSell": "2026-11-13"
   },
   {
    "date": "2026-10-19",
@@ -149,7 +167,9 @@
    "referenceClose": 109.99,
    "rankScore": 100,
    "composite": 1.9056321667262914,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-19",
+   "cardSell": "2026-11-16"
   },
   {
    "date": "2026-10-20",
@@ -164,7 +184,9 @@
    "referenceClose": 400,
    "rankScore": 100,
    "composite": 1.092760900359834,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-20",
+   "cardSell": "2026-11-17"
   },
   {
    "date": "2026-10-21",
@@ -179,7 +201,9 @@
    "referenceClose": 80.68,
    "rankScore": 100,
    "composite": 1.0899480642263932,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-21",
+   "cardSell": "2026-11-18"
   },
   {
    "date": "2026-10-22",
@@ -194,7 +218,9 @@
    "referenceClose": 79.7,
    "rankScore": 100,
    "composite": 1.025411744677986,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-22",
+   "cardSell": "2026-11-19"
   },
   {
    "date": "2026-10-23",
@@ -209,7 +235,9 @@
    "referenceClose": 24.4,
    "rankScore": 100,
    "composite": 0.8243484087728118,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-23",
+   "cardSell": "2026-11-20"
   },
   {
    "date": "2026-10-26",
@@ -224,7 +252,9 @@
    "referenceClose": 17.4,
    "rankScore": 94,
    "composite": 0.5659429938836463,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-26",
+   "cardSell": "2026-11-23"
   },
   {
    "date": "2026-10-27",
@@ -239,7 +269,9 @@
    "referenceClose": 124.92,
    "rankScore": 94,
    "composite": 0.6543044619671481,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-27",
+   "cardSell": "2026-11-24"
   },
   {
    "date": "2026-10-28",
@@ -254,7 +286,9 @@
    "referenceClose": 153.31,
    "rankScore": 94,
    "composite": 0.6530109752133061,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-28",
+   "cardSell": "2026-11-25"
   },
   {
    "date": "2026-10-29",
@@ -269,7 +303,9 @@
    "referenceClose": 72.67,
    "rankScore": 98,
    "composite": 0.7307514480730091,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-29",
+   "cardSell": "2026-11-26"
   },
   {
    "date": "2026-10-30",
@@ -284,7 +320,9 @@
    "referenceClose": 63.28,
    "rankScore": 96,
    "composite": 0.5182532167106668,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-10-30",
+   "cardSell": "2026-11-27"
   },
   {
    "date": "2026-11-02",
@@ -299,7 +337,9 @@
    "referenceClose": 45.87,
    "rankScore": 100,
    "composite": 0.397928243158133,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-02",
+   "cardSell": "2026-11-30"
   },
   {
    "date": "2026-11-03",
@@ -314,7 +354,9 @@
    "referenceClose": 103.23,
    "rankScore": 89,
    "composite": 0.23606329858745087,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-03",
+   "cardSell": "2026-12-01"
   },
   {
    "date": "2026-11-05",
@@ -329,7 +371,9 @@
    "referenceClose": 56.75,
    "rankScore": 97,
    "composite": 0.9280099735311197,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-05",
+   "cardSell": "2026-12-03"
   },
   {
    "date": "2026-11-06",
@@ -344,7 +388,9 @@
    "referenceClose": 26.43,
    "rankScore": 100,
    "composite": 1.5047712398206279,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-06",
+   "cardSell": "2026-12-04"
   },
   {
    "date": "2026-11-09",
@@ -359,7 +405,9 @@
    "referenceClose": 15.68,
    "rankScore": 99,
    "composite": 0.9417885326373575,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-09",
+   "cardSell": "2026-12-07"
   },
   {
    "date": "2026-11-10",
@@ -374,7 +422,9 @@
    "referenceClose": 389.88,
    "rankScore": 100,
    "composite": 1.393213786339985,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-10",
+   "cardSell": "2026-12-08"
   },
   {
    "date": "2026-11-11",
@@ -389,7 +439,9 @@
    "referenceClose": 44.47,
    "rankScore": 100,
    "composite": 1.448785543184113,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-11",
+   "cardSell": "2026-12-09"
   },
   {
    "date": "2026-11-12",
@@ -404,7 +456,9 @@
    "referenceClose": 38.21,
    "rankScore": 99,
    "composite": 0.8547877305514959,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-12",
+   "cardSell": "2026-12-10"
   },
   {
    "date": "2026-11-13",
@@ -419,7 +473,9 @@
    "referenceClose": 190.83,
    "rankScore": 97,
    "composite": 0.7765097452757538,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-13",
+   "cardSell": "2026-12-11"
   },
   {
    "date": "2026-11-16",
@@ -434,7 +490,9 @@
    "referenceClose": 48.17,
    "rankScore": 100,
    "composite": 1.1932381945963122,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-16",
+   "cardSell": "2026-12-14"
   },
   {
    "date": "2026-11-17",
@@ -449,7 +507,9 @@
    "referenceClose": 102.12,
    "rankScore": 100,
    "composite": 1.3721543350430192,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-17",
+   "cardSell": "2026-12-15"
   },
   {
    "date": "2026-11-18",
@@ -464,7 +524,9 @@
    "referenceClose": 65.99,
    "rankScore": 100,
    "composite": 1.2737386547853995,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-18",
+   "cardSell": "2026-12-16"
   },
   {
    "date": "2026-11-19",
@@ -479,7 +541,9 @@
    "referenceClose": 14.37,
    "rankScore": 99,
    "composite": 0.7707144539299999,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-19",
+   "cardSell": "2026-12-17"
   },
   {
    "date": "2026-11-20",
@@ -494,7 +558,9 @@
    "referenceClose": 108.1,
    "rankScore": 100,
    "composite": 1.3205617127897085,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-20",
+   "cardSell": "2026-12-18"
   },
   {
    "date": "2026-11-23",
@@ -509,7 +575,9 @@
    "referenceClose": 103.47,
    "rankScore": 100,
    "composite": 1.3761500709316257,
-   "strategyHash": "46527bc8ea38a026"
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-23",
+   "cardSell": "2026-12-21"
   }
  ]
 }

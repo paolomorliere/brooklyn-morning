@@ -176,6 +176,11 @@ export interface StockRecapRow {
   excessRspPct?: number | null;
   /** SPY's own net return over the same sessions. Published from 2026-11-23; derive it as `netPct − excessSpyPct` on older files. */
   spyPct?: number | null;
+  /** When the card was published. */
+  publishedAt?: string | null;
+  /** The buy day and sell day exactly as the card printed them. Null on version 1, whose cards gave no sell day. */
+  cardBuy?: string | null;
+  cardSell?: string | null;
 }
 
 export interface StockRecap {
