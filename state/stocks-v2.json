@@ -495,6 +495,21 @@
    "rankScore": 100,
    "composite": 1.3205617127897085,
    "strategyHash": "46527bc8ea38a026"
+  },
+  {
+   "date": "2026-11-23",
+   "publishedAt": "2026-11-23T09:52:27.056Z",
+   "ticker": "ELF",
+   "name": "e.l.f. Beauty, Inc.",
+   "cik": "1600033",
+   "sic": "2844",
+   "division": "Manufacturing",
+   "decisionSession": "2026-11-20",
+   "plannedEntry": "2026-11-23",
+   "referenceClose": 103.47,
+   "rankScore": 100,
+   "composite": 1.3761500709316257,
+   "strategyHash": "46527bc8ea38a026"
   }
  ]
 }
