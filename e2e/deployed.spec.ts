@@ -260,9 +260,11 @@ test('the deployed stock card is labelled for the rule that made it', async ({ p
   const eyebrow = (await card.locator('.eyebrow').innerText()).toLowerCase();
   expect(eyebrow).toContain('not a recommendation');
 
-  if (await card.locator('.stock-score').count()) {
-    // Version 2. Everything the plan requires the card to carry, checked against the live site.
-    await expect(card.locator('.stock-horizon')).toContainText('21-session horizon');
+  if (await card.getByRole('button', { name: 'Why this stock' }).count()) {
+    // Version 2: the short card, then everything the plan requires behind "Why this stock".
+    await expect(card.locator('.stock-plan')).toContainText('21 trading days');
+    await expect(card.locator('.stock-line')).not.toBeEmpty();
+    await card.getByRole('button', { name: 'Why this stock' }).click();
     await expect(card.locator('.stock-score-k')).toContainText('ranking position');
     await expect(card.locator('.stock-score-k')).toContainText('chance of profit');
     await expect(card.getByRole('heading', { name: 'The strongest counterargument' })).toBeVisible();

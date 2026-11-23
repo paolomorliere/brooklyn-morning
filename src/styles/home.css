@@ -416,3 +416,8 @@
 .lesson--quiet .lesson-exercise {
   border-top-color: var(--line);
 }
+
+/* The short daily card (2026-11-23): one line on why, the rest under "Why this stock". */
+.stock-line { margin-top: var(--s-3); line-height: 1.45; }
+.stock-why { margin-top: var(--s-2); }
+.stock-why > .small.muted:first-child { margin-bottom: var(--s-1); }

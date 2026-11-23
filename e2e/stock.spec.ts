@@ -110,14 +110,22 @@ const openWith = async (page: Page, stock: unknown) => {
   await expect(page.locator('section.stock')).toBeVisible({ timeout: 20_000 });
 };
 
-test('the brief states the horizon, the score and what the score is not', async ({ page }) => {
+test('the short card gives the plan and one line, and the score with what it is not is one tap away', async ({ page }) => {
   await openWith(page, PICK);
   const card = page.locator('section.stock');
   await expect(card.getByRole('heading', { name: /Analog Devices/ })).toBeVisible();
   await expect(card.locator('.stock-head .price')).toHaveText('$417.15');
-  await expect(card.locator('.stock-horizon')).toContainText('21-session horizon');
-  await expect(card.locator('.stock-horizon')).toContainText('Oct 6');
-  await expect(card.locator('.stock-horizon')).toContainText('Nov 4');
+  // The plan is labelled a plan: entry and exit are what the rule intends, not what has happened.
+  const plan = card.locator('.stock-plan');
+  await expect(plan).toContainText('Plan:');
+  await expect(plan).toContainText('buy at the open Tue, Oct 6');
+  await expect(plan).toContainText('sell at the close Wed, Nov 4');
+  await expect(plan).toContainText('21 trading days');
+  // One line: the reasons from the thesis, verbatim, without the preamble.
+  await expect(card.locator('.stock-line')).toHaveText('Revenue +33.6% over the trailing year, growth accelerating against the previous quarter, earnings fully backed by cash.');
+  // Everything else waits for the reader to ask.
+  await expect(card.locator('.stock-score')).toHaveCount(0);
+  await card.getByRole('button', { name: 'Why this stock' }).click();
   await expect(card.locator('.stock-score-v')).toContainText('97');
   // The one sentence that must never be missing from a number like this.
   await expect(card.locator('.stock-score-k')).toContainText('not a 97% chance of profit');
@@ -125,9 +133,17 @@ test('the brief states the horizon, the score and what the score is not', async 
   await expect(card.locator('.stock-score-k')).toContainText('5,051');
 });
 
-test('the counterargument and the invalidation conditions are not hidden behind the expander', async ({ page }) => {
+/**
+ * Until 2026-11-23 this test said the case against a pick must never sit behind an expander, which was
+ * the October design. Paolo asked for the short card, so the case against now sits under "Why this
+ * stock" with everything else. What still holds is that none of it was dropped: every part is checked
+ * here, one tap away.
+ */
+test('the case against the pick is one tap away, and complete', async ({ page }) => {
   await openWith(page, PICK);
   const card = page.locator('section.stock');
+  await expect(card.getByRole('heading', { name: 'The strongest counterargument' })).toHaveCount(0);
+  await card.getByRole('button', { name: 'Why this stock' }).click();
   await expect(card.getByRole('heading', { name: 'The strongest counterargument' })).toBeVisible();
   await expect(card).toContainText('48.9× trailing earnings');
   await expect(card.getByRole('heading', { name: 'What would show this was wrong' })).toBeVisible();
@@ -144,6 +160,7 @@ test('the counterargument and the invalidation conditions are not hidden behind 
 test('the evidence carries its periods, filing dates, tags and sources', async ({ page }) => {
   await openWith(page, PICK);
   const card = page.locator('section.stock');
+  await card.getByRole('button', { name: 'Why this stock' }).click();
   await card.getByRole('button', { name: 'The evidence' }).click();
   const detail = card.locator('.stock-detail');
   await expect(detail).toBeVisible();
@@ -222,6 +239,7 @@ test('an archived edition shows the card it was published with', async ({ page }
 
 test('the card fits the phone it is read on', async ({ page }) => {
   await openWith(page, PICK);
+  await page.locator('section.stock').getByRole('button', { name: 'Why this stock' }).click();
   await page.locator('section.stock').getByRole('button', { name: 'The evidence' }).click();
   await expect(page.locator('.stock-detail')).toBeVisible();
   // Measure only once the display face has arrived. This probe reads real layout, so a heading still
@@ -256,7 +274,8 @@ test('an open position is dated and labelled, never presented as today’s pick'
   await expect(card).toContainText('has not been published yet');
   // The pick itself is intact underneath, with its own dates and its own evidence.
   await expect(card.getByRole('heading', { name: /Analog Devices/ })).toBeVisible();
-  await expect(card.locator('.stock-horizon')).toContainText('21-session horizon');
+  await expect(card.locator('.stock-plan')).toContainText('21 trading days');
+  await card.getByRole('button', { name: 'Why this stock' }).click();
   await expect(card.getByRole('heading', { name: 'What would show this was wrong' })).toBeVisible();
   // And nothing claims it was decided today.
   await expect(card).not.toContainText('Oct 8');

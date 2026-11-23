@@ -860,6 +860,22 @@ app never read that file — it showed only the day's brief.
 counterargument and the invalidation conditions up front was part of the plan approved in October, so
 it was not reversed without asking. Offered to Paolo as a follow-up.
 
+### The short daily card (same day, at Paolo's request)
+Asked whether to shorten today's pick card, Paolo said yes. The card now shows the name, ticker and
+price, a line labelled **Plan:** ("buy at the open Mon, Nov 23 · sell at the close Mon, Dec 21 · 21
+trading days"), and one line of reasons, then **Why this stock** and **Save**. Closed, it is 485 pt
+tall on an iPhone 14 against 1,551 pt open.
+
+* The one line is the reasons half of the generated thesis, verbatim (`thesisLine` in `src/lib/picks.ts`):
+  `thesisFor` always writes "Ranked first … on <signals> — <reasons>." Any other shape is shown whole.
+* Under **Why this stock**, unchanged: the reference close and sector, the ranking score with "not a
+  N% chance of profit" next to the number, the full thesis, the strongest counterargument, what would
+  show it wrong, timing and risk, Filings, The evidence and the validation note. Nothing was removed.
+* **This reverses an October design decision on purpose.** The case against each pick used to be shown
+  up front, and a test enforced it ("not hidden behind the expander"). That test is now "the case
+  against the pick is one tap away, and complete", and its comment records why.
+* Applies to today's card, the open-position card and archived editions alike, since they share it.
+
 ### Two water polo tests fixed
 "A day with no results" and "a withheld score" took the first final game in the live feed. The
 22 November feed put an opponents-only game first (Biola v Concordia Irvine), which the screen never

@@ -16,7 +16,7 @@ import { libraryActions, libraryStore } from '@/state/library';
 import { prefsStore } from '@/state/prefs';
 import { groceryActions } from '@/state/grocery';
 import { picksActions, picksStore } from '@/state/picks';
-import { trackRecord } from '@/lib/picks';
+import { thesisLine, trackRecord } from '@/lib/picks';
 
 const nyToday = () => new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
 
@@ -660,23 +660,52 @@ function StockRecordLink() {
 }
 
 function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: boolean; onSave: (title: string, url: string) => void }) {
+  const [showWhy, setShowWhy] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  // Weekday names on the plan: "Mon, Nov 23" reads faster than a bare date when deciding what to do.
+  const planDay = (ymd: string) =>
+    new Date(`${ymd}T12:00:00`).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', timeZone: 'America/New_York' });
   return (
     <>
+      {/*
+        The short card, at Paolo's request on 2026-11-23: name, the buy and sell plan, and one line on
+        why. Everything else — the ranking score with what it is not, the full thesis, the strongest
+        counterargument, what would show it wrong, timing and risk, filings and the evidence — is one
+        tap away under "Why this stock". In October the case against was shown up front by design; he
+        asked for it to move, and nothing was removed.
+      */}
       <div class="stock-head">
         <h2 id="stock-title">
           {pick.name} <span class="muted" style="font-family:var(--font-ui);font-size:var(--fs-15)">{pick.ticker}</span>
         </h2>
         <span class="price">${pick.referenceClose.toFixed(2)}</span>
       </div>
+      {(pick.plannedEntry || pick.plannedExit) && (
+        <div class="small muted stock-horizon stock-plan">
+          <strong>Plan:</strong>
+          {pick.plannedEntry ? ` buy at the open ${planDay(pick.plannedEntry)}` : ''}
+          {pick.plannedExit ? ` · sell at the close ${planDay(pick.plannedExit)}` : ''} · {pick.horizonSessions} trading days
+        </div>
+      )}
+      <p class="stock-line">{thesisLine(pick.thesis)}</p>
+
+      <div class="story-actions" style="margin-top:8px">
+        <button class="btn btn--quiet" onClick={() => setShowWhy(!showWhy)} aria-expanded={showWhy}>
+          {showWhy ? <ChevronUp size={16} /> : <ChevronDown size={16} />} {showWhy ? 'Hide the reasons' : 'Why this stock'}
+        </button>
+        <button
+          class="btn btn--quiet"
+          onClick={() => onSave(`${pick.name} (${pick.ticker}) — stock in focus ${pick.date}`, edgar(pick.cik))}
+        >
+          <Bookmark size={16} /> Save
+        </button>
+      </div>
+
+      {showWhy && (
+      <div class="stock-why">
       <div class="small muted">
         Reference close {shortDate(`${pick.referenceCloseDate}T12:00:00`)} · {pick.sector}
         {pick.sic ? ` (SIC ${pick.sic})` : ''}
-      </div>
-      <div class="small muted stock-horizon">
-        <strong>{pick.horizonSessions}-session horizon</strong>
-        {pick.plannedEntry ? ` · entry ${shortDate(`${pick.plannedEntry}T12:00:00`)} open` : ''}
-        {pick.plannedExit ? ` → exit ${shortDate(`${pick.plannedExit}T12:00:00`)} close` : ''}
       </div>
 
       <div class="stock-score">
@@ -739,12 +768,6 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
         <a class="btn btn--quiet" href={edgar(pick.cik)} target="_blank" rel="noopener noreferrer">
           <ExternalLink size={16} /> Filings
         </a>
-        <button
-          class="btn btn--quiet"
-          onClick={() => onSave(`${pick.name} (${pick.ticker}) — stock in focus ${pick.date}`, edgar(pick.cik))}
-        >
-          <Bookmark size={16} /> Save
-        </button>
         <button class="btn btn--quiet" onClick={() => setShowDetail(!showDetail)} aria-expanded={showDetail}>
           {showDetail ? <ChevronUp size={16} /> : <ChevronDown size={16} />} {showDetail ? 'Hide the evidence' : 'The evidence'}
         </button>
@@ -883,6 +906,8 @@ function StockBrief({ pick, archived, onSave }: { pick: StockPickV2; archived?: 
       )}
 
       <p class="stock-validation">{pick.validation}</p>
+      </div>
+      )}
       {archived && (
         <p class="small faint" style="margin-top:4px">
           This is the pick as it was published on {shortDate(`${pick.date}T12:00:00`)}. Nothing on this card has been revised

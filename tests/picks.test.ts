@@ -129,3 +129,26 @@ describe('the rules', () => {
     expect(signed(0)).toBe('0.0');
   });
 });
+
+describe('the one line on the daily card', () => {
+  it('keeps the reasons, verbatim, and drops the preamble', async () => {
+    const { thesisLine } = await import('@/lib/picks');
+    expect(
+      thesisLine("Ranked first among today's eligible candidates on revenue growth, trailing year — revenue +39.9% over the trailing year, earnings fully backed by cash."),
+    ).toBe('Revenue +39.9% over the trailing year, earnings fully backed by cash.');
+  });
+  it('shows any other thesis whole', async () => {
+    const { thesisLine } = await import('@/lib/picks');
+    const plain = 'This candidate ranked first on the balance of its signals, none of which stood out on its own.';
+    expect(thesisLine(plain)).toBe(plain);
+  });
+  it('works on every thesis the build has published', async () => {
+    const { thesisLine } = await import('@/lib/picks');
+    const t = (feed.block as { thesis?: string }).thesis;
+    if (t) {
+      const line = thesisLine(t);
+      expect(t.endsWith(line.charAt(0).toLowerCase() + line.slice(1))).toBe(true);
+      expect(line.length).toBeLessThan(t.length);
+    }
+  });
+});

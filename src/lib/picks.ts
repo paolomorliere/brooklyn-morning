@@ -179,3 +179,19 @@ function cautionFor(finished: FinishedPick[], meanVsSpy: number | null): string 
   }
   return parts.join(' ');
 }
+
+/**
+ * The one line the daily card shows: the reasons in a pick's thesis, without its preamble.
+ *
+ * `thesisFor` in build-stocks.mjs writes every thesis as "Ranked first among today's eligible
+ * candidates on <signals> — <reasons>." The reasons are the part a reader wants first, so the card
+ * shows them verbatim, capitalised, and the full sentence stays under "Why this stock". A thesis in any
+ * other shape — the no-standout wording, or a future change to the generator — is shown whole rather
+ * than guessed at.
+ */
+export function thesisLine(thesis: string): string {
+  const i = thesis.indexOf(' — ');
+  if (!thesis.startsWith('Ranked first') || i < 0) return thesis;
+  const reasons = thesis.slice(i + 3).trim();
+  return reasons ? reasons.charAt(0).toUpperCase() + reasons.slice(1) : thesis;
+}
