@@ -578,6 +578,23 @@
    "strategyHash": "46527bc8ea38a026",
    "cardBuy": "2026-11-23",
    "cardSell": "2026-12-21"
+  },
+  {
+   "date": "2026-11-24",
+   "publishedAt": "2026-11-24T06:10:26.121Z",
+   "ticker": "ANF",
+   "name": "Abercrombie & Fitch Company",
+   "cik": "1018840",
+   "sic": "5651",
+   "division": "Retail Trade",
+   "decisionSession": "2026-11-23",
+   "plannedEntry": "2026-11-24",
+   "referenceClose": 140.45,
+   "rankScore": 100,
+   "composite": 1.1562170127291695,
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-24",
+   "cardSell": "2026-12-22"
   }
  ]
 }
