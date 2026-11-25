@@ -595,6 +595,23 @@
    "strategyHash": "46527bc8ea38a026",
    "cardBuy": "2026-11-24",
    "cardSell": "2026-12-22"
+  },
+  {
+   "date": "2026-11-25",
+   "publishedAt": "2026-11-25T10:33:59.876Z",
+   "ticker": "PR",
+   "name": "Permian Resources Corporation",
+   "cik": "1658566",
+   "sic": "1311",
+   "division": "Mining",
+   "decisionSession": "2026-11-24",
+   "plannedEntry": "2026-11-25",
+   "referenceClose": 21,
+   "rankScore": 100,
+   "composite": 1.2818495991689929,
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-25",
+   "cardSell": "2026-12-23"
   }
  ]
 }
