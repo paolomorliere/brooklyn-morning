@@ -612,6 +612,23 @@
    "strategyHash": "46527bc8ea38a026",
    "cardBuy": "2026-11-25",
    "cardSell": "2026-12-23"
+  },
+  {
+   "date": "2026-11-26",
+   "publishedAt": "2026-11-26T10:05:27.722Z",
+   "ticker": "EOG",
+   "name": "EOG Resources, Inc.",
+   "cik": "821189",
+   "sic": "1311",
+   "division": "Mining",
+   "decisionSession": "2026-11-25",
+   "plannedEntry": "2026-11-26",
+   "referenceClose": 148.31,
+   "rankScore": 98,
+   "composite": 1.1455344216735102,
+   "strategyHash": "46527bc8ea38a026",
+   "cardBuy": "2026-11-26",
+   "cardSell": "2026-12-24"
   }
  ]
 }
