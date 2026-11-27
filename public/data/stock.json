@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-11-26T10:05:27.984Z",
- "decidedFor": "2026-11-26",
+ "builtAt": "2026-11-27T10:17:15.540Z",
+ "decidedFor": "2026-11-27",
  "outcome": "pick",
  "strategyVersion": 2,
  "strategyHash": "46527bc8ea38a026",
@@ -8,240 +8,299 @@
   "kind": "pick",
   "strategyVersion": 2,
   "strategyHash": "46527bc8ea38a026",
-  "date": "2026-11-26",
-  "publishedAt": "2026-11-26T10:05:27.722Z",
+  "date": "2026-11-27",
+  "publishedAt": "2026-11-27T10:17:15.251Z",
   "decisionSession": "2026-11-25",
-  "ticker": "EOG",
-  "name": "EOG Resources, Inc.",
-  "cik": "821189",
-  "sic": "1311",
-  "sector": "Mining",
-  "industry": "13",
-  "referenceClose": 148.31,
+  "ticker": "EAT",
+  "name": "Brinker International, Inc.",
+  "cik": "703351",
+  "sic": "5812",
+  "sector": "Retail Trade",
+  "industry": "58",
+  "referenceClose": 204.12,
   "referenceCloseDate": "2026-11-25",
   "horizonSessions": 21,
-  "plannedEntry": "2026-11-26",
-  "plannedExit": "2026-12-24",
-  "thesis": "Ranked first among today's eligible candidates on growth acceleration, free cash flow yield, valuation against its own industry — revenue +19.1% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
-  "rankScore": 98,
-  "composite": 1.1455344216735102,
-  "scoredAgainst": "all 46 eligible candidates",
-  "scanned": 5021,
-  "eligible": 46,
+  "plannedEntry": "2026-11-27",
+  "plannedExit": "2026-12-25",
+  "thesis": "Ranked first among today's eligible candidates on six-month return against spy, valuation against its own industry, growth acceleration — revenue +6.1% over the trailing year, growth accelerating against the previous quarter, operating margin wider than a year ago, earnings fully backed by cash.",
+  "rankScore": 95,
+  "composite": 0.7710264527558602,
+  "scoredAgainst": "44 operating candidates",
+  "scanned": 5016,
+  "eligible": 44,
   "signals": [
    {
     "key": "revenueGrowth",
     "label": "Revenue growth, trailing year",
-    "value": 0.19073005242983654,
-    "z": 1.4667878091080733,
-    "cohort": 46
+    "value": 0.060667810667810684,
+    "z": -0.10669685008419397,
+    "cohort": 44
    },
    {
     "key": "growthAcceleration",
     "label": "Growth acceleration",
-    "value": 0.35271675711650463,
-    "z": 3.055292230074269,
-    "cohort": 46
+    "value": 0.043134493494174864,
+    "z": 1.3247566892663618,
+    "cohort": 44
    },
    {
     "key": "operatingMarginTrend",
     "label": "Operating margin trend",
-    "value": 0.00844187478516173,
-    "z": 0.05209242853641981,
-    "cohort": 42
+    "value": 0.007534296838789742,
+    "z": 0.0213198502508879,
+    "cohort": 41
    },
    {
     "key": "cashConversion",
     "label": "Cash conversion",
-    "value": 1.9426992437463642,
-    "z": 0.9265537748925268,
-    "cohort": 43
+    "value": 1.672723642172524,
+    "z": 0.3427616378754513,
+    "cohort": 41
    },
    {
     "key": "leverage",
     "label": "Debt over operating cash flow",
-    "value": 0.5933522982482408,
-    "z": 0.8374130111866652,
-    "cohort": 37
+    "value": 0.5383788945923361,
+    "z": 0.8847943272045887,
+    "cohort": 35
    },
    {
     "key": "fcfYield",
     "label": "Free cash flow yield",
-    "value": 0.14626635150748632,
-    "z": 2.944258635437186,
-    "cohort": 42
+    "value": 0.07087518124700128,
+    "z": 0.81473788481901,
+    "cohort": 41
    },
    {
     "key": "earningsYield",
     "label": "Earnings yield",
-    "value": 0.07870773461930473,
-    "z": 0.7798438740159866,
-    "cohort": 44
+    "value": 0.05905872008069591,
+    "z": 0.23078385283177513,
+    "cohort": 42
    },
    {
     "key": "peerPercentile",
     "label": "Valuation against its own industry",
-    "value": 1,
-    "z": 1.626036836441729,
-    "cohort": 42
+    "value": 0.9166666666666666,
+    "z": 1.4521297129920994,
+    "cohort": 41
    },
    {
     "key": "relativeStrengthSpy",
     "label": "Six-month return against SPY",
-    "value": 0.15224638760901232,
-    "z": -0.629874124517038,
-    "cohort": 46
+    "value": 0.5080170289557286,
+    "z": 1.854829308731886,
+    "cohort": 44
    },
    {
     "key": "relativeStrengthSector",
     "label": "Six-month return against its sector",
-    "value": 0.21143964253751846,
-    "z": 0.3969397415592804,
-    "cohort": 46
+    "value": 0.3041828606312609,
+    "z": 0.8908481136707367,
+    "cohort": 44
    }
   ],
   "signalsDropped": [
    {
     "key": "grossMarginTrend",
     "why": "gross profit is not reported"
+   },
+   {
+    "key": "grossProfitability",
+    "why": "gross profit or total assets is not reported"
    }
   ],
   "evidence": [
    {
     "label": "Revenue, trailing year",
-    "value": "$27.0bn, +19.1%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "$5.9bn, +6.1%",
+    "period": "4 qtrs to 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "Revenues"
    },
    {
     "label": "Quarterly revenue, year on year",
-    "value": "+57.4%, against +22.1% the quarter before",
-    "period": "quarter to 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "+9.4%, against +5.1% the quarter before",
+    "period": "quarter to 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "Revenues"
    },
    {
     "label": "Operating margin, trailing year",
-    "value": "32.9%, from 32.1%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "11.0%, from 10.3%",
+    "period": "4 qtrs to 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "OperatingIncomeLoss"
    },
    {
     "label": "Cash conversion (cash flow ÷ earnings)",
-    "value": "1.94×",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "1.67×",
+    "period": "4 qtrs to 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "NetCashProvidedByUsedInOperatingActivities"
    },
    {
     "label": "Free cash flow, trailing year",
-    "value": "$12.8bn (47.3% of revenue)",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-04",
-    "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquireOtherPropertyPlantAndEquipment"
+    "value": "$601M (10.1% of revenue)",
+    "period": "4 qtrs to 2026-09-23",
+    "filed": "2026-10-28",
+    "tag": "NetCashProvidedByUsedInOperatingActivities − PaymentsToAcquirePropertyPlantAndEquipment"
    },
    {
     "label": "Debt ÷ trailing operating cash flow",
-    "value": "0.59× (net 0.23×)",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-04",
-    "tag": "LongTermDebtNoncurrent + LongTermDebtCurrent"
+    "value": "0.54× (net 0.50×)",
+    "period": "at 2026-09-23",
+    "filed": "2026-10-28",
+    "tag": "LongTermDebtAndCapitalLeaseObligations"
    },
    {
     "label": "Return on equity, trailing year",
-    "value": "21.6%",
-    "period": "4 qtrs to 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "125.2%",
+    "period": "4 qtrs to 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Equity ÷ assets",
-    "value": "58.2%",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-04",
+    "value": "14.4%",
+    "period": "at 2026-09-23",
+    "filed": "2026-10-28",
     "tag": "StockholdersEquity"
    },
    {
     "label": "Earnings yield / free cash flow yield",
-    "value": "7.9% / 14.6%",
+    "value": "5.9% / 7.1%",
     "period": "trailing year against the reference close",
     "filed": null,
     "interpretation": true
    },
    {
     "label": "Share count",
-    "value": "589,044,385 (market cap $87.4bn)",
-    "period": "at 2026-06-30",
-    "filed": "2026-08-04",
-    "tag": "CommonStockSharesIssued"
+    "value": "41,542,701 (market cap $8.5bn)",
+    "period": "at 2026-10-22",
+    "filed": "2026-10-28",
+    "tag": "EntityCommonStockSharesOutstanding"
    }
   ],
   "peers": [
    {
-    "ticker": "EOG",
-    "name": "EOG Resources, Inc.",
-    "revenueTtm": 27026000000,
-    "revenueGrowth": 0.19073005242983654,
-    "quarterYoY": 0.5735669952537423,
-    "grossMargin": null,
-    "operatingMargin": 0.3294975209057944,
-    "cashConversion": 1.9426992437463642,
-    "freeCashFlowTtm": 12778000000
-   },
-   {
-    "ticker": "RRC",
-    "name": "Range Resources Corporation",
-    "revenueTtm": 3530725000,
-    "revenueGrowth": 0.20841824179419755,
-    "quarterYoY": 0.12597791932967106,
-    "grossMargin": null,
-    "operatingMargin": null,
-    "cashConversion": 1.5922334671733065,
-    "freeCashFlowTtm": null
-   }
-  ],
-  "peerBasis": "1 candidates in all energy candidates, compared on free cash flow yield, all from the same source and the same periods.",
-  "runnersUp": [
-   {
     "ticker": "EAT",
     "name": "Brinker International, Inc.",
-    "rankScore": 91,
-    "why": "its weakest signal was revenue growth, trailing year (-0.09)"
+    "revenueTtm": 5933800000,
+    "revenueGrowth": 0.060667810667810684,
+    "quarterYoY": 0.09368514675363171,
+    "grossMargin": null,
+    "operatingMargin": 0.11004752435201726,
+    "cashConversion": 1.672723642172524,
+    "freeCashFlowTtm": 601000000
    },
+   {
+    "ticker": "SBUX",
+    "name": "Starbucks Corporation",
+    "revenueTtm": 38338300000,
+    "revenueGrowth": 0.04494498395990121,
+    "quarterYoY": -0.014096869712351912,
+    "grossMargin": null,
+    "operatingMargin": 0.07766385050980351,
+    "cashConversion": 2.5147021738033994,
+    "freeCashFlowTtm": 3642100000
+   },
+   {
+    "ticker": "MCD",
+    "name": "McDonald's Corporation",
+    "revenueTtm": 27782000000,
+    "revenueGrowth": 0.05775747192080716,
+    "quarterYoY": 0.011161345012715485,
+    "grossMargin": null,
+    "operatingMargin": 0.46944064502195665,
+    "cashConversion": 1.2170094496942745,
+    "freeCashFlowTtm": 7491000000
+   },
+   {
+    "ticker": "ARMK",
+    "name": "Aramark",
+    "revenueTtm": 20090009000,
+    "revenueGrowth": 0.08557680819919744,
+    "quarterYoY": 0.04847910176243708,
+    "grossMargin": null,
+    "operatingMargin": 0.04565811792319257,
+    "cashConversion": 2.280908539636206,
+    "freeCashFlowTtm": 501240000
+   },
+   {
+    "ticker": "DRI",
+    "name": "Darden Restaurants, Inc.",
+    "revenueTtm": 13366500000,
+    "revenueGrowth": 0.08104720002588084,
+    "quarterYoY": 0.05110519919860734,
+    "grossMargin": null,
+    "operatingMargin": 0.11692664497063554,
+    "cashConversion": 1.5136598156136345,
+    "freeCashFlowTtm": 1054400000
+   },
+   {
+    "ticker": "CMG",
+    "name": "Chipotle Mexican Grill, Inc.",
+    "revenueTtm": 12713477000,
+    "revenueGrowth": 0.07856499312825549,
+    "quarterYoY": 0.09646192837289469,
+    "grossMargin": null,
+    "operatingMargin": 0.14118411509298362,
+    "cashConversion": 1.7049239131934384,
+    "freeCashFlowTtm": 1509930000
+   },
+   {
+    "ticker": "YUMC",
+    "name": "Yum China Holdings, Inc.",
+    "revenueTtm": 12709000000,
+    "revenueGrowth": 0.09853919958509816,
+    "quarterYoY": 0.08452900810979425,
+    "grossMargin": null,
+    "operatingMargin": 0.11275474073491226,
+    "cashConversion": 1.599601593625498,
+    "freeCashFlowTtm": 948000000
+   }
+  ],
+  "peerBasis": "12 candidates in SIC major group 58, compared on free cash flow yield, all from the same source and the same periods.",
+  "runnersUp": [
    {
     "ticker": "SBH",
     "name": "Sally Beauty Holdings, Inc. (Name to be changed from Sally Holdings, Inc.)",
-    "rankScore": 89,
-    "why": "its weakest signal was revenue growth, trailing year (-0.76)"
+    "rankScore": 93,
+    "why": "its weakest signal was revenue growth, trailing year (-0.78)"
    },
    {
     "ticker": "GAP",
     "name": "Gap, Inc. (The)",
-    "rankScore": 85,
-    "why": "its weakest signal was six-month return against spy (-1.49)"
+    "rankScore": 91,
+    "why": "its weakest signal was six-month return against spy (-1.47)"
+   },
+   {
+    "ticker": "CAKE",
+    "name": "The Cheesecake Factory Incorporated",
+    "rankScore": 89,
+    "why": "its weakest signal was debt over operating cash flow (-0.56)"
    }
   ],
   "counterargument": "The honest counterargument is the sample: this process has not been shown to work, and a single ranking position is not evidence about one company.",
   "invalidation": [
-   "Quarterly revenue growth falling below +22.1%, the rate it was running at the quarter before.",
+   "Quarterly revenue growth falling below +5.1%, the rate it was running at the quarter before.",
    "Cash conversion dropping below 1.0×, meaning earnings stop being backed by cash.",
-   "A close below the 200-session average, which stood at $140.75 on the decision date."
+   "A close below the 200-session average, which stood at $177.90 on the decision date."
   ],
   "risks": [
-   "The share count is from 2026-06-30, 148 days older than the price, so the market capitalisation carries that staleness.",
-   "The most recent filing covers a period ending 2026-06-30, 148 days before the decision date.",
+   "The share count is from 2026-10-22, 34 days older than the price, so the market capitalisation carries that staleness.",
+   "The most recent filing covers a period ending 2026-10-22, 34 days before the decision date.",
    "One of the four quarters in the trailing year is the fourth quarter, which companies report only as part of the full year; it is derived as the annual figure less the first three quarters.",
    "Point-in-time fundamentals are built from filings accepted up to 2026-11-25."
   ],
   "earnings": {
-   "estimate": "2027-01-11",
-   "basis": "the same fiscal quarter's announcement a year earlier (2026-01-12) plus 364 days",
-   "spreadDays": 21,
+   "estimate": "2027-01-27",
+   "basis": "the same fiscal quarter's announcement a year earlier (2026-01-28) plus 364 days",
+   "spreadDays": 15,
    "confirmed": false,
    "inWindow": false,
-   "nearWindow": true
+   "nearWindow": false
   },
   "rule": "Universe: every US-listed common stock on NYSE, Nasdaq or NYSE American — about 4,700 names from Nasdaq Trader's own file. Eligible means: priced at $5 or more, median daily turnover of $20M or more over 60 sessions, at least 253 sessions of history, a 10-Q or 10-K whose period ended within 200 days, close above the 200-session average, volatility inside the day's 85th percentile, debt no more than 6× operating cash flow, no results announced in the last 2 sessions, and no position already open in the stock or a fourth in the same SIC division. Eligible candidates are then ranked on equally weighted z-scores within their sector group, over the signals that are defined for that group. One position per session, held 21 sessions, a twenty-first of capital each, 10 basis points of cost each way. Fundamentals are read as they stood on the decision date, never as they read today. The score is a ranking position among that day's eligible candidates. It is not a probability, a price target, or a forecast of any return.",
   "validation": "The held-out window has not been opened. No claim of an edge is made or implied.",
@@ -1059,6 +1118,28 @@
      "publishedAt": "2026-11-26T10:05:27.722Z",
      "cardBuy": "2026-11-26",
      "cardSell": "2026-12-24",
+     "status": "not-entered",
+     "reason": "the market has not opened since publication",
+     "entryDate": null,
+     "entryPrice": null,
+     "valueDate": null,
+     "valuePrice": null,
+     "sessionsHeld": 0,
+     "horizon": 21,
+     "netPct": null,
+     "grossPct": null,
+     "excessSpyPct": null,
+     "spyPct": null,
+     "excessRspPct": null
+    },
+    {
+     "strategyVersion": 2,
+     "date": "2026-11-27",
+     "ticker": "EAT",
+     "name": "Brinker International, Inc.",
+     "publishedAt": "2026-11-27T10:17:15.251Z",
+     "cardBuy": "2026-11-27",
+     "cardSell": "2026-12-25",
      "status": "not-entered",
      "reason": "the market has not opened since publication",
      "entryDate": null,
