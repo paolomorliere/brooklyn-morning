@@ -1,5 +1,5 @@
 export const TOPICS: string[];
-export const FEEDS: { id: string; name: string; topic: string; url: string; weight: number; lead: boolean; lang?: string; sub?: string; requireKeyword?: RegExp }[];
+export const FEEDS: { id: string; name: string; topic: string; url: string; weight: number; lead: boolean; lang?: string; sub?: string; requireKeyword?: RegExp; requireUrl?: RegExp }[];
 export const SLOT_RULES: Record<string, { sub: string | string[]; match?: RegExp }[]>;
 export const HALF_LIFE_HOURS: Record<string, number>;
 export const BOOSTS: Record<string, [RegExp, number][]>;
@@ -7,6 +7,7 @@ export const SUBJECTS: Record<string, [string, RegExp][]>;
 export const MATCH_REPORT: RegExp[];
 export const MATCH_REPORT_PENALTY: Record<string, number>;
 export const MAX_AGE_HOURS: Record<string, number>;
+export const TOP_UP_MAX_AGE_HOURS: Record<string, number>;
 export const PER_TOPIC: number;
 export const NEAR_DUPLICATE: { maxShare: number; minShared: number; minOverlap: number };
 export const SPONSORED_CATEGORIES: RegExp[];

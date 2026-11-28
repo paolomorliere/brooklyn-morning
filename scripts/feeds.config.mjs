@@ -30,6 +30,13 @@ export const FEEDS = [
   { id: 'willison', name: 'Simon Willison', topic: 'ai', url: 'https://simonwillison.net/atom/entries/', weight: 0.6, lead: true },
   { id: 'powerbi', name: 'Power BI Blog', topic: 'ai', url: 'https://powerbi.microsoft.com/en-us/blog/feed/', weight: 0.8, lead: true, sub: 'data' },
   { id: 'wired-ai', name: 'Wired', topic: 'ai', url: 'https://www.wired.com/feed/tag/ai/latest/rss', weight: 0.9, lead: true },
+  // Added 2026-11-28, after Thanksgiving left one fresh AI story across the six feeds above: BBC News
+  // Technology publishes through holidays and weekends, the BBC is already a permitted source here, and
+  // the topic vocabulary keeps only its AI and data items. The feed also lists Tech Now (iPlayer) and
+  // Tech Life (Sounds) episodes, which are programmes, not articles, so only /news/articles/ links count.
+  // The Guardian's AI feed was considered and not used: it answered 403, and its robots.txt says its
+  // content may not be used for AI-related purposes.
+  { id: 'bbc-tech', name: 'BBC News', topic: 'ai', url: 'https://feeds.bbci.co.uk/news/technology/rss.xml', weight: 0.8, lead: true, requireUrl: /\/news\/articles\// },
 
   // 2) World, US & France  (sub: 'france' guarantees one France story a day)
   { id: 'npr-news', name: 'NPR', topic: 'world', url: 'https://feeds.npr.org/1001/rss.xml', weight: 1.0, lead: true },
@@ -209,6 +216,15 @@ export const HALF_LIFE_HOURS = { ai: 18, world: 14, finance: 14, waterpolo: 72, 
 
 /** Per-topic freshness: max age in hours to include at all; items older than 48 h are labeled Background. */
 export const MAX_AGE_HOURS = { ai: 48, world: 36, finance: 36, waterpolo: 7 * 24, soccer: 36 };
+
+/**
+ * A slow-news top-up, per topic. Only when the fresh window above cannot fill the section, it is topped
+ * up with stories up to this old that no earlier edition carried, best first. Each one is older than
+ * 48 h, so it carries the "Background" label and its real age. Added 2026-11-28: over Thanksgiving the
+ * AI feeds published so little that the section showed one story, while a dozen unseen AI stories from
+ * the previous three days sat just outside the window.
+ */
+export const TOP_UP_MAX_AGE_HOURS = { ai: 96 };
 
 /** How many stories to keep per topic in the file (the app shows 1–6 based on the reading-length setting). */
 export const PER_TOPIC = 6;

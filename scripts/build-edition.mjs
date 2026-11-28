@@ -9,7 +9,7 @@ import { createHash } from 'node:crypto';
 import { XMLParser } from 'fast-xml-parser';
 import { Readability } from '@mozilla/readability';
 import { parseHTML } from 'linkedom';
-import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, HALF_LIFE_HOURS, NEAR_DUPLICATE, PER_TOPIC, SLOT_RULES, SPONSORED_CATEGORIES, SUBJECTS, TOPIC_KEYWORDS, isBlockedUrl } from './feeds.config.mjs';
+import { FEEDS, TOPICS, BOOSTS, MATCH_REPORT, MATCH_REPORT_PENALTY, MAX_AGE_HOURS, TOP_UP_MAX_AGE_HOURS, HALF_LIFE_HOURS, NEAR_DUPLICATE, PER_TOPIC, SLOT_RULES, SPONSORED_CATEGORIES, SUBJECTS, TOPIC_KEYWORDS, isBlockedUrl } from './feeds.config.mjs';
 import { canonicalUrl, scoreItem, selectPerTopic, tagGlossary, titleSimilarity } from './lib/rank.mjs';
 import { stockCardFor } from './lib/strategy.mjs';
 
@@ -296,6 +296,8 @@ async function main() {
         for (const raw of parsed) {
           if (!raw.title || !raw.url) continue;
           if (feed.requireKeyword && !feed.requireKeyword.test(`${raw.title} ${raw.excerpt}`)) continue;
+          // A feed that mixes articles with programme episodes (BBC Technology): only article links.
+          if (feed.requireUrl && !feed.requireUrl.test(raw.url)) continue;
           // A site Paolo asked never to see. Checked on the story's own link, so it holds whichever feed
           // the story came through.
           if (isBlockedUrl(raw.url)) {
@@ -347,6 +349,7 @@ async function main() {
   const perTopic = selectPerTopic(items, {
     perTopic: PER_TOPIC,
     maxAgeHours: MAX_AGE_HOURS,
+    topUpMaxAgeHours: TOP_UP_MAX_AGE_HOURS,
     seen,
     now,
     topics: TOPICS,

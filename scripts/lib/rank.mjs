@@ -181,17 +181,20 @@ const matchesSlot = (it, rule) => (Array.isArray(rule.sub) ? rule.sub.includes(i
  *  4. if slots remain, relax the publisher cap (thin topics).
  * For slot rules whose sub values are ordered (e.g. ['ncaa-east','ncaa-west']), earlier values are preferred.
  */
-export function selectPerTopic(items, { perTopic, maxAgeHours, seen = {}, now = Date.now(), topics, maxPerPublisher = 2, maxForeignShare = 0.5, slotRules = {}, subjects = {}, diverseTop = 3, nearDuplicate = {}, onDrop = null }) {
+export function selectPerTopic(items, { perTopic, maxAgeHours, topUpMaxAgeHours = {}, seen = {}, now = Date.now(), topics, maxPerPublisher = 2, maxForeignShare = 0.5, slotRules = {}, subjects = {}, diverseTop = 3, nearDuplicate = {}, onDrop = null }) {
   const result = {};
   const takenUrls = new Set(); // across topics: the same story never appears in two sections
   const takenTitles = [];
   for (const topic of topics) {
-    const fresh = items.filter((it) => it.topic === topic && !seen[canonicalUrl(it.url)] && (now - new Date(it.publishedAt).getTime()) / 3.6e6 <= (maxAgeHours[topic] ?? 36));
+    const ageH = (it) => (now - new Date(it.publishedAt).getTime()) / 3.6e6;
+    const maxAge = maxAgeHours[topic] ?? 36;
+    const unseen = items.filter((it) => it.topic === topic && !seen[canonicalUrl(it.url)]);
+    const fresh = unseen.filter((it) => ageH(it) <= maxAge);
     // Document frequencies come from the whole candidate pool for the topic, not from the handful that
     // end up selected. That is what makes "Collegiate" and "Association" common and "Sabadell" rare:
     // water polo's pool is a week of CWPA notices, so the section's own vocabulary is everywhere in it.
-    const df = documentFrequency(fresh);
-    const poolSize = fresh.length;
+    let df = documentFrequency(fresh);
+    let poolSize = fresh.length;
     const ranked = dedupe(fresh).filter((it) => !takenUrls.has(canonicalUrl(it.url)) && !takenTitles.some((t) => titleSimilarity(t, it.title) > 0.5));
     const picked = [];
     const perPub = {};
@@ -253,6 +256,28 @@ export function selectPerTopic(items, { perTopic, maxAgeHours, seen = {}, now = 
         if (picked.length >= perTopic) break;
         if (picked.includes(it)) continue;
         if (canTake(it, relaxPub)) take(it);
+      }
+    }
+    // 5) slow-news top-up: only when the fresh window could not fill the section, and only with stories
+    //    no edition has carried, up to the topic's top-up age. They are older than the fresh window, so
+    //    they come out labelled Background with their real age.
+    const topUpAge = topUpMaxAgeHours[topic];
+    if (picked.length < perTopic && topUpAge > maxAge) {
+      const older = unseen.filter((it) => ageH(it) > maxAge && ageH(it) <= topUpAge);
+      df = documentFrequency([...fresh, ...older]);
+      poolSize = fresh.length + older.length;
+      const extra = dedupe(older).filter(
+        (it) =>
+          !takenUrls.has(canonicalUrl(it.url)) &&
+          !takenTitles.some((t) => titleSimilarity(t, it.title) > 0.5) &&
+          !picked.some((p) => canonicalUrl(p.url) === canonicalUrl(it.url) || titleSimilarity(p.title, it.title) > 0.5),
+      );
+      for (const relaxPub of [false, true]) {
+        for (const it of extra) {
+          if (picked.length >= perTopic) break;
+          if (picked.includes(it)) continue;
+          if (canTake(it, relaxPub)) take(it);
+        }
       }
     }
     for (const it of picked) {

@@ -920,6 +920,35 @@ lists, so both failed on every device. Proved unrelated to the day's changes by 
 previous commit. They now pick from games involving the thirteen followed schools.
 
 
+## 2026-11-28 — One AI & Data story over Thanksgiving
+
+**What happened.** The 28 November edition carried one AI & Data story. Nothing failed: all 40 feeds
+answered, and only two items were removed by a rule (both MIT Technology Review sponsored pieces). The six
+AI publishers had barely published since Wednesday, and everything from the last 48 hours except one
+Verge piece had already run in the 24–27 November editions (which `state/seen.json` keeps from repeating).
+About a dozen AI stories that no edition had carried sat just outside the 48-hour window (Tidal's ban on
+AI music, Anthropic's agent honeypot, Huang's all-hands, and others).
+
+**Fix, two parts.**
+* **BBC News Technology** added as a seventh AI source (`bbc-tech`). It publishes through holidays and
+  weekends, the BBC is already a permitted source, the topic vocabulary keeps only its AI/data items, and
+  a new `requireUrl` feed option keeps only `/news/articles/` links (the feed also lists iPlayer and
+  Sounds programme episodes). The Guardian's AI feed was rejected: 403, and its robots.txt forbids
+  AI-related use of its content.
+* **Slow-news top-up** (`TOP_UP_MAX_AGE_HOURS = { ai: 96 }`, `selectPerTopic` step 5). Only when the
+  48-hour window cannot fill the section, it is topped up with stories up to 96 hours old that no edition
+  carried, best first. They are older than 48 hours, so the app labels them "Background" with their real
+  age; nothing is presented as fresh. Other sections are unchanged.
+
+**Checked.** Replaying this morning against the live feeds and the pre-edition `seen.json`: 6 stories
+instead of 1 (3 fresh: two BBC, one Verge; 3 Background: Verge, two Wired). 4 new unit tests (top-up
+fills and labels; never repeats a seen story or exceeds 96 h; inert when the window fills; inert for
+topics without a top-up age). 566 Vitest pass; `replay-rules` unchanged (7 of 412).
+
+**Limit.** If a holiday stretch lasts longer than four days with no new AI stories, the section can
+still come up short. It then shows fewer stories; it does not reach further back or repeat old ones.
+
+
 ## Backtest
 
 <!-- backtest -->
